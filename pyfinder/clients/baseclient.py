@@ -25,8 +25,9 @@ class BaseWebServiceClient(ABCMeta):
         # The agency providing the web service, e.g. "ESM"
         self.agency = agency
 
-        # The data structure used to store the data retrieved from 
-        # the web service. This will be a subclass of BaseDataStructure.
+        # The data structure (model) to store the data retrieved from 
+        # the web services. This will be a subclass of BaseDataStructure,
+        # and mostly likely nested. 
         self.data = None
 
     def get_data(self):
@@ -125,7 +126,7 @@ class BaseWebServiceClient(ABCMeta):
             return self.parse(file_like_obj=url_response)
 
     @abstractmethod
-    def parse(self, file_like_obj):
+    def parse_response(self, file_like_obj):
         """ Parse the data returned by the web service. """
         pass
 
@@ -136,7 +137,7 @@ class BaseWebServiceClient(ABCMeta):
 
     def validate_options(self, **options):
         """
-        Checks whether all the given options are supported by the relevant
+        Check whether all the given options are supported by the relevant
         web service. Each subclass of this class is required supply a list
         of the options via the get_supported_ws_options() abstract method.
         """
@@ -147,19 +148,29 @@ class BaseWebServiceClient(ABCMeta):
                         option, self.get_agency(), self.get_web_service()))
             
     def open_url(self, url, opener):
-        """ Download the data from the given URL using the opener. """
+        """ 
+        Open the given URL using the opener. Return HTTP return code, 
+        the response, and the error, if any. A combination of the error
+        code and response might provide more granular information about
+        the error in subclasses.
+        """
         try:
             code = url_response.getcode()
             url_response = opener.open(url)
+            error = None
         except urllib.error.HTTPError as e:
             code = e.code
-            url_response = e
+            url_response = None
+            error = e
         except urllib.error.URLError as e:
             code = 400
-            url_response = e
+            url_response = None
+            error = e
         except Exception as e:
             code = 400
-            url_response = e
-        return code, url_response
-    
+            url_response = None
+            error = e
+
+        # return the code, response and error, if any    
+        return code, url_response, error
     
