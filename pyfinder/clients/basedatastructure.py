@@ -6,15 +6,17 @@ class BaseDataStructure:
     Base class for the data structure used to store the data retrieved
     from the web services. 
     
-    There is no strict definition of the data as it depends on the particular 
-    web service that is being used. Subclasses of this class should be
-    created for each web service and deal with the fields internally. 
-    Most of the web services provide data for 3-components as well as some
-    additional data, such as event_id, at the event level. In these cases,
-    the subclass should have multiple dictionaries, one for the event level
-    and one for each component.
+    There is no strict definition of the data structure as it depends on 
+    the particular web service that is being used. Subclasses of this 
+    class should be created for each web service and deal with the fields 
+    internally. Most of the web services provide data for 3-components 
+    as well as some additional data, such as event_id, at the event level. 
+    In these cases, the subclass chould have multiple dictionaries, one for 
+    the event level and one for each component. Alternatively, the nested 
+    data structure can be stored as lists of dictionaries under a single key 
+    in the main dictionary.
 
-    The data structure itsels is a dictionary. This class allows to add 
+    The data structure itself is a dictionary. This class allows to add 
     and remove fields to the dictionary. Data can be accessed via the dot 
     notation or the set() and get() methods.
     
@@ -94,12 +96,18 @@ class BaseDataStructure:
             raise AttributeError(f"'{self.__class__.__name__}'"
                                  " object has no attribute '{field_name}'")
     
-    def set(self, field_name, value):
-        """ Set the value of a field. """
+    def set(self, field_name, value, add_if_not_exist=False):
+        """ 
+        Set the value of a field. Allows to force adding a field
+        with if_not_exist=True when a field does not exist.
+        """
         if field_name in self._data:
             self._data[field_name] = value
         else:
-            raise ValueError(f"Field '{field_name}' does not exist.")
+            if add_if_not_exist:
+                self.add_field(field_name, value)
+            else:
+                raise ValueError(f"Field '{field_name}' does not exist.")
 
     def __getattr__(self, attr):
         """ Override the __getattr__ method to allow getting attributes"""
@@ -115,3 +123,17 @@ class BaseDataStructure:
             self._data[attr] = value
         else:
             super().__setattr__(attr, value)
+
+
+if __name__ == "__main__":
+    dst = BaseDataStructure()
+
+    dst.add_field('eventid')
+    dst.eventid = '20170524_0000045'
+    print(dst.eventid)
+
+    dst.testField = "test field"
+    print(dst.testField)
+
+    dst.set('event_lat', 38.8, add_if_not_exist=True)
+    print(dst.get('event_lat'))
