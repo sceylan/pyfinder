@@ -50,6 +50,14 @@ class ESMEventWSParser(BaseParser):
             moment_tensor = focal_mechanism.get('momentTensor', {})
             nodal_planes = focal_mechanism.get('nodalPlanes', {}).get('nodalPlane', [])
 
+            # This is an example
+            for i, nodal_plane in enumerate(nodal_planes):
+                print(f"  Nodal Plane {i + 1}:")
+                print("    Strike:", nodal_plane.get('strike', {}).get('value', 'N/A'))
+                print("    Dip:", nodal_plane.get('dip', {}).get('value', 'N/A'))
+                print("    Rake:", nodal_plane.get('rake', {}).get('value', 'N/A'))
+
+
         # Pass the main data structure back to the caller
         return esm_shakemap_data
     
