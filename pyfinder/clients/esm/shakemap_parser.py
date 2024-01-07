@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 import datetime
 import xmltodict
+from ..baseparser import BaseParser
+from .shakemap_data import ESMShakeMapData
+from .shakemap_data import ESMShakeMapStationNode
+from .shakemap_data import ESMShakeMapComponentNode
 
-import sys
-sys.path.append("..")
-from baseparser import BaseParser
-from clients.esm.shakemap_data import ESMShakeMapData
-from clients.esm.shakemap_data import ESMShakeMapStationNode
-from clients.esm.shakemap_data import ESMShakeMapComponentNode
-
-class ESMShakeMapWSParser(BaseParser):
+class ESMShakeMapParser(BaseParser):
     """
     Parser class for the ESM ShakeMap web service output.
     The return from the web service is an XML file without
@@ -86,7 +83,7 @@ class ESMShakeMapWSParser(BaseParser):
         Calls the internal parse method if the data 
         is successfully validated.
         """
-        if self.validate(data):
+        if data and self.validate(data):
             return self._parse(data)
         else:
             raise ValueError("Invalid data. The content is not " +

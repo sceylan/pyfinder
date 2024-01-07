@@ -10,7 +10,7 @@ sys.path.append(parent_dir)
 from ..baseclient import BaseWebServiceClient
 
 
-class ESMShakeMapWSClient(BaseWebServiceClient):
+class ESMShakeMapClient(BaseWebServiceClient):
     """
     Class for ESM Shakemap web service client.
 
@@ -27,7 +27,7 @@ class ESMShakeMapWSClient(BaseWebServiceClient):
         """ Parse the data returned by the web service. """
         pass
 
-    def is_value_allowed(self, option, value):
+    def is_value_valid(self, option, value):
         """ 
         Check whether the given value is allowed for the given option. 
         The values for ESM shake map web service options are:

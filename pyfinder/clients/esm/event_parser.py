@@ -5,13 +5,13 @@ import xmltodict
 import sys
 sys.path.append("..")
 from baseparser import BaseParser
-from clients.esm.shakemap_data import ESMEventWSData
-from clients.esm.shakemap_data import ESMEventWSOriginNode
-from clients.esm.shakemap_data import ESMEventWSMagnitudeNode
-from clients.esm.shakemap_data import ESMEventWSFocalMechanismNode
-from clients.esm.shakemap_data import ESMEventWSMomentTensorNode
+from clients.esm.shakemap_data import ESMEventData
+from clients.esm.shakemap_data import ESMEventOriginNode
+from clients.esm.shakemap_data import ESMEventMagnitudeNode
+from clients.esm.shakemap_data import ESMEventFocalMechanismNode
+from clients.esm.shakemap_data import ESMEventMomentTensorNode
 
-class ESMEventWSParser(BaseParser):
+class ESMEventParser(BaseParser):
     """
     Parser class for the ESM Event web service output.
     The return from the web service is a QuakeML XML. 
@@ -34,7 +34,7 @@ class ESMEventWSParser(BaseParser):
             "created": datetime.datetime.fromtimestamp(
                 int(quakeml_dict['stationlist']['@created'])),
             "stations": []}
-        esm_shakemap_data = ESMEventWSData(_esm_toplevel_data)
+        esm_shakemap_data = ESMEventData(_esm_toplevel_data)
 
         # Extract and print information for all events
         event_parameters = quakeml_dict['q:quakeml']['eventParameters']

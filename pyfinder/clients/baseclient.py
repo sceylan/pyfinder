@@ -155,7 +155,6 @@ class BaseWebServiceClient(ABC):
             return code, self.parse_response(file_like_obj=url_response)
         else:
             # If failed, return the code and None
-            print(error)
             return code, None
         
     @abstractmethod
@@ -169,7 +168,7 @@ class BaseWebServiceClient(ABC):
         return []
 
     @abstractmethod
-    def is_value_allowed(self, option, value):
+    def is_value_valid(self, option, value):
         """ 
         Validate the given option value. Each subclass of this class is
         required supply a list of the values per option. 
@@ -190,7 +189,7 @@ class BaseWebServiceClient(ABC):
             
             # Validate the option value
             else:
-                if not self.is_value_allowed(option, options[option]):
+                if not self.is_value_valid(option, options[option]):
                     raise InvalidOptionValue(
                         "`{}` is not a valid value for `{}` option.".format(
                             options[option], option))

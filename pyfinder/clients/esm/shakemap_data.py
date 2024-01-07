@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*- 
-import sys
 import datetime
 
-sys.path.append("..")
-from basedatastructure import BaseDataStructure
+from ..basedatastructure import BaseDataStructure
 
-class ESMShakeMapWSStationNode(BaseDataStructure):
+class ESMShakeMapStationNode(BaseDataStructure):
     """
     Pesudo-class for a station-level data in the ESM ShakeMap 
     data structure.
@@ -20,7 +18,7 @@ class ESMShakeMapWSStationNode(BaseDataStructure):
         """
         return self.get('components')
 
-class ESMShakeMapWSComponentNode(BaseDataStructure):
+class ESMShakeMapComponentNode(BaseDataStructure):
     """ 
     Pesudo-class for a component-level data in the ESM ShakeMap
     data structure.
@@ -29,7 +27,7 @@ class ESMShakeMapWSComponentNode(BaseDataStructure):
         super().__init__(data_dict=data_dict, kwargs=kwargs)
 
 
-class ESMShakeMapWSData(BaseDataStructure):
+class ESMShakeMapData(BaseDataStructure):
     """
     Main data structure for the ESM ShakeMap web service.
     """

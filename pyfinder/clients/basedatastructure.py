@@ -124,6 +124,18 @@ class BaseDataStructure:
         else:
             super().__setattr__(attr, value)
 
+    def __getitem__(self, key):
+        if self._data:
+            return self._data[key]
+
+    def __setitem__(self, key, value):
+        if self._data:
+            self._data[key] = value
+
+    def __delitem__(self, key):
+        if self._data:
+            del self._data[key]
+
 
 if __name__ == "__main__":
     dst = BaseDataStructure()
