@@ -42,7 +42,7 @@ class TestBaseClient(unittest.TestCase):
             pass
 
     
-class TestESMShakeMapWSClient(unittest.TestCase):
+class TestESMShakeMapClient(unittest.TestCase):
     """Unit tests for the ESM Shakemap web service client."""
     def test_url_build(self):
         # Test the build_url method.
@@ -126,4 +126,10 @@ class TestESMShakeMapWSClient(unittest.TestCase):
             # error code will be 404.
             for _code in [400, 404, 500, 501, 502]:
                 self.assertNotEqual(code, _code)
+
+        # Check the data
+        self.assertIsNotNone(data)
+        
+        # Check the data content
+        self.assertEqual(data.get_stations()[0].get('code'), 'KRK1')
         

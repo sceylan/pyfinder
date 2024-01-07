@@ -21,23 +21,25 @@ station_list = {
         "lon": "19.9202",
         "comp": [
             {"name": ".HNE", "depth": "0.0",
-            "acc": {"value": "0.016794504", "flag": "0"},
-            "vel": {"value": "0.008192","flag": "0"},
-            "psa03": {"value": "0.0394178840307","flag": "0"},
-            "psa10": {"value": "0.00614489465695","flag": "0"},
-            "psa30": {"value": "0.00123846427919","flag": "0"}},
+             "acc": {"value": "0.016794504", "flag": "0"},
+             "vel": {"value": "0.008192","flag": "0"},
+             "psa03": {"value": "0.0394178840307","flag": "0"},
+             "psa10": {"value": "0.00614489465695","flag": "0"},
+             "psa30": {"value": "0.00123846427919","flag": "0"}},
+            
             {"name": ".HNN", "depth": "0.0",
-            "acc": {"value": "0.016320204", "flag": "0"},
-            "vel": {"value": "0.008136","flag": "0"},
-            "psa03": {"value": "0.0418339631881", "flag": "0"},
-            "psa10": {"value": "0.007030790348", "flag": "0"},
-            "psa30": {"value": "0.000478741610816", "flag": "0"}},
-        {"name": ".HNZ", "depth": "0.0",
-            "acc": {"value": "0.018035436", "flag": "0"},
-            "vel": {"value": "0.002963", "flag": "0"},
-            "psa03": {"value": "0.0272927460371", "flag": "0"},
-            "psa10": {"value": "0.00361203834029", "flag": "0"},
-            "psa30": {"value": "0.000409391190557", "flag": "0"}}]}
+             "acc": {"value": "0.016320204", "flag": "0"},
+             "vel": {"value": "0.008136","flag": "0"},
+             "psa03": {"value": "0.0418339631881", "flag": "0"},
+             "psa10": {"value": "0.007030790348", "flag": "0"},
+             "psa30": {"value": "0.000478741610816", "flag": "0"}},
+            
+            {"name": ".HNZ", "depth": "0.0",
+             "acc": {"value": "0.018035436", "flag": "0"},
+             "vel": {"value": "0.002963", "flag": "0"},
+             "psa03": {"value": "0.0272927460371", "flag": "0"},
+             "psa10": {"value": "0.00361203834029", "flag": "0"},
+             "psa30": {"value": "0.000409391190557", "flag": "0"}}]}
 }
 class TestESMShakeMapParser(unittest.TestCase):
     def test_ESMShakeMap_parser(self):

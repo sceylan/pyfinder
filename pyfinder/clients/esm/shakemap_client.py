@@ -8,24 +8,36 @@ parent_dir = os.path.dirname(module_path)
 sys.path.append(parent_dir)
 
 from ..baseclient import BaseWebServiceClient
-
+from .shakemap_parser import ESMShakeMapParser
 
 class ESMShakeMapClient(BaseWebServiceClient):
     """
     Class for ESM Shakemap web service client.
 
-    As in the of each client, the class needs to override the following
-    abstract methods:
+    As in the case for each client, the class needs to override 
+    the following abstract methods:
     - parse_response(self, file_like_obj)
     - get_supported_options(self)
+    - is_value_valid(self, option, value)
     """
-    def __init__(self, agency="EMSC", base_url="https://esm-db.eu/esmws/", 
+    def __init__(self, agency="ESM", base_url="https://esm-db.eu/esmws/", 
                  end_point="shakemap", version="1"):
         super().__init__(agency, base_url, end_point, version)
 
-    def parse_response(self, file_like_obj):
+    def parse_response(self, file_like_obj=None):
         """ Parse the data returned by the web service. """
-        pass
+        if file_like_obj:
+            data = ESMShakeMapParser().parse(file_like_obj)
+            self.set_data(data)
+
+        return self.get_data()
+
+    def get_supported_options(self):
+        """ 
+        Return the list of options available at the ESM shakemap 
+        web service.
+        """
+        return ['eventid', 'catalog', 'format', 'flag', 'encoding']
 
     def is_value_valid(self, option, value):
         """ 
@@ -36,9 +48,9 @@ class ESMShakeMapClient(BaseWebServiceClient):
         eventid: 
             Select a specific event by ID. Multiple IDs are not allowed. 
             The event ID must exist in the catalog of your choice.
-            
             Default: None
-        
+            Valid values: Any valid event ID that is in the database.
+
         catalog: 
             The catalog for the specified 'eventid'.
             Default: ESM
@@ -72,14 +84,3 @@ class ESMShakeMapClient(BaseWebServiceClient):
             if value not in options[option.lower()]:
                 return False
         return True
-            
-    def get_supported_options(self):
-        """ 
-        Return the list of options available at the ESM shakemap 
-        web service.
-        """
-        return ['eventid', 'catalog', 'format', 'flag', 'encoding']
-
-
-
-    
