@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
-sys.path.append("..")
-
 from abc import abstractmethod
-from baseclient import BaseWebServiceClient
+
+module_path = os.path.abspath(__file__)
+parent_dir = os.path.dirname(module_path)
+sys.path.append(parent_dir)
+
+from ..baseclient import BaseWebServiceClient
 
 
 class ESMShakeMapWSClient(BaseWebServiceClient):
@@ -15,15 +19,14 @@ class ESMShakeMapWSClient(BaseWebServiceClient):
     - parse_response(self, file_like_obj)
     - get_supported_options(self)
     """
-    def __init__(self, agency=None, base_url=None, end_point=None, version="1"):
+    def __init__(self, agency="EMSC", base_url="https://esm-db.eu/esmws/", 
+                 end_point="shakemap", version="1"):
         super().__init__(agency, base_url, end_point, version)
 
-    @abstractmethod
     def parse_response(self, file_like_obj):
         """ Parse the data returned by the web service. """
         pass
 
-    @abstractmethod
     def get_supported_options(self):
         """ 
         Return the list of options available at the ESM shakemap 

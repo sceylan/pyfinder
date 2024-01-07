@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Base class for the web service clients. """
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 import urllib
 import urllib.request as urllib_request
 from . import http
@@ -8,7 +8,7 @@ from . import http
 class InvalidQueryOption(Exception):
     pass
 
-class BaseWebServiceClient(ABCMeta):
+class BaseWebServiceClient(ABC):
     def __init__(self, agency=None, base_url=None, end_point=None, version="1"):
         # The web service base URL, e.g. "https://esm-db.eu/fdsnws"
         self.base_url = base_url
@@ -29,6 +29,14 @@ class BaseWebServiceClient(ABCMeta):
         # the web services. This will be a subclass of BaseDataStructure,
         # and mostly likely nested. 
         self.data = None
+
+        # The flag to force redirect. If True, the client will follow
+        # the redirect even if the credentials are given.
+        self._force_redirect = False
+
+    def set_force_redirect(self, force_redirect):
+        """ Set the flag to force redirect. """
+        self._force_redirect = force_redirect
 
     def get_data(self):
         """ Return the data structure."""
@@ -66,6 +74,7 @@ class BaseWebServiceClient(ABCMeta):
         """ Return the web service base URL."""
         return self.base_url    
     
+
     def set_base_url(self, base_url):
         """ Set the web service base URL."""
         # Complete the base URL if it does not end with a slash
@@ -74,18 +83,27 @@ class BaseWebServiceClient(ABCMeta):
 
         self.base_url = base_url
 
+
     def build_url(self, **options):
         """ 
         Return the final URL with web service, end point and options 
         combined. Also, keep it internally.
         """
+        # Validate the options the first against the 
+        # list of supported options
+        self.validate_options(**options)
+
+        # Safety check for the base URL. 
+        if self.base_url and self.base_url[-1] != "/":
+            self.base_url += "/"
+
         # Ensure the options dictionary is properly encoded as a 
         # URL-compatible string
         options = urllib.parse.urlencode(options)
-
-        # Merge the URL with the options, service version and end point
-        self.combined_url = f"{self.base_url}{self.end_point}
-                              {self.version}/query?{options}" 
+        
+        # Combine the URL
+        self.combined_url = \
+            f"{self.base_url}{self.end_point}/{self.version}/query?{options}" 
         
         # Encode the URL to make it safe for HTTP requests
         self.combined_url = urllib.parse.quote(
@@ -94,15 +112,19 @@ class BaseWebServiceClient(ABCMeta):
         return self.combined_url
     
     
-    def query(self, user=None, password=None, **options):
-        """ Query the web service. """
-        # Validate the options the first against the 
-        # list of supported options
-        self.validate_options(**options)
-
+    def query(self, url=None, user=None, password=None, **options):
+        """ 
+        Query the web service. If url is given, use it. Otherwise,
+        build the URL using the options. The URL is not validated against
+        the list of supported options, assuming that it is already built
+        using the 
+        >>> self.build_url(**options) 
+        method.
+        """
         # Combine a URL including the options
-        url = self.build_url(**options)
-
+        if url is None:
+            url = self.build_url(**options)
+        
         # The code below is taken from obspy.
         # Only add the authentication handler if required.
         handlers = []
@@ -119,12 +141,21 @@ class BaseWebServiceClient(ABCMeta):
             handlers.append(http.CustomRedirectHandler())
         else:
             handlers.append(http.NoRedirectionHandler())
+        
+        # Open the URL and get the response
         opener = urllib_request.build_opener(*handlers)
-
-        code, url_response = self.open_url(url=url, opener=opener)
-        if code != 400:
-            return self.parse(file_like_obj=url_response)
-
+        code, url_response, error = self.open_url(url=url, opener=opener)
+        
+        if url_response is not None and \
+            code not in [400, 404, 500, 501, 502, 503]:
+            # If the code is not one of the HTTP errors or 404 (no data), 
+            # parse the response
+            return code, self.parse_response(file_like_obj=url_response)
+        else:
+            # If failed, return the code and None
+            print(error)
+            return code, None
+        
     @abstractmethod
     def parse_response(self, file_like_obj):
         """ Parse the data returned by the web service. """
@@ -145,7 +176,7 @@ class BaseWebServiceClient(ABCMeta):
             if option not in self.get_supported_options():
                 raise InvalidQueryOption(
                     "`{}` is not a valid query option for {}-{}".format(
-                        option, self.get_agency(), self.get_web_service()))
+                        option, self.get_agency(), self.get_end_point()))
             
     def open_url(self, url, opener):
         """ 
@@ -155,8 +186,8 @@ class BaseWebServiceClient(ABCMeta):
         the error in subclasses.
         """
         try:
-            code = url_response.getcode()
             url_response = opener.open(url)
+            code = url_response.getcode()
             error = None
         except urllib.error.HTTPError as e:
             code = e.code
