@@ -9,7 +9,8 @@ one_up = os.path.join(module_path, '..')
 one_up = os.path.abspath(one_up)
 sys.path.append(one_up)
 
-from clients.baseclient import BaseWebServiceClient, InvalidQueryOption
+from clients.baseclient import BaseWebServiceClient, \
+    InvalidQueryOption, InvalidOptionValue
 from clients.esm.shakemap_client import ESMShakeMapWSClient
 
 class TestBaseClient(unittest.TestCase):
@@ -66,9 +67,9 @@ class TestESMShakeMapWSClient(unittest.TestCase):
                          "eventid=test_id")
 
         # Test with several valid flags
-        url = client.build_url(eventid="test_id", format="xml", catalog="test_catalog")
+        url = client.build_url(eventid="test_id", format="event_dat", catalog="ESM")
         self.assertEqual(url, "https://esm-db.eu/esmws/shakemap/1/query?"
-                         "eventid=test_id&format=xml&catalog=test_catalog")
+                         "eventid=test_id&format=event_dat&catalog=ESM")
 
 
     def test_url_build_invalid_flags(self):
@@ -78,14 +79,28 @@ class TestESMShakeMapWSClient(unittest.TestCase):
         client.set_version("1")
         client.set_end_point("shakemap")
         client.set_base_url("https://esm-db.eu/esmws")
-        options = dict(eventid="test_id", format="xml", 
-                       catalog="test_catalog",
-                       uknown_flag="not_a_valid_value")
+        options = dict(eventid="test_id", format="event_dat", 
+                       catalog="ESM", uknown_flag="not_a_valid_value")
         
-        # Should throw and IvnalidQueryOption exception because of the
+        # Should throw and InvalidQueryOption exception because of the
         # "unknown flag".
         self.assertRaises(InvalidQueryOption, client.build_url, **options)
         
+
+    def test_url_build_invalid_value(self):
+        # Test the build_url with invalid flags.
+        client = ESMShakeMapWSClient()
+        client.set_agency("ESM")
+        client.set_version("1")
+        client.set_end_point("shakemap")
+        client.set_base_url("https://esm-db.eu/esmws")
+        options = dict(
+            eventid="test_id", format="event_dat", catalog="Unknown")
+        
+        # Should throw and InvalidOptionValue exception because of the
+        # catalog="Unknown" is not in the allowed values.
+        self.assertRaises(InvalidOptionValue, client.build_url, **options)
+    
 
     def test_query_options(self):
         # Test the get_supported_options method.
@@ -93,6 +108,7 @@ class TestESMShakeMapWSClient(unittest.TestCase):
         options = client.get_supported_options()
         self.assertEqual(options, ['eventid', 'catalog', 'format', 'flag', 'encoding'])
         
+
     def test_query(self):
         # Test the query method.
         client = ESMShakeMapWSClient()

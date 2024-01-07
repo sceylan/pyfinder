@@ -6,6 +6,11 @@ import urllib.request as urllib_request
 from . import http
 
 class InvalidQueryOption(Exception):
+    """ Raised when the given option is not supported."""
+    pass
+
+class InvalidOptionValue(ValueError):
+    """ Raised when the given option value is not allowed."""
     pass
 
 class BaseWebServiceClient(ABC):
@@ -74,7 +79,6 @@ class BaseWebServiceClient(ABC):
         """ Return the web service base URL."""
         return self.base_url    
     
-
     def set_base_url(self, base_url):
         """ Set the web service base URL."""
         # Complete the base URL if it does not end with a slash
@@ -82,7 +86,6 @@ class BaseWebServiceClient(ABC):
             base_url += "/"
 
         self.base_url = base_url
-
 
     def build_url(self, **options):
         """ 
@@ -110,7 +113,6 @@ class BaseWebServiceClient(ABC):
             self.combined_url, safe=':/?&=', encoding='utf-8')
         
         return self.combined_url
-    
     
     def query(self, url=None, user=None, password=None, **options):
         """ 
@@ -166,6 +168,14 @@ class BaseWebServiceClient(ABC):
         """ Return the list of supported options for the web service. """
         return []
 
+    @abstractmethod
+    def is_value_allowed(self, option, value):
+        """ 
+        Validate the given option value. Each subclass of this class is
+        required supply a list of the values per option. 
+        """
+        return True
+
     def validate_options(self, **options):
         """
         Check whether all the given options are supported by the relevant
@@ -177,6 +187,13 @@ class BaseWebServiceClient(ABC):
                 raise InvalidQueryOption(
                     "`{}` is not a valid query option for {}-{}".format(
                         option, self.get_agency(), self.get_end_point()))
+            
+            # Validate the option value
+            else:
+                if not self.is_value_allowed(option, options[option]):
+                    raise InvalidOptionValue(
+                        "`{}` is not a valid value for `{}` option.".format(
+                            options[option], option))
             
     def open_url(self, url, opener):
         """ 
