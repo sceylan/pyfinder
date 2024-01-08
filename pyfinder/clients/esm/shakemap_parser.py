@@ -17,7 +17,11 @@ class ESMShakeMapParser(BaseParser):
         super().__init__()
 
     def _parse(self, data):
-        """Parse the data returned by the ESM ShakeMap web service."""
+        """
+        Parse the data returned by the ESM ShakeMap web service.
+        This method converts the XML content to a dictionary only
+        for format="event_dat". 
+        """
         self.set_original_content(content=data)
 
         # Convert the XML content to a dictionary. This is easier
@@ -80,8 +84,8 @@ class ESMShakeMapParser(BaseParser):
     
     def parse(self, data):
         """
-        Calls the internal parse method if the data 
-        is successfully validated.
+        Calls the internal parse method for format="event_dat" option
+        if the data is successfully validated.
         """
         if data and self.validate(data):
             return self._parse(data)
@@ -92,3 +96,31 @@ class ESMShakeMapParser(BaseParser):
     def validate(self, data):
         """Check the content of the data."""
         return True
+    
+    def parse_earthquake(self, data):
+        """ 
+        Parse the data returned by the ESM ShakeMap web service 
+        when format='event'. 
+        """
+        if data and self.validate(data):
+            # Store the original content
+            self.set_original_content(content=data)
+
+            # Convert the XML content to a dictionary.
+            xml_content = xmltodict.parse(data)
+
+            eq = xml_content['earthquake']
+            event_data = {'id': eq['@id'], 'catalog': eq['@catalog'], 
+                          'lat': float(eq['@lat']), 'lon': float(eq['@lon']), 
+                          'depth': float(eq['@depth']), 'mag': float(eq['@mag']), 
+                          'year': eq['@year'], 'month': eq['@month'],
+                          'day': eq['@day'], 'hour': eq['@hour'], 
+                          'minute': eq['@minute'], 'second': eq['@second'], 
+                          'timezone': eq['@timezone'], 'time': eq['@time'], 
+                          'locstring': eq['@locstring'], 'netid': eq['@netid'], 
+                          'network': eq['@network'], 'created': eq['@created']}
+            
+            esm_shakemap_data = ESMShakeMapData(event_data)
+
+            return esm_shakemap_data
+        

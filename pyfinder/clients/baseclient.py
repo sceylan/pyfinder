@@ -125,7 +125,7 @@ class BaseWebServiceClient(ABC):
         method.
         """
         if url is None:
-            # If URL is not give, combine one using the options
+            # If URL is not given, combine one using the options
             url = self.build_url(**options)
         else:
             # If URL is given, parse it to get the options
