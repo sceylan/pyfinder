@@ -24,23 +24,7 @@ class ESMShakeMapClient(BaseWebServiceClient):
                  end_point="shakemap", version="1"):
         super().__init__(agency, base_url, end_point, version)
 
-        # The format of the output. The default is "event_dat".
-        # If the format is "event", the output from the web service is
-        # some basic event information such as location, magnitude, etc.
-        # which requires another parser. This flag is used to determine
-        # which parser to use. See the documentation of the web service 
-        # for more details: 
-        # https://esm-db.eu//esmws/shakemap/1/query-options.html
-        self._format = "event_dat"
-
-    def set_format(self, format):
-        """ Set the format of the output."""
-        self._format = format
-
-    def get_format(self):
-        """ Return the format of the output."""
-        return self._format
-    
+       
     def parse_response(self, file_like_obj=None, options=None):
         """ Parse the data returned by the web service. """
         if 'format' not in options:

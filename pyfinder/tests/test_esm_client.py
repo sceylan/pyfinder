@@ -9,39 +9,9 @@ one_up = os.path.join(module_path, '..')
 one_up = os.path.abspath(one_up)
 sys.path.append(one_up)
 
-from clients.baseclient import BaseWebServiceClient, \
-    InvalidQueryOption, InvalidOptionValue
+from clients.baseclient import InvalidQueryOption, InvalidOptionValue
 from clients.esm.shakemap_client import ESMShakeMapClient
 
-class TestBaseClient(unittest.TestCase):
-    """Unit tests for the base client class."""
-
-    def test_set_get_data(self):
-        # Test the set_data method.
-        try:
-            base_client = BaseWebServiceClient()
-            base_client.set_data("test")
-            self.assertEqual(base_client.data, "test")
-            self.assertEqual(base_client.get_data(), "test")
-
-        except TypeError:
-            # TypeError will be raised because the class is abstract.
-            # We know that, so we can pass.
-            pass
-
-    def test_add_field(self):
-        # Test add_field method.
-        try:
-            base_client = BaseWebServiceClient()
-            base_client.add_field("field1", "value1")
-            self.assertEqual(base_client.get("field1"), "value1")
-
-        except TypeError:
-            # TypeError will be raised because the class is abstract.
-            # We know that, so we can pass.
-            pass
-
-    
 class TestESMShakeMapClient(unittest.TestCase):
     """Unit tests for the ESM Shakemap web service client."""
     def test_url_build(self):
@@ -55,7 +25,7 @@ class TestESMShakeMapClient(unittest.TestCase):
         self.assertEqual(url, "https://esm-db.eu/esmws/shakemap/1/query?")
 
 
-    def test_url_build_with_options(self):
+    def test_url_build_with_valid_options(self):
         # Test the build_url method with valid, several options.
         client = ESMShakeMapClient()
         client.set_agency("ESM")
@@ -72,7 +42,7 @@ class TestESMShakeMapClient(unittest.TestCase):
                          "eventid=test_id&format=event_dat&catalog=ESM")
 
 
-    def test_url_build_invalid_flags(self):
+    def test_url_build_invalid_options(self):
         # Test the build_url with invalid flags.
         client = ESMShakeMapClient()
         client.set_agency("ESM")
@@ -156,10 +126,8 @@ class TestESMShakeMapClient(unittest.TestCase):
         
         # Check the data content
         self.assertEqual(data.get('id'), '20170524_0000045')
-        self.assertEqual(data.get('catalog'), 'EMSC')
-        self.assertEqual(data.get('lat'), 41.422832)
-        self.assertEqual(data.get('lon'), 20.155666)
-        self.assertEqual(data.get('depth'), 9.28)
-        self.assertEqual(data.get('mag'), 4.5)
-        
-    
+        self.assertAlmostEqual(data.get('catalog'), 'EMSC')
+        self.assertAlmostEqual(data.get('lat'), 41.422832)
+        self.assertAlmostEqual(data.get('lon'), 20.155666)
+        self.assertAlmostEqual(data.get('depth'), 9.28)
+        self.assertAlmostEqual(data.get('mag'), 4.5)

@@ -6,6 +6,7 @@ module_path = os.path.dirname(os.path.abspath(__file__))
 one_up = os.path.join(module_path, '..')
 sys.path.append(one_up)
 from clients.esm.shakemap_parser import ESMShakeMapParser
+from clients.rrsm.shakemap_parser import RRSMShakeMapParser
 
 station_list = {
     "HL.KASA": {},
@@ -41,7 +42,9 @@ station_list = {
              "psa10": {"value": "0.00361203834029", "flag": "0"},
              "psa30": {"value": "0.000409391190557", "flag": "0"}}]}
 }
+
 class TestESMShakeMapParser(unittest.TestCase):
+    """ Test the parser for ESM ShakeMap web service. """
     def test_ESMShakeMap_parser_format_event(self):
         # Test the parser for the ESM ShakeMap web service when format="event".
         xml_path = os.path.join(module_path, 'testdata', 'esmws-event.xml')

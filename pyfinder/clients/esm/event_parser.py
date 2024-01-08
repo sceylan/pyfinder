@@ -4,7 +4,7 @@ import xmltodict
 
 import sys
 sys.path.append("..")
-from baseparser import BaseParser
+from ..baseparser import BaseParser
 from clients.esm.shakemap_data import ESMEventData
 from clients.esm.shakemap_data import ESMEventOriginNode
 from clients.esm.shakemap_data import ESMEventMagnitudeNode

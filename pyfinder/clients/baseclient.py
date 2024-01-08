@@ -188,6 +188,9 @@ class BaseWebServiceClient(ABC):
         web service. Each subclass of this class is required supply a list
         of the options via the get_supported_ws_options() abstract method.
         """
+        if options is None:
+            return
+        
         for option in options:
             if option not in self.get_supported_options():
                 raise InvalidQueryOption(
