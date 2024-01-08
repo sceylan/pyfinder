@@ -42,8 +42,24 @@ station_list = {
              "psa30": {"value": "0.000409391190557", "flag": "0"}}]}
 }
 class TestESMShakeMapParser(unittest.TestCase):
-    def test_ESMShakeMap_parser(self):
-        # Test the parser for the ESM ShakeMap web service.
+    def test_ESMShakeMap_parser_format_event(self):
+        # Test the parser for the ESM ShakeMap web service when format="event".
+        xml_path = os.path.join(module_path, 'testdata', 'esmws-event.xml')
+        with open(xml_path, 'r') as xmlfile:
+            data = xmlfile.read()
+            parser = ESMShakeMapParser()
+            eq_data = parser.parse_earthquake(data)
+
+            # Check the earthquake data against some of the attributes.
+            self.assertEqual(eq_data['id'], '20170524_0000045')
+            self.assertAlmostEqual(eq_data['lat'], 41.422832)
+            self.assertAlmostEqual(eq_data['lon'], 20.155666)
+            self.assertAlmostEqual(eq_data['depth'], 9.28)
+            self.assertAlmostEqual(eq_data['mag'], 4.5)
+            self.assertEqual(eq_data['time'], '2017-05-24T10:30:59Z')            
+
+    def test_ESMShakeMap_parser_format_eventdat(self):
+        # Test the parser for the ESM ShakeMap web service when format="event_dat".
         xml_path = os.path.join(module_path, 'testdata', 'esmws-eventdata.xml')
         with open(xml_path, 'r') as xmlfile:
             data = xmlfile.read()

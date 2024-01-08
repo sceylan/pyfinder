@@ -109,7 +109,7 @@ class TestESMShakeMapClient(unittest.TestCase):
         self.assertEqual(options, ['eventid', 'catalog', 'format', 'flag', 'encoding'])
         
 
-    def test_query(self):
+    def test_query_format_eventdat(self):
         # Test the query method.
         client = ESMShakeMapClient()
         client.set_agency("ESM")
@@ -133,3 +133,33 @@ class TestESMShakeMapClient(unittest.TestCase):
         # Check the data content
         self.assertEqual(data.get_stations()[0].get('code'), 'KRK1')
         
+    def test_query_format_event(self):
+        # Test the query method.
+        client = ESMShakeMapClient()
+        client.set_agency("ESM")
+        client.set_version("1")
+        client.set_end_point("shakemap")
+        client.set_base_url("https://esm-db.eu/esmws")
+        url = client.build_url(eventid='20170524_0000045', catalog='EMSC', format='event')
+        code, data = client.query(url=url)
+
+        # Check against common error codes. 
+        if code != 503:
+            # Service is avaliable, so these error should not be returned
+            # if data is not removed from the ESM server. In that case, the
+            # error code will be 404.
+            for _code in [400, 404, 500, 501, 502]:
+                self.assertNotEqual(code, _code)
+
+        # Check the data
+        self.assertIsNotNone(data)
+        
+        # Check the data content
+        self.assertEqual(data.get('id'), '20170524_0000045')
+        self.assertEqual(data.get('catalog'), 'EMSC')
+        self.assertEqual(data.get('lat'), 41.422832)
+        self.assertEqual(data.get('lon'), 20.155666)
+        self.assertEqual(data.get('depth'), 9.28)
+        self.assertEqual(data.get('mag'), 4.5)
+        
+    

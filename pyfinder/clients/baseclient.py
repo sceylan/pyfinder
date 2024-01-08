@@ -2,7 +2,8 @@
 """ Base class for the web service clients. """
 from abc import ABC, abstractmethod
 import urllib
-import urllib.request as urllib_request
+import urllib.request as urlrequest
+from urllib.parse import urlparse
 from . import http
 
 class InvalidQueryOption(Exception):
@@ -123,9 +124,14 @@ class BaseWebServiceClient(ABC):
         >>> self.build_url(**options) 
         method.
         """
-        # Combine a URL including the options
         if url is None:
+            # If URL is not give, combine one using the options
             url = self.build_url(**options)
+        else:
+            # If URL is given, parse it to get the options
+            parsed_url = urlparse(url)
+            query_dict = urllib.parse.parse_qs(parsed_url.query)
+            options = {key: value[0] for key, value in query_dict.items()}
         
         # The code below is taken from obspy.
         # Only add the authentication handler if required.
@@ -133,9 +139,9 @@ class BaseWebServiceClient(ABC):
         
         if user is not None and password is not None:
             # Create an OpenerDirector for HTTP Digest Authentication
-            password_mgr = urllib_request.HTTPPasswordMgrWithDefaultRealm()
+            password_mgr = urlrequest.HTTPPasswordMgrWithDefaultRealm()
             password_mgr.add_password(None, self.base_url, user, password)
-            handlers.append(urllib_request.HTTPDigestAuthHandler(password_mgr))
+            handlers.append(urlrequest.HTTPDigestAuthHandler(password_mgr))
 
         if (user is None and password is None) or self._force_redirect is True:
             # Redirect if no credentials are given or the force_redirect
@@ -145,14 +151,15 @@ class BaseWebServiceClient(ABC):
             handlers.append(http.NoRedirectionHandler())
         
         # Open the URL and get the response
-        opener = urllib_request.build_opener(*handlers)
+        opener = urlrequest.build_opener(*handlers)
         code, url_response, error = self.open_url(url=url, opener=opener)
         
         if url_response is not None and \
             code not in [400, 404, 500, 501, 502, 503]:
             # If the code is not one of the HTTP errors or 404 (no data), 
             # parse the response
-            return code, self.parse_response(file_like_obj=url_response)
+            return code, self.parse_response(
+                file_like_obj=url_response, options=options)
         else:
             # If failed, return the code and None
             return code, None
