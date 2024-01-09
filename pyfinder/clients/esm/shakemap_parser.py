@@ -24,32 +24,40 @@ class ESMShakeMapParser(BaseParser):
         """
         self.set_original_content(content=data)
 
-        # Convert the XML content to a dictionary. This is easier
-        # to work with.
+        # Convert the XML content to a dictionary. 
+        # This is easier to work with.
         xml_content = xmltodict.parse(data)
 
         # Initialize the main data structure for the ESM ShakeMap.
         # The top-level data structure is a dictionary with two keys:
         # - created: The creation time of the data.
         # - stations: A list of stations.
-        _esm_toplevel_data = {
-            "created": datetime.datetime.fromtimestamp(
-                int(xml_content['stationlist']['@created'])),
-            "stations": []}
+        try:
+            _creation_time = datetime.datetime.fromtimestamp(
+                    int(xml_content['stationlist']['@created']))
+        except:
+            _creation_time = datetime.datetime.now()
+        
+        _esm_toplevel_data = {"created": _creation_time, "stations": []}
         esm_shakemap_data = ESMShakeMapData(_esm_toplevel_data)
 
         for _sta in xml_content['stationlist']['station']:
-            # Station ID is constructed using network and station code 
+             # Station ID is constructed using network and station code 
             # to search for the station in station list
             _id = "{}.{}".format(_sta['@netid'], _sta['@code'])
 
             # Each station is a dictionary of attributes, and contains
             # another list for the components
-            station = {'id': _id, 'name': _sta['@name'], 'code': _sta['@code'],
-                       'netid': _sta['@netid'], 'source': _sta['@source'],
-                       'insttype': _sta['@insttype'], 'components': [],
-                       'lat': float(_sta['@lat']), 'lon': float(_sta['@lon']),
-                       'components': []}
+            my_keys = ['name', 'code', 'netid', 'source', 'insttype', 
+                       'lat', 'lon']
+            keys_in_xml = ['@name', '@code', '@netid', '@source', 
+                           '@insttype', '@lat', '@lon']
+            station = {'id': _id, 'components': []}
+            for my_key, real_key in zip(my_keys, keys_in_xml):
+                try:
+                    station[my_key] = _sta[real_key]
+                except:
+                    station[my_key] = None
             
             # Create a station-level dictionary (in fact, a wrapper 
             # around the dictionary)
@@ -59,25 +67,58 @@ class ESMShakeMapParser(BaseParser):
             esm_shakemap_data.stations.append(station_node)
 
             # Each component is again a dictionary
-            for _comp in _sta['comp']:
-                component = {'name': _comp['@name'],
-                             'depth': float(_comp['@depth']),
-                             'acc': float(_comp['acc']['@value']),
-                             'accflag': int(_comp['acc']['@flag']),
-                             'vel': float(_comp['vel']['@value']),
-                             'velflag': int(_comp['vel']['@flag']),
-                             'psa03': float(_comp['psa03']['@value']),
-                             'psa03flag': int(_comp['psa03']['@flag']),
-                             'psa10': float(_comp['psa10']['@value']),
-                             'psa10flag': int(_comp['psa10']['@flag']),
-                             'psa30': float(_comp['psa30']['@value']),
-                             'psa30flag': int(_comp['psa30']['@flag'])}
+            if 'comp' in _sta:
+                for _comp in _sta['comp']:
+                    component = {'name': _comp['@name']}
+                    # Depth if available or None
+                    try:
+                        component['depth'] = float(_comp['@depth'])
+                    except:
+                        component['depth'] = None
 
-                # Create a channel-level dictionary
-                channel_node = ESMShakeMapComponentNode(data_dict=component)
+                    # Acceleration, velocity, and PSA values with their
+                    # quality flags. If any of the the values is not available
+                    # or something is not correct with type casting, set it to None
+                    try:
+                        component['acc'] = float(_comp['acc']['@value'])
+                        component['accflag'] = int(_comp['acc']['@flag'])
+                    except:
+                        component['acc'] = None
+                        component['accflag'] = None
+     
+                    try:
+                        component['vel'] = float(_comp['vel']['@value'])
+                        component['velflag'] = int(_comp['vel']['@flag'])
+                    except:
+                        component['vel'] = None
+                        component['velflag'] = None
 
-                # Add the channel node to the station node
-                station_node.components.append(channel_node)
+                    try:
+                        component['psa03'] = float(_comp['psa03']['@value'])
+                        component['psa03flag'] = int(_comp['psa03']['@flag'])
+                    except:
+                        component['psa03'] = None
+                        component['psa03flag'] = None
+
+                    try:
+                        component['psa10'] = float(_comp['psa10']['@value'])
+                        component['psa10flag'] = int(_comp['psa10']['@flag'])
+                    except:
+                        component['psa10'] = None
+                        component['psa10flag'] = None
+
+                    try:
+                        component['psa30'] = float(_comp['psa30']['@value'])
+                        component['psa30flag'] = int(_comp['psa30']['@flag'])
+                    except:
+                        component['psa30'] = None
+                        component['psa30flag'] = None
+                        
+                    # Create a channel-level dictionary
+                    channel_node = ESMShakeMapComponentNode(data_dict=component)
+
+                    # Add the channel node to the station node
+                    station_node.components.append(channel_node)
 
         # Pass the main data structure back to the caller
         return esm_shakemap_data

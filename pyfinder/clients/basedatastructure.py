@@ -136,6 +136,8 @@ class BaseDataStructure:
         if self._data:
             del self._data[key]
 
+    def __str__(self):
+        return str(self._data)
 
 if __name__ == "__main__":
     dst = BaseDataStructure()

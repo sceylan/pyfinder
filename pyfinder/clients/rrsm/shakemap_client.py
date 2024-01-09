@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import urllib
-from ..baseclient import BaseWebServiceClient
+from .shakemap_parser import RRSMShakeMapParser
+from ..esm.shakemap_client import ESMShakeMapClient
 
-class RRSMShakeMapClient(BaseWebServiceClient):
+class RRSMShakeMapClient(ESMShakeMapClient):
     """ 
     Class for RRSM shakemap web service client. This client 
     is similar to ESM shakemap client, but query has no options
@@ -16,7 +17,7 @@ class RRSMShakeMapClient(BaseWebServiceClient):
     def parse_response(self, file_like_obj=None, options=None):
         """ Parse the data returned by the web service. """
         if file_like_obj:
-            parser = RRSMShakeMapClient()
+            parser = RRSMShakeMapParser()
 
             data = parser.parse(file_like_obj)
             
@@ -48,6 +49,14 @@ class RRSMShakeMapClient(BaseWebServiceClient):
         if not options:
             options = ""
         
+        # Safety check for the base URL. 
+        if self.base_url and self.base_url[-1] != "/":
+            self.base_url += "/"
+
+        # Ensure the options dictionary is properly encoded as a 
+        # URL-compatible string
+        options = urllib.parse.urlencode(options)
+
         # Combine the URL
         self.combined_url = \
             f"{self.base_url}{self.version}/{self.end_point}?{options}" 
@@ -56,6 +65,5 @@ class RRSMShakeMapClient(BaseWebServiceClient):
         self.combined_url = urllib.parse.quote(
             self.combined_url, safe=':/?&=', encoding='utf-8')
         
-        print("Combined URL:", self.combined_url, "\n")
         return self.combined_url
     
