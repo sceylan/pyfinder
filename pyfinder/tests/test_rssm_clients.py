@@ -23,7 +23,7 @@ class TestRRSMShakeMapClient(unittest.TestCase):
         url = client.build_url()
         self.assertEqual(url, "http://orfeus-eu.org/odcws/rrsm/1/shakemap?")
 
-    def test_query_options(self):
+    def test_supported_options(self):
         # Test the get_supported_options method.
         client = RRSMShakeMapClient()
         options = client.get_supported_options()
@@ -40,17 +40,17 @@ class TestRRSMShakeMapClient(unittest.TestCase):
             url, "http://orfeus-eu.org/odcws/rrsm/1/shakemap?eventid=test_id")
 
 
-    def test_query_format_eventdat(self):
+    def test_query_with_supported_options(self):
         # Test the query method.
         client = RRSMShakeMapClient()
         client.set_agency("ORFEUS")
         client.set_version("1")
         client.set_end_point("shakemap")
         client.set_base_url("http://orfeus-eu.org/odcws/rrsm/")
-        url = client.build_url(eventid='20170524_0000045', catalog='EMSC', format='event_dat')
+        url = client.build_url(eventid='20170524_0000045')
         code, data = client.query(url=url)
-
-        # Check against common error codes. 
+        
+        # Check the query against common error codes. 
         if code != 503:
             # Service is avaliable, so these error should not be returned
             # if data is not removed from the ESM server. In that case, the
@@ -63,4 +63,36 @@ class TestRRSMShakeMapClient(unittest.TestCase):
         
         # Check the data content
         self.assertEqual(data.get_stations()[0].get('code'), 'KBN')
+
+        # Check the URL
+        self.assertEqual(url, "http://orfeus-eu.org/odcws/rrsm/1/"
+                         "shakemap?eventid=20170524_0000045")
+
+    def test_query_with_unsupported_options(self):
+        # Test the query method.
+        client = RRSMShakeMapClient()
+        client.set_agency("ORFEUS")
+        client.set_version("1")
+        client.set_end_point("shakemap")
+        client.set_base_url("http://orfeus-eu.org/odcws/rrsm/")
+        url = client.build_url(eventid='20170524_0000045', 
+                               catalog='EMSC', format='event_dat')
+        code, data = client.query(url=url)
+        
+        # Check the query against common error codes. 
+        if code != 503:
+            # Service is avaliable, so these error should not be returned
+            # if data is not removed from the ESM server. In that case, the
+            # error code will be 404.
+            for _code in [400, 404, 500, 501, 502]:
+                self.assertNotEqual(code, _code)
+
+        # Check the data
+        self.assertIsNotNone(data)
+        
+        # Check the data content
+        self.assertEqual(data.get_stations()[0].get('code'), 'KBN')
+
+        # Check if unsupported options are removed from the URL
+        self.assertEqual(url, "http://orfeus-eu.org/odcws/rrsm/1/shakemap?eventid=20170524_0000045")
         

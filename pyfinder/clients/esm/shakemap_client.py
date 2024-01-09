@@ -94,7 +94,7 @@ class ESMShakeMapClient(BaseWebServiceClient):
         # Event ID is not checked because it is not optional.
         options = {'catalog': ['ESM', 'ISC', 'USGS', 'EMSC', 'INGV'],
                    'format': ['event', 'event_dat', 'event_fault'],
-                   'flag': ['0', 'all'], format: ['UTF-8', 'US-ASCII']}
+                   'flag': ['0', 'all'], 'encoding': ['UTF-8', 'US-ASCII']}
     
         if option.lower() in options:
             if value not in options[option.lower()]:

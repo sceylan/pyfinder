@@ -95,7 +95,7 @@ class BaseWebServiceClient(ABC):
         """
         # Validate the options the first against the 
         # list of supported options
-        self.validate_options(**options)
+        options = self.validate_options(**options)
 
         # Safety check for the base URL. 
         if self.base_url and self.base_url[-1] != "/":
@@ -124,15 +124,35 @@ class BaseWebServiceClient(ABC):
         >>> self.build_url(**options) 
         method.
         """
+        # If URL is not given, combine one using the options
         if url is None:
-            # If URL is not given, combine one using the options
+            # First remove the unsupported options
+            delete_these = []
+            for key in options.keys():
+                if not key in self.get_supported_options():
+                    delete_these.append(key)
+            
+            # Now remove the unsupported options.
+            for key in delete_these:
+                del options[key]
+
+            # Build the URL
             url = self.build_url(**options)
+        
+        # If URL is given, parse it to get the options
         else:
-            # If URL is given, parse it to get the options
             parsed_url = urlparse(url)
             query_dict = urllib.parse.parse_qs(parsed_url.query)
-            options = {key: value[0] for key, value in query_dict.items()}
-        
+            
+            # Get the options from the query dictionary, but do not
+            # include the unsupported options
+            options = {key: value[0] \
+                       for key, value in query_dict.items() \
+                        if key in self.get_supported_options()}
+            
+            # Build the URL again with cleaned options
+            url = self.build_url(**options)
+  
         # The code below is taken from obspy.
         # Only add the authentication handler if required.
         handlers = []
@@ -191,6 +211,16 @@ class BaseWebServiceClient(ABC):
         if options is None:
             return
         
+        # Remove the unsupported options
+        delete_these = []
+        for key in options.keys():
+            if not key in self.get_supported_options():
+                delete_these.append(key)
+
+        for key in delete_these:
+            del options[key]
+
+        # Validate the options again for sanity
         for option in options:
             if option not in self.get_supported_options():
                 raise InvalidQueryOption(
@@ -203,7 +233,8 @@ class BaseWebServiceClient(ABC):
                     raise InvalidOptionValue(
                         "`{}` is not a valid value for `{}` option.".format(
                             options[option], option))
-            
+        return options
+    
     def open_url(self, url, opener):
         """ 
         Open the given URL using the opener. Return HTTP return code, 

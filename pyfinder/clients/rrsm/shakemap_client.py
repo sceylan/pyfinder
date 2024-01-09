@@ -38,7 +38,7 @@ class RRSMShakeMapClient(ESMShakeMapClient):
         the given option. Since RRSM allows only "eventid", always 
         returns True. 
         """
-        True
+        return True
 
     def build_url(self, **options):
         """ 
@@ -47,7 +47,11 @@ class RRSMShakeMapClient(ESMShakeMapClient):
         e.g. http://orfeus-eu.org/odcws/rrsm/1/shakemap?eventid=20170524_0000045
         """
         if not options:
-            options = ""
+            options = {}
+        
+        # Validate the options the first against the 
+        # list of supported options
+        options = self.validate_options(**options)
         
         # Safety check for the base URL. 
         if self.base_url and self.base_url[-1] != "/":
@@ -56,7 +60,7 @@ class RRSMShakeMapClient(ESMShakeMapClient):
         # Ensure the options dictionary is properly encoded as a 
         # URL-compatible string
         options = urllib.parse.urlencode(options)
-
+        
         # Combine the URL
         self.combined_url = \
             f"{self.base_url}{self.version}/{self.end_point}?{options}" 

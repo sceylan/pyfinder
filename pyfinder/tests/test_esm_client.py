@@ -52,11 +52,12 @@ class TestESMShakeMapClient(unittest.TestCase):
         options = dict(eventid="test_id", format="event_dat", 
                        catalog="ESM", uknown_flag="not_a_valid_value")
         
-        # Should throw and InvalidQueryOption exception because of the
-        # "unknown flag".
-        self.assertRaises(InvalidQueryOption, client.build_url, **options)
-        
-
+        # build_url does an internal clean-up for invalid options.
+        # So, the uknown_flag should be removed from the url. An 
+        # InvalidQueryOption exception will be raised if something 
+        # goes wrong with the clean-up at the end.
+        url = client.build_url(**options)
+       
     def test_url_build_invalid_value(self):
         # Test the build_url with invalid flags.
         client = ESMShakeMapClient()
