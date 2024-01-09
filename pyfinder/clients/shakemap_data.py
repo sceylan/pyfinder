@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*- 
-import datetime
+from .basedatastructure import BaseDataStructure
 
-from ..basedatastructure import BaseDataStructure
-
-class ESMShakeMapStationNode(BaseDataStructure):
+class ShakeMapDataStationNode(BaseDataStructure):
     """
-    Pesudo-class for a station-level data in the ESM ShakeMap 
-    data structure.
+    Data structure for a station-level data for the ESM/RRSM 
+    shakemap output.
     """
     def __init__(self, data_dict=None, **kwargs):
         super().__init__(data_dict=data_dict, kwargs=kwargs)
@@ -18,18 +16,18 @@ class ESMShakeMapStationNode(BaseDataStructure):
         """
         return self.get('components')
 
-class ESMShakeMapComponentNode(BaseDataStructure):
+class ShakeMapDataComponentNode(BaseDataStructure):
     """ 
-    Pesudo-class for a component-level data in the ESM ShakeMap
-    data structure.
+    Data structure for a component-level data in the ESM/RRSM 
+    shakemap web service.
     """
     def __init__(self, data_dict=None, **kwargs):
         super().__init__(data_dict=data_dict, kwargs=kwargs)
 
 
-class ESMShakeMapData(BaseDataStructure):
+class ShakeMapData(BaseDataStructure):
     """
-    Main data structure for the ESM ShakeMap web service.
+    Main data structure for the ESM/RRSM shakemap web service.
     """
     def __init__(self, data_dict=None, **kwargs):
         super().__init__(data_dict=data_dict, kwargs=kwargs)
