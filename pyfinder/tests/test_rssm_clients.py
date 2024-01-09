@@ -94,5 +94,6 @@ class TestRRSMShakeMapClient(unittest.TestCase):
         self.assertEqual(data.get_stations()[0].get('code'), 'KBN')
 
         # Check if unsupported options are removed from the URL
-        self.assertEqual(url, "http://orfeus-eu.org/odcws/rrsm/1/shakemap?eventid=20170524_0000045")
+        self.assertEqual(url, "http://orfeus-eu.org/odcws/rrsm/1/"
+                         "shakemap?eventid=20170524_0000045")
         
