@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import unittest
 import logging
 
@@ -29,10 +28,14 @@ if __name__ == '__main__':
     ch.setFormatter(LoggingFormatter())
     logger.addHandler(ch)
 
-    logging.newline = True
-    logging.getLogger().info("-"*40)
-    logging.getLogger().info("Running tests for clients and parsers...")
-    logging.getLogger().info("-"*40)
-    suite = loader.discover('tests/clients')
-    runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(suite)
+    test_groups = ['tests/clients']
+    messages = ["Testing web service clients and parsers..."]
+
+    for grp, msg in zip(test_groups, messages):
+        logging.getLogger().info("-"*50)
+        logging.getLogger().info(msg)
+        logging.getLogger().info("-"*50)
+        suite = loader.discover(grp)
+        runner = unittest.TextTestRunner(verbosity=2)
+        runner.run(suite)
+    
