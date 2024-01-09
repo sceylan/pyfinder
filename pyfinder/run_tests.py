@@ -10,7 +10,7 @@ class LoggingFormatter(logging.Formatter):
     """
     magenta = "\033[95m"
     reset = "\x1b[0m"
-    format = "%(asctime)s  %(levelname)-8s  %(message)8s"
+    format = "%(asctime)s  %(levelname)s  %(message)8s"
     
     FORMATS = {logging.INFO: magenta + format + reset}
 
@@ -20,22 +20,30 @@ class LoggingFormatter(logging.Formatter):
         return formatter.format(record)
 
 if __name__ == '__main__':
-    loader = unittest.TestLoader()
-
+    # Just for printing some messages in color in a proper 
+    # logging style.
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setFormatter(LoggingFormatter())
     logger.addHandler(ch)
 
+    # Folders containing the tests.
     test_groups = ['tests/clients']
+
+    # Messages to be displayed before each test group.
     messages = ["Testing web service clients and parsers..."]
 
     for grp, msg in zip(test_groups, messages):
-        logging.getLogger().info("-"*50)
-        logging.getLogger().info(msg)
-        logging.getLogger().info("-"*50)
+        # Provide a header
+        logging.info(msg)
+        
+        # Run the tests.
+        loader = unittest.TestLoader()
         suite = loader.discover(grp)
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
     
+    logging.info("-"*50)
+    logging.info("Tests are completed. Check the status above.")
+    logging.info("-"*50)
