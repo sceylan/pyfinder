@@ -1,9 +1,9 @@
 # pyfinder
-**pyfinder** is a Python wrapper for the [FinDer](https://docs.gempa.de/sed-eew/current/base/intro-finder.html#finder) (Finite Fault Rupture Detector) algorithm. It is designed to query the ESM, EMSC and RRSM web services to retrieve the acceleration amplitudes and felt reports, and trigger the FinDer library with this new external information. This tool works within the SeisComp framework.
+**pyfinder** is a Python wrapper for the [FinDer](https://docs.gempa.de/sed-eew/current/base/intro-finder.html#finder) (Finite Fault Rupture Detector) library. It is designed to query the ESM, EMSC and RRSM web services to retrieve the acceleration amplitudes and felt reports, and trigger the FinDer with this new external parametric information. This tool works within the SeisComp framework.
 
-This toolis able to query:
-- The ESM and RRSM shakemap endpoints. With this endpoint, the tool also queries with the ```format=event``` option to retrieve the basic event information. See the [ESM Shakemap web service](https://esm-db.eu//esmws/shakemap/1/query-options.html) for more information. RRSM also uses the same web services as the ESM. The tool only implements minor changes such as the base service URL and order of options for queries.
-- The EMSC felt reports.
+This tool is able to query:
+- The ESM and RRSM ```shakemap``` endpoint, using both ```format=event_dat``` for amplitudes and ```format=event``` option to retrieve the basic event information. See the [ESM Shakemap web service](https://esm-db.eu//esmws/shakemap/1/query-options.html) for more information. RRSM also uses the same web services as the ESM. The tool only implements minor changes such as the base service URL and order of options for queries.
+- The EMSC felt reports, for the basic event information (```includeTestimonies=false```) and intensities (```includeTestimonies=true```).
 
 More information on these web services are avaliable on:
 - RMSS: https://www.orfeus-eu.org/rrsm/about/
@@ -12,7 +12,7 @@ More information on these web services are avaliable on:
 
 For further information on FinDer, see the references below and [Swiss Seismological Service at ETH Zurich](http://www.seismo.ethz.ch/en/research-and-teaching/products-software/EEW/finite-fault-rupture-detector-finder/) web page.
 
-**References**:
+_**References**:_
 
 Böse, M., Heaton, T. H., & Hauksson, E., 2012: Real‐time Finite Fault Rupture Detector (FinDer) for large earthquakes. Geophysical Journal International, 191(2), 803–812, doi:10.1111/j.1365-246X.2012.05657.x
 Böse, M., Felizardo, C., & Heaton, T. H., 2015:
