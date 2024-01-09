@@ -36,6 +36,5 @@ class TestEMSCFeltReportClient(unittest.TestCase):
         client.set_end_point("api")
         client.set_base_url("https://www.seismicportal.eu/testimonies-ws")
         url = client.build_url(includetestimonies="true")
-        self.assertEqual(
-            url, "https://www.seismicportal.eu/testimonies-ws/api/"
+        self.assertEqual(url, "https://www.seismicportal.eu/testimonies-ws/api/"
             "search?includeTestimonies=true")

@@ -39,11 +39,14 @@ class EMSCFeltReportClient(BaseWebServiceClient):
         if not options:
             options = {}
         
-        # Rename the lowercase 'includetestimonies' to 'includeTestimonies' 
-        # as required by the EMSC
-        if 'includetestimonies' in options:
-            value = options.pop('includetestimonies')
-            options['includeTestimonies'] = value
+        # If a variation is passed by mistake, rename the keyword to 
+        # 'includeTestimonies' as required by the EMSC. The naming 
+        # is case sensitive.
+        for combination in ['includetestimonies', 'IncludeTestimonies', 
+                            'Includetestimonies']:
+            if combination in options:
+                value = options.pop(combination)
+                options['includeTestimonies'] = value
 
         # Validate the options the first against the 
         # list of supported options
