@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from abc import abstractmethod
 
 module_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(module_path)

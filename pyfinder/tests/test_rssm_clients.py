@@ -9,8 +9,8 @@ one_up = os.path.join(module_path, '..')
 one_up = os.path.abspath(one_up)
 sys.path.append(one_up)
 
-from clients.rrsm.shakemap_client import RRSMShakeMapClient
-from clients.baseclient import InvalidQueryOption
+from clients import RRSMShakeMapClient
+from clients import InvalidQueryOption
 
 class TestRRSMShakeMapClient(unittest.TestCase):
     """Unit tests for the RRSM Shakemap web service client."""

@@ -9,7 +9,7 @@ one_up = os.path.join(module_path, '..')
 one_up = os.path.abspath(one_up)
 sys.path.append(one_up)
 
-from clients.baseclient import BaseWebServiceClient
+from clients import BaseWebServiceClient
 
 class TestBaseClient(unittest.TestCase):
     """Unit tests for the base client class."""

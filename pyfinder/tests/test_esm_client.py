@@ -9,8 +9,8 @@ one_up = os.path.join(module_path, '..')
 one_up = os.path.abspath(one_up)
 sys.path.append(one_up)
 
-from clients.baseclient import InvalidQueryOption, InvalidOptionValue
-from clients.esm.shakemap_client import ESMShakeMapClient
+from clients import InvalidQueryOption, InvalidOptionValue
+from clients import ESMShakeMapClient
 
 class TestESMShakeMapClient(unittest.TestCase):
     """Unit tests for the ESM Shakemap web service client."""
