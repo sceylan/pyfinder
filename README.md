@@ -8,8 +8,8 @@ This tool is able to query:
 
 - The EMSC felt reports, for the basic event information (```includeTestimonies=false```) and intensities (```includeTestimonies=true```).
 
-More information on these web services are avaliable on:
-- RMSS: https://www.orfeus-eu.org/rrsm/about/
+More information on the web services implemented in this tool are avaliable on:
+- RRSM: https://www.orfeus-eu.org/rrsm/about/
 - ESM: https://esm-db.eu/#/data_and_services/web_services and https://esm-db.eu//esmws/shakemap/1/
 - EMSC: https://www.emsc.eu/Earthquake_data/Data_queries.php
 
