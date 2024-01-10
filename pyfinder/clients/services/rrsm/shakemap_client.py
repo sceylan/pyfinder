@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import urllib
 from .shakemap_parser import RRSMShakeMapParser
-from ..esm.shakemap_client import ESMShakeMapClient
+from ..esm.shakemap_client import ESMShakeMapWebService
 
-class RRSMShakeMapClient(ESMShakeMapClient):
+class RRSMShakeMapWebService(ESMShakeMapWebService):
     """ 
     Class for RRSM shakemap web service client. This client 
     is similar to ESM shakemap client, but query has no options

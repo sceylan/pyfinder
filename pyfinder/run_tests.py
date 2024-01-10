@@ -19,15 +19,6 @@ class LoggingFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt, "%Y-%m-%d %H:%M:%S")
         return formatter.format(record)
 
-def load_tests_from_folders(*folders):
-    loader = unittest.TestLoader()
-    
-
-    for folder in folders:
-        suite.addTests(loader.discover(folder, pattern='test*.py'))
-
-    return suite
-
 if __name__ == '__main__':
     # Just for printing some messages in color in a 
     # proper logging style.
@@ -67,7 +58,7 @@ if __name__ == '__main__':
         succeeded = result.testsRun - error - failure - skipped
         
         logging.info(
-            "{:20s}: {:3d} tests run ({:2d} succeeded, {:2d}"
+            "{:20s}: Total {:2d} tests ({:2d} succeeded, {:2d}"
             " failed, {:2d} error(s), {:2d} skipped)".format(
                 grp, result.testsRun, succeeded, failure, error, skipped))
     logging.info("="*50)

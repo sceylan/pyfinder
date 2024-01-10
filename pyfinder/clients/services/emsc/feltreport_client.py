@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import urllib
-from ..baseclient import BaseWebServiceClient, InvalidOptionValue
+from ..baseclient import BaseWebService, InvalidOptionValue
 from .feltreport_parser import EMSCFeltReportParser
 
 class MissingRequiredFieldError(Exception):
     """ Exception raised when a required field is missing. """
     pass
 
-class EMSCFeltReportClient(BaseWebServiceClient):
+class EMSCFeltReportWebService(BaseWebService):
     def __init__(self, agency='EMSC', end_point='api', version="1.1",
                  base_url='https://www.seismicportal.eu/testimonies-ws/'):
         super().__init__(agency, base_url, end_point, version)

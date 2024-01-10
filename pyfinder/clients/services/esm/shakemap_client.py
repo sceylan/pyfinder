@@ -6,10 +6,10 @@ module_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(module_path)
 sys.path.append(parent_dir)
 
-from ..baseclient import BaseWebServiceClient
+from ..baseclient import BaseWebService
 from .shakemap_parser import ESMShakeMapParser
 
-class ESMShakeMapClient(BaseWebServiceClient):
+class ESMShakeMapWebService(BaseWebService):
     """
     Class for ESM Shakemap web service client.
 

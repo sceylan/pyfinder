@@ -14,7 +14,7 @@ class InvalidOptionValue(ValueError):
     """ Raised when the given option value is not allowed."""
     pass
 
-class BaseWebServiceClient(ABC):
+class BaseWebService(ABC):
     def __init__(self, agency=None, base_url=None, end_point=None, version="1"):
         # The web service base URL, e.g. "https://esm-db.eu/fdsnws"
         self.base_url = base_url
