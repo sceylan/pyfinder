@@ -70,6 +70,13 @@ class BaseDataStructure:
         else:
             return self._data.values()
         
+    def items(self):
+        """Mimic the dict.items() method."""
+        if self._data is None:
+            return []
+        else:
+            return self._data.items()
+        
     def get_data(self):
         """ 
         Return the data dictionary itself in case the rather

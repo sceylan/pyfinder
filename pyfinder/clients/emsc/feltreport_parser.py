@@ -120,7 +120,9 @@ class EMSCFeltReportParser(BaseParser):
             intensities = FeltReportItensityData()
 
             # The zip file contains text files for intensities.
-            # There might be more than one files.
+            # In case there are more than files included, loop
+            # through them. Normally, there should be only one file
+            # because the web service is queried for a single event.
             _files = zip_file.namelist()
 
             for _file in _files:
@@ -137,7 +139,7 @@ class EMSCFeltReportParser(BaseParser):
                 # e.g.:
                 # {_event_id: 
                 #    {'unid': _event_id,
-                #     'intensities': intensities info, 4 columns (lon, lat, raw, corrected)
+                #     'intensities': intensity info, 4 columns (lon, lat, raw, corrected)
                 #     'comments': _comment_string
                 #    }
                 # }

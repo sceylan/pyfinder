@@ -44,6 +44,11 @@ class TestEMSCShakeMapParser(unittest.TestCase):
             # Check field names for intensities
             intensity = parsed_data.get_data()[unid]['intensities'][0]
             self.assertEqual(intensity.keys(), {'lon', 'lat', 'raw', 'corrected'})
-              
 
-    
+            # Check the first intensity
+            # lon:14.4824, lat: 46.0752, raw: 1, corrected: 1
+            self.assertAlmostEqual(intensity['lon'], 14.4824)
+            self.assertAlmostEqual(intensity['lat'], 46.0752)
+            self.assertAlmostEqual(intensity['raw'], 1)
+            self.assertAlmostEqual(intensity['corrected'], 1)
+              
