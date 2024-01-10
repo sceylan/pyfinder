@@ -3,8 +3,8 @@
 import unittest
 import os
 import sys
-from clients import EMSCFeltReportClient
-from clients import InvalidQueryOption
+from clients.services import EMSCFeltReportClient
+from clients.services import InvalidQueryOption
 
 class TestEMSCFeltReportClient(unittest.TestCase):
     """Unit tests for the RRSM Shakemap web service client."""

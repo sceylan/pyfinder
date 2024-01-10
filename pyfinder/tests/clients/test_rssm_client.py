@@ -3,8 +3,8 @@
 import unittest
 import os
 import sys
-from clients import RRSMShakeMapClient
-from clients import InvalidQueryOption
+from clients.services import RRSMShakeMapClient
+from clients.services import InvalidQueryOption
 
 class TestRRSMShakeMapClient(unittest.TestCase):
     """Unit tests for the RRSM Shakemap web service client."""

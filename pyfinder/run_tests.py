@@ -66,5 +66,6 @@ if __name__ == '__main__':
         skipped = len(result.skipped)
         succeeded = result.testsRun - error - failure - skipped
         logging.info(
-            f"{grp}: {result.testsRun} tests run ({succeeded} succeeded, {failure} failed, {error} with error, {skipped} skipped)")
+            f"{grp}: {result.testsRun} tests run ({succeeded} succeeded, \
+            {failure} failed, {error} with error, {skipped} skipped)")
     logging.info("="*50)

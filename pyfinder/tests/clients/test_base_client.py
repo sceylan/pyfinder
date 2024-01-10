@@ -3,7 +3,7 @@
 import unittest
 import os
 import sys
-from clients import BaseWebServiceClient
+from clients.services import BaseWebServiceClient
 
 class TestBaseClient(unittest.TestCase):
     """Unit tests for the base client class."""

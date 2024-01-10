@@ -6,7 +6,7 @@ import zipfile
 module_path = os.path.dirname(os.path.abspath(__file__))
 one_up = os.path.join(module_path, '..')
 sys.path.append(one_up)
-from clients.emsc.feltreport_parser import EMSCFeltReportParser
+from clients.services.emsc.feltreport_parser import EMSCFeltReportParser
 
 
 class TestEMSCShakeMapParser(unittest.TestCase):
@@ -51,4 +51,4 @@ class TestEMSCShakeMapParser(unittest.TestCase):
             self.assertAlmostEqual(intensity['lat'], 46.0752)
             self.assertAlmostEqual(intensity['raw'], 1)
             self.assertAlmostEqual(intensity['corrected'], 1)
-              
+    

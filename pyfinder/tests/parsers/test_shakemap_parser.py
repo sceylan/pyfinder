@@ -5,8 +5,8 @@ import sys
 module_path = os.path.dirname(os.path.abspath(__file__))
 one_up = os.path.join(module_path, '..')
 sys.path.append(one_up)
-from clients.esm.shakemap_parser import ESMShakeMapParser
-from clients.rrsm.shakemap_parser import RRSMShakeMapParser
+from clients.services.esm.shakemap_parser import ESMShakeMapParser
+from clients.services.rrsm.shakemap_parser import RRSMShakeMapParser
 
 station_list = {
     "HL.KASA": {},

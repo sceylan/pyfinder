@@ -3,8 +3,8 @@
 import unittest
 import os
 import sys
-from clients import InvalidQueryOption, InvalidOptionValue
-from clients import ESMShakeMapClient
+from clients.services import InvalidQueryOption, InvalidOptionValue
+from clients.services import ESMShakeMapClient
 
 class TestESMShakeMapClient(unittest.TestCase):
     """Unit tests for the ESM Shakemap web service client."""
