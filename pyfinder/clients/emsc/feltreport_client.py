@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import urllib
-from ..baseclient import BaseWebServiceClient
+from ..baseclient import BaseWebServiceClient, InvalidOptionValue
+from .feltreport_parser import EMSCFeltReportParser
 
 class MissingRequiredFieldError(Exception):
     """ Exception raised when a required field is missing. """
@@ -23,10 +24,10 @@ class EMSCFeltReportClient(BaseWebServiceClient):
         Checks for the value of includeTestimonies option only. 
         The options for EMSC are case sensitive.
         """
-        options = {'includeTestimonies': ['true', 'false']}
+        _options = {'includeTestimonies': ['true', 'false']}
     
-        if option in options:
-            if value not in options[option]:
+        if option in _options:
+            if value not in _options[option]:
                 return False
         return True
     
@@ -37,6 +38,10 @@ class EMSCFeltReportClient(BaseWebServiceClient):
         http://www.seismicportal.eu/testimonies-ws/api/search?unids=[20201230_0000049]&includeTestimonies=true
         """
         if not options:
+            # If options are not defined, create an empty dict.
+            # No options means we will query the whole event database
+            # from the EMSC for the event information. The service
+            # will return 500 records by default.
             options = {}
         
         # If a variation is passed by mistake, rename the keyword to 
@@ -47,6 +52,17 @@ class EMSCFeltReportClient(BaseWebServiceClient):
             if combination in options:
                 value = options.pop(combination)
                 options['includeTestimonies'] = value
+
+        # Check for the "unids" option. It needs to passed as a list.
+        # If it is a string, convert it to a string representation of 
+        # a list.
+        if 'unids' in options:
+            if isinstance(options['unids'], str):
+                options['unids'] = [options['unids']]
+            elif isinstance(options['unids'], list):
+                pass
+            else:
+                raise InvalidOptionValue("unids", options['unids'])    
 
         # Validate the options the first against the 
         # list of supported options
@@ -70,5 +86,32 @@ class EMSCFeltReportClient(BaseWebServiceClient):
         
         return self.combined_url
     
+    
     def parse_response(self, file_like_obj=None, options=None):
-        pass
+        """ Parse the response from felt reports web service. """
+        # Check if testimonies are requested. The default 
+        # on the web service is False.
+        if 'includeTestimonies' in options:
+            if options['includeTestimonies'].lower() == 'true':
+                testimonies_included = True
+            else:
+                testimonies_included = False
+        else:
+            testimonies_included = False
+
+        if file_like_obj:
+            parser = EMSCFeltReportParser()
+
+            if testimonies_included:
+                # Intensity data with testimonies. This will be a zip 
+                # file containing the intensity data in csv format.
+                data = parser.parse_testimonies(file_like_obj)
+
+            else:
+                # Event information without testimonies. 
+                # This will be in json format.
+                data = parser.parse(file_like_obj)
+            
+            self.set_data(data)
+
+        return self.get_data()
