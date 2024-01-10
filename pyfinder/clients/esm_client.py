@@ -1,7 +1,7 @@
 # -*-coding: utf-8 -*-
 from .services import ESMShakeMapWebService
 
-class ESMShakeMapWebService:
+class ESMShakeMapClient(object):
     """ 
     This class encapsulates the actual ESM web service client
     classes and respective data structure. The purpose of this 
