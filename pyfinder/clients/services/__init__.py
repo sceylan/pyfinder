@@ -2,8 +2,8 @@
 Client modules that consume the web services of the data centers 
 with their data structures.
 """
-from .baseclient import BaseWebService
-from .esm.shakemap_client import ESMShakeMapWebService
-from .rrsm.shakemap_client import RRSMShakeMapWebService
-from .emsc.feltreport_client import EMSCFeltReportWebService, MissingRequiredFieldError
-from .baseclient import InvalidQueryOption, InvalidOptionValue
+from .basewebservice import BaseWebService
+from .esm.shakemap_ws import ESMShakeMapWebService
+from .rrsm.shakemap_ws import RRSMShakeMapWebService
+from .emsc.feltreport_ws import EMSCFeltReportWebService, MissingRequiredFieldError
+from .basewebservice import InvalidQueryOption, InvalidOptionValue

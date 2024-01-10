@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import urllib
-from ..baseclient import BaseWebService, InvalidOptionValue
+from ..basewebservice import BaseWebService, InvalidOptionValue
 from .feltreport_parser import EMSCFeltReportParser
 
 class MissingRequiredFieldError(Exception):

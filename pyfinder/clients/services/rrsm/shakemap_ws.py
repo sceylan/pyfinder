@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import urllib
 from .shakemap_parser import RRSMShakeMapParser
-from ..esm.shakemap_client import ESMShakeMapWebService
+from ..esm.shakemap_ws import ESMShakeMapWebService
 
 class RRSMShakeMapWebService(ESMShakeMapWebService):
     """ 

@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-from .shakemap_client import RRSMShakeMapWebService
+from .shakemap_ws import RRSMShakeMapWebService
