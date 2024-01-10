@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # Folders containing the tests.
     test_groups = ['tests/parsers', 
-                   'tests/clients']
+                   'tests/services']
 
     # Messages to be displayed before each test group.
     messages = ["Testing parsers ...", 
