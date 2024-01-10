@@ -10,7 +10,7 @@ class LoggingFormatter(logging.Formatter):
     """
     magenta = "\033[95m"
     reset = "\x1b[0m"
-    format = "%(asctime)s  %(message)8s"
+    format = "%(message)8s"
     
     FORMATS = {logging.INFO: magenta + format + reset}
 
@@ -58,14 +58,16 @@ if __name__ == '__main__':
         results.append(runner.run(suite))
     
     # Final report
-    logging.info("="*50)
-    logging.info("Test Results:")
-    for grp, result in zip(test_groups, results):
+    logging.info("="*18 + " Test results " + "="*18)
+    test_desc = ['Parsers', 'Web service clients']
+    for grp, result in zip(test_desc, results):
         error = len(result.errors)
         failure = len(result.failures)
         skipped = len(result.skipped)
         succeeded = result.testsRun - error - failure - skipped
+        
         logging.info(
-            f"{grp}: {result.testsRun} tests run ({succeeded} succeeded, \
-            {failure} failed, {error} with error, {skipped} skipped)")
+            "{:20s}: {:3d} tests run ({:2d} succeeded, {:2d}"
+            " failed, {:2d} error(s), {:2d} skipped)".format(
+                grp, result.testsRun, succeeded, failure, error, skipped))
     logging.info("="*50)
