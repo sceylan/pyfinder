@@ -30,11 +30,13 @@ if __name__ == '__main__':
 
     # Folders containing the tests.
     test_groups = ['tests/parsers', 
-                   'tests/services']
+                   'tests/services',
+                   'tests/clients']
 
     # Messages to be displayed before each test group.
     messages = ["Testing parsers ...", 
-                "Testing web service clients ..."]
+                "Testing web service clients ...",
+                "Testing client encapsulation ..."]
 
     # Collect the results of the tests.
     results = []
@@ -50,7 +52,7 @@ if __name__ == '__main__':
     
     # Final report
     logging.info("="*18 + " Test results " + "="*18)
-    test_desc = ['Parsers', 'Web service clients']
+    test_desc = ['Parsers', 'Web service clients', 'Client encapsulation']
     for grp, result in zip(test_desc, results):
         error = len(result.errors)
         failure = len(result.failures)
