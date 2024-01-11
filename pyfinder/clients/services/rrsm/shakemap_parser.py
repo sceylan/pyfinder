@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-import xmltodict
-import datetime
-from ..esm.shakemap_parser import ESMShakeMapParser, \
-    ShakeMapComponentNode, \
-        ShakeMapStationNode, \
-            ShakeMapEventData
+from ..esm.shakemap_parser import ESMShakeMapParser
 
 class RRSMShakeMapParser(ESMShakeMapParser):
     """ 

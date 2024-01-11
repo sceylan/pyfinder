@@ -1,12 +1,6 @@
 # -*-coding: utf-8 -*-
-from .base_client import BaseClient
+from .base_client import BaseClient, MissingRequiredOption
 from .services import ESMShakeMapWebService
-
-class MissingRequiredOption(ValueError):
-    """ 
-    Exception for missing required options. 
-    """
-    pass
 
 class ESMShakeMapClient(BaseClient):
     """ 

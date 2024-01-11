@@ -7,7 +7,7 @@ class RRSMShakeMapWebService(ESMShakeMapWebService):
     """ 
     Class for RRSM shakemap web service client. This client 
     is similar to ESM shakemap client, but query has no options
-    other than a compulsory eventid; hence, need to be handled 
+    other than a compulsory eventid; hence, needs to be handled 
     slightly differently.
     """
     def __init__(self, agency="ORFEUS", base_url="http://orfeus-eu.org/odcws/rrsm/", 
@@ -43,7 +43,7 @@ class RRSMShakeMapWebService(ESMShakeMapWebService):
     def build_url(self, **options):
         """ 
         RRSM uses inverted service and version order in the URL. Also,
-        there is no "query" parameter.
+        there is no "query" key word.
         e.g. http://orfeus-eu.org/odcws/rrsm/1/shakemap?eventid=20170524_0000045
         """
         if not options:

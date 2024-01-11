@@ -114,16 +114,6 @@ class ShakeMapStationAmplitudes(BaseDataStructure):
     def __init__(self, data_dict=None, **kwargs):
         super().__init__(data_dict=data_dict, kwargs=kwargs)
 
-    def _get(self, key):
-        """ 
-        Return the value of the given key. If the key does not exist,
-        return None. Shortcut for get() with try-except block.
-        """
-        try:
-            return self.get(key)
-        except: 
-            return None
-        
     def get_creation_time(self):
         """ Return the creation time of the data."""
         return self._get('created')
@@ -168,19 +158,19 @@ class ShakeMapEventData(BaseDataStructure):
         return self._get('catalog')
     
     def get_latitude(self):
-        """ Return the latitude. """
+        """ Return the event latitude. """
         return self._get('lat')
     
     def get_longitude(self):
-        """ Return the longitude. """
+        """ Return the event longitude. """
         return self._get('lon')
     
     def get_magnitude(self):
-        """ Return the magnitude. """
+        """ Return the event magnitude. """
         return self._get('mag')
     
     def get_depth(self):
-        """ Return the depth. """
+        """ Return the event depth. """
         return self._get('depth')
     
     def get_origin_time(self):

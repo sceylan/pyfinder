@@ -1,6 +1,12 @@
 # -*-coding: utf-8 -*-
 from abc import ABC, abstractmethod
 
+class MissingRequiredOption(ValueError):
+    """ 
+    Exception for missing required options. 
+    """
+    pass
+
 class BaseClient(ABC):
     """ 
     Base class for the other classes that encapsulate the actual 
