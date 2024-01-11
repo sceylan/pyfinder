@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-
+import urllib
 module_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(module_path)
 sys.path.append(parent_dir)
@@ -47,6 +47,33 @@ class ESMShakeMapWebService(BaseWebService):
 
         return self.get_data()
 
+    def build_url(self, **options):
+        """ 
+        Return the final URL with web service, end point and options 
+        combined. Also, keep it internally.
+        """
+        # Validate the options the first against the 
+        # list of supported options
+        options = self.validate_options(**options)
+
+        # Safety check for the base URL. 
+        if self.base_url and self.base_url[-1] != "/":
+            self.base_url += "/"
+
+        # Ensure the options dictionary is properly encoded as a 
+        # URL-compatible string
+        options = urllib.parse.urlencode(options)
+        
+        # Combine the URL
+        self.combined_url = \
+            f"{self.base_url}{self.end_point}/{self.version}/query?{options}" 
+        
+        # Encode the URL to make it safe for HTTP requests
+        self.combined_url = urllib.parse.quote(
+            self.combined_url, safe=':/?&=', encoding='utf-8')
+        
+        return self.combined_url
+    
     def get_supported_options(self):
         """ 
         Return the list of options available at the ESM shakemap 
@@ -93,7 +120,8 @@ class ESMShakeMapWebService(BaseWebService):
         # Event ID is not checked because it is not optional.
         options = {'catalog': ['ESM', 'ISC', 'USGS', 'EMSC', 'INGV'],
                    'format': ['event', 'event_dat', 'event_fault'],
-                   'flag': ['0', 'all'], 'encoding': ['UTF-8', 'US-ASCII']}
+                   'encoding': ['utf-8', 'UTF-8', 'us-ascii', 'US-ASCII'],
+                   'flag': ['0', 'all']}
     
         if option.lower() in options:
             if value not in options[option.lower()]:

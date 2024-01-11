@@ -40,10 +40,40 @@ class BaseWebService(ABC):
         # the redirect even if the credentials are given.
         self._force_redirect = False
 
+    @abstractmethod
+    def build_url(self, **options):
+        """ 
+        Return the final URL with web service, end point and options 
+        combined. Also, keep it internally.
+        """
+        return None
+    
+    @abstractmethod
+    def parse_response(self, file_like_obj):
+        """ Parse the data returned by the web service. """
+        pass
+
+    @abstractmethod
+    def get_supported_options(self):
+        """ Return the list of supported options for the web service. """
+        return []
+
+    @abstractmethod
+    def is_value_valid(self, option, value):
+        """ 
+        Validate the given option value. Each subclass of this class is
+        required supply a list of the values per option. 
+        """
+        return True
+    
     def set_force_redirect(self, force_redirect):
         """ Set the flag to force redirect. """
         self._force_redirect = force_redirect
 
+    def get_force_redirect(self):
+        """ Return the flag to force redirect. """
+        return self._force_redirect
+    
     def get_data(self):
         """ Return the data structure."""
         return self.data
@@ -88,33 +118,6 @@ class BaseWebService(ABC):
 
         self.base_url = base_url
 
-    def build_url(self, **options):
-        """ 
-        Return the final URL with web service, end point and options 
-        combined. Also, keep it internally.
-        """
-        # Validate the options the first against the 
-        # list of supported options
-        options = self.validate_options(**options)
-
-        # Safety check for the base URL. 
-        if self.base_url and self.base_url[-1] != "/":
-            self.base_url += "/"
-
-        # Ensure the options dictionary is properly encoded as a 
-        # URL-compatible string
-        options = urllib.parse.urlencode(options)
-        
-        # Combine the URL
-        self.combined_url = \
-            f"{self.base_url}{self.end_point}/{self.version}/query?{options}" 
-        
-        # Encode the URL to make it safe for HTTP requests
-        self.combined_url = urllib.parse.quote(
-            self.combined_url, safe=':/?&=', encoding='utf-8')
-        
-        return self.combined_url
-    
     def query(self, url=None, user=None, password=None, **options):
         """ 
         Query the web service. If url is given, use it. Otherwise,
@@ -184,24 +187,6 @@ class BaseWebService(ABC):
             # If failed, return the code and None
             return code, None
         
-    @abstractmethod
-    def parse_response(self, file_like_obj):
-        """ Parse the data returned by the web service. """
-        pass
-
-    @abstractmethod
-    def get_supported_options(self):
-        """ Return the list of supported options for the web service. """
-        return []
-
-    @abstractmethod
-    def is_value_valid(self, option, value):
-        """ 
-        Validate the given option value. Each subclass of this class is
-        required supply a list of the values per option. 
-        """
-        return True
-
     def validate_options(self, **options):
         """
         Check whether all the given options are supported by the relevant

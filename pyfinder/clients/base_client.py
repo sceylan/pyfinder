@@ -10,12 +10,13 @@ class BaseClient(ABC):
     """
     def __init__(self):
         # The actual client for the ESM shakemap web service.
-        self.ws_client = self.create_web_service()
+        self.ws_client = None
 
         # Event parameters from the shakemap format=event option.
         self.event_data = None
 
-        # Amplitudes from the shakemap format=event_dat option.
+        # Amplitudes from the shakemap format=event_dat option,
+        # or intensities from EMSC felt reports.
         self.amplitude_data = None
 
     @abstractmethod
@@ -25,7 +26,23 @@ class BaseClient(ABC):
         child classes.
         """
         return None
-        
+
+    @abstractmethod    
+    def query(self, **options):
+        """ Query the web service. """
+        pass
+
+    @staticmethod
+    def percent_g_to_cm_s2(percent_g):
+        """ 
+        Convert percent g to cm/s^2. Needed for the accelerations in
+        the ESM shakemap web service output.
+        """
+        # Standard acceleration due to gravity in cm/s^2
+        g = 980.665  
+        acceleration_cm_s2 = (percent_g * 0.01) * g
+        return acceleration_cm_s2
+
     def set_agency(self, agency):
         """ Set the agency for the web service. """
         self.ws_client.set_agency(agency)
@@ -42,6 +59,25 @@ class BaseClient(ABC):
         """ Set the base url for the web service. """
         self.ws_client.set_base_url(base_url)   
 
+    def set_event_data(self, event_data):
+        """ Set the event information. """
+        self.event_data = event_data
+
+    def set_amplitudes(self, amplitude_data):
+        """ Set the amplitudes or intensities. """
+        self.amplitude_data = amplitude_data
+
+    def set_intensities(self, amplitude_data):
+        """ 
+        Set the amplitudes or intensities. Same as 
+        set_amplitudes(), but included for clarity.
+        """
+        self.amplitude_data = amplitude_data
+
+    def get_web_service(self):
+        """ Get the web service client. """
+        return self.ws_client
+    
     def get_agency(self):
         """ Get the agency for the web service. """
         return self.ws_client.get_agency()
@@ -57,19 +93,19 @@ class BaseClient(ABC):
     def get_base_url(self):
         """ Get the base url for the web service. """
         return self.ws_client.get_base_url()
-    
-    def get_data(self):
-        """ Get the data from the web service. """
-        return self.ws_client.get_data()
-    
-    def get_event_data(self):
-        """ Get the event id from the web service. """
+        
+    def get_event(self):
+        """ Return the event information. """
         return self.event_data
     
-    def get_amplitude_data(self):
-        """ Get the event id from the web service. """
+    def get_station_amplitudes(self):
+        """ Return the amplitudes or intensities. """
+        return self.amplitude_data    
+
+    def get_intensities(self):
+        """ 
+        Return the amplitudes or intensities. Same as 
+        get_amplitudes(), but included for clarity.
+        """
         return self.amplitude_data        
     
-    def query(self, **kwargs):
-        """ Query the web service. """
-        pass

@@ -51,7 +51,7 @@ if __name__ == '__main__':
         results.append(runner.run(suite))
     
     # Final report
-    logging.info("="*18 + " Test results " + "="*18)
+    logging.info("="*23 + " Test results " + "="*23)
     test_desc = ['Parsers', 'Web service clients', 'Client encapsulation']
     for grp, result in zip(test_desc, results):
         error = len(result.errors)
@@ -63,4 +63,4 @@ if __name__ == '__main__':
             "{:20s}: Total {:2d} tests ({:2d} succeeded, {:2d}"
             " failed, {:2d} error(s), {:2d} skipped)".format(
                 grp, result.testsRun, succeeded, failure, error, skipped))
-    logging.info("="*50)
+    logging.info("="*60)

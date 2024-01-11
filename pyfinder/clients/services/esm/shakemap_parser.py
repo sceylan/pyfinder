@@ -2,9 +2,10 @@
 import datetime
 import xmltodict
 from ..baseparser import BaseParser
-from ..shakemap_data import ShakeMapData
-from ..shakemap_data import ShakeMapDataStationNode
-from ..shakemap_data import ShakeMapDataComponentNode
+from ..shakemap_data import ShakeMapEventData
+from ..shakemap_data import ShakeMapStationAmplitudes
+from ..shakemap_data import ShakeMapStationNode
+from ..shakemap_data import ShakeMapComponentNode
 
 class ESMShakeMapParser(BaseParser):
     """
@@ -39,7 +40,7 @@ class ESMShakeMapParser(BaseParser):
             _creation_time = datetime.datetime.now()
         
         _esm_toplevel_data = {"created": _creation_time, "stations": []}
-        esm_shakemap_data = ShakeMapData(_esm_toplevel_data)
+        esm_shakemap_data = ShakeMapStationAmplitudes(_esm_toplevel_data)
 
         for _sta in xml_content['stationlist']['station']:
              # Station ID is constructed using network and station code 
@@ -61,7 +62,7 @@ class ESMShakeMapParser(BaseParser):
             
             # Create a station-level dictionary (in reality, a wrapper 
             # around the dictionary)
-            station_node = ShakeMapDataStationNode(data_dict=station)
+            station_node = ShakeMapStationNode(data_dict=station)
 
             # Add the station node to the main data structure
             esm_shakemap_data.stations.append(station_node)
@@ -115,7 +116,7 @@ class ESMShakeMapParser(BaseParser):
                         component['psa30flag'] = None
                         
                     # Create a channel-level dictionary
-                    channel_node = ShakeMapDataComponentNode(data_dict=component)
+                    channel_node = ShakeMapComponentNode(data_dict=component)
 
                     # Add the channel node to the station node
                     station_node.components.append(channel_node)
@@ -162,7 +163,7 @@ class ESMShakeMapParser(BaseParser):
                           'locstring': eq['@locstring'], 'netid': eq['@netid'], 
                           'network': eq['@network'], 'created': eq['@created']}
             
-            esm_shakemap_data = ShakeMapData(event_data)
+            esm_shakemap_data = ShakeMapEventData(event_data)
 
             return esm_shakemap_data
         

@@ -2,9 +2,9 @@
 import xmltodict
 import datetime
 from ..esm.shakemap_parser import ESMShakeMapParser, \
-    ShakeMapDataComponentNode, \
-        ShakeMapDataStationNode, \
-            ShakeMapData
+    ShakeMapComponentNode, \
+        ShakeMapStationNode, \
+            ShakeMapEventData
 
 class RRSMShakeMapParser(ESMShakeMapParser):
     """ 

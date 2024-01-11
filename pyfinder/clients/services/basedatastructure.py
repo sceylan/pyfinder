@@ -77,6 +77,19 @@ class BaseDataStructure:
         else:
             return self._data.items()
         
+    def _get(self, key):
+        """ 
+        Internal get method that returns the value of the given key. 
+        If the key does not exist, returns None. Shortcut for get() 
+        with try-except block because get() needs to raise an exception 
+        when the key does not exist if data is manipulated outside 
+        this class or its sub-classes.
+        """
+        try:
+            return self.get(key)
+        except: 
+            return None
+        
     def get_data(self):
         """ 
         Return the data dictionary itself in case the rather
@@ -114,7 +127,7 @@ class BaseDataStructure:
             if add_if_not_exist:
                 self.add_field(field_name, value)
             else:
-                raise ValueError(f"Field '{field_name}' does not exist.")
+                raise KeyError(f"Field '{field_name}' does not exist.")
 
     def __getattr__(self, attr):
         """ Override the __getattr__ method to allow getting attributes"""
