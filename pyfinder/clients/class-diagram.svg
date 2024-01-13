@@ -46,9 +46,9 @@
      inkscape:window-height="1403"
      id="namedview815"
      showgrid="false"
-     inkscape:zoom="0.49499462"
-     inkscape:cx="1372.6481"
-     inkscape:cy="1097.1166"
+     inkscape:zoom="0.62641365"
+     inkscape:cx="2382.2721"
+     inkscape:cy="1601.6362"
      inkscape:window-x="2106"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -1506,657 +1506,6 @@
   </g>
   <g
      class="node"
-     id="node2"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title61">pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon63"
-       points="1540.875,-572.7 1540.875,-347.1 1298.6112,-347.1 1298.6112,-572.7 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text65"
-       font-size="14.00"
-       y="-556.09998"
-       x="1367.2676">BaseDataStructure</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline67"
-       points="1298.6112,-547.9 1540.875,-547.9 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text69"
-       font-size="14.00"
-       y="-531.29999"
-       x="1383.1906">eventid : str</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text71"
-       font-size="14.00"
-       y="-514.5"
-       x="1383.1906">testField : str</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline73"
-       points="1298.6112,-506.3 1540.875,-506.3 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text75"
-       font-size="14.00"
-       y="-489.70001"
-       x="1306.6112">add_field(field_name, value)</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text77"
-       font-size="14.00"
-       y="-472.89999"
-       x="1306.6112">get(field_name)</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text79"
-       font-size="14.00"
-       y="-456.10001"
-       x="1306.6112">get_data()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text81"
-       font-size="14.00"
-       y="-439.29999"
-       x="1306.6112">items()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text83"
-       font-size="14.00"
-       y="-422.5"
-       x="1306.6112">keys()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text85"
-       font-size="14.00"
-       y="-405.70001"
-       x="1306.6112">remove_field(field_name)</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text87"
-       font-size="14.00"
-       y="-388.89999"
-       x="1306.6112">set(field_name, value, add_if_not_exist)</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text89"
-       font-size="14.00"
-       y="-372.10001"
-       x="1306.6112">set_data(data_dict)</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text91"
-       font-size="14.00"
-       y="-355.29999"
-       x="1306.6112">values()</text>
-  </g>
-  <g
-     class="node"
-     id="node12"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title419">pyfinder.clients.services.feltreport_data.FeltReportEventData</title>
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon421"
-       points="1095.2193,-293.3 1095.2193,-0.5 918.2669,-0.5 918.2669,-293.3 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text423"
-       font-size="14.00"
-       y="-276.70001"
-       x="947.26062">FeltReportEventData</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline425"
-       points="918.2669,-268.5 1095.2193,-268.5 " />
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline427"
-       points="918.2669,-243.7 1095.2193,-243.7 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text429"
-       font-size="14.00"
-       y="-227.10001"
-       x="926.26691">get_event_deltatime()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text431"
-       font-size="14.00"
-       y="-210.3"
-       x="926.26691">get_event_depth()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text433"
-       font-size="14.00"
-       y="-193.5"
-       x="926.26691">get_event_evid()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text435"
-       font-size="14.00"
-       y="-176.7"
-       x="926.26691">get_event_id()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text437"
-       font-size="14.00"
-       y="-159.89999"
-       x="926.26691">get_event_last_update()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text439"
-       font-size="14.00"
-       y="-143.10001"
-       x="926.26691">get_event_latitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text441"
-       font-size="14.00"
-       y="-126.3"
-       x="926.26691">get_event_longitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text443"
-       font-size="14.00"
-       y="-109.5"
-       x="926.26691">get_event_magnitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text445"
-       font-size="14.00"
-       y="-92.699997"
-       x="926.26691">get_event_magnitude_type()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text447"
-       font-size="14.00"
-       y="-75.900002"
-       x="926.26691">get_event_nbtestimonies()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text449"
-       font-size="14.00"
-       y="-59.099998"
-       x="926.26691">get_event_region()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text451"
-       font-size="14.00"
-       y="-42.299999"
-       x="926.26691">get_event_time()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text453"
-       font-size="14.00"
-       y="-25.5"
-       x="926.26691">get_event_unid()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text455"
-       font-size="14.00"
-       y="-8.6999998"
-       x="926.26691">get_full_count()</text>
-  </g>
-  <g
-     class="edge"
-     id="edge8"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title458">pyfinder.clients.services.feltreport_data.FeltReportEventData-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
-    <path
-       style="fill:none;stroke:#000000"
-       inkscape:connector-curvature="0"
-       id="path460"
-       d="m 1095.3513,-284.8237 c 3.0728,-3.1022 6.2045,-6.1017 9.3918,-8.9763 53.6034,-48.3449 123.8346,-87.1418 184.3765,-115.0438" />
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon462"
-       points="1298.3632,-413.0545 1290.7138,-405.7239 1287.8119,-412.0941 " />
-  </g>
-  <g
-     class="node"
-     id="node13"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title465">pyfinder.clients.services.feltreport_data.FeltReportItensityData</title>
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon467"
-       points="1257.8925,-200.9 1257.8925,-92.9 1113.5937,-92.9 1113.5937,-200.9 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text469"
-       font-size="14.00"
-       y="-184.3"
-       x="1121.5938">FeltReportItensityData</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline471"
-       points="1113.5937,-176.1 1257.8925,-176.1 " />
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline473"
-       points="1113.5937,-151.3 1257.8925,-151.3 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text475"
-       font-size="14.00"
-       y="-134.7"
-       x="1140.2571">get_comments()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text477"
-       font-size="14.00"
-       y="-117.9"
-       x="1140.2571">get_event_id()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text479"
-       font-size="14.00"
-       y="-101.1"
-       x="1140.2571">get_intensities()</text>
-  </g>
-  <g
-     class="edge"
-     id="edge9"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title482">pyfinder.clients.services.feltreport_data.FeltReportItensityData-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
-    <path
-       style="fill:none;stroke:#000000"
-       inkscape:connector-curvature="0"
-       id="path484"
-       d="m 1211.6636,-201.1138 c 14.6285,-28.5705 34.1451,-63.6179 55.0795,-92.6862 10.9262,-15.1715 23.0909,-30.4545 35.6535,-45.2808" />
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon486"
-       points="1308.9978,-346.7894 1305.1518,-336.9173 1299.8349,-341.4704 " />
-  </g>
-  <g
-     class="node"
-     id="node22"
-     transform="translate(675.23497,696.28289)">
-    <title
-       id="title655">pyfinder.clients.services.shakemap_data.ShakeMapComponentNode</title>
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon657"
-       points="1447.5054,-17.3 1275.9808,-17.3 1275.9808,-276.5 1447.5054,-276.5 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text659"
-       font-size="14.00"
-       y="-259.89999"
-       x="1283.9808">ShakeMapComponentNode</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline661"
-       points="1275.9808,-251.7 1447.5054,-251.7 " />
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline663"
-       points="1275.9808,-226.9 1447.5054,-226.9 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text665"
-       font-size="14.00"
-       y="-210.3"
-       x="1294.8721">get_acceleration()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text667"
-       font-size="14.00"
-       y="-193.5"
-       x="1294.8721">get_acceleration_flag()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text669"
-       font-size="14.00"
-       y="-176.7"
-       x="1294.8721">get_component_depth()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text671"
-       font-size="14.00"
-       y="-159.89999"
-       x="1294.8721">get_component_name()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text673"
-       font-size="14.00"
-       y="-143.10001"
-       x="1294.8721">get_psa03()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text675"
-       font-size="14.00"
-       y="-126.3"
-       x="1294.8721">get_psa03_flag()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text677"
-       font-size="14.00"
-       y="-109.5"
-       x="1294.8721">get_psa10()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text679"
-       font-size="14.00"
-       y="-92.699997"
-       x="1294.8721">get_psa10_flag()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text681"
-       font-size="14.00"
-       y="-75.900002"
-       x="1294.8721">get_psa30()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text683"
-       font-size="14.00"
-       y="-59.099998"
-       x="1294.8721">get_psa30_flag()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text685"
-       font-size="14.00"
-       y="-42.299999"
-       x="1294.8721">get_velocity()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text687"
-       font-size="14.00"
-       y="-25.5"
-       x="1294.8721">get_velocity_flag()</text>
-  </g>
-  <g
-     class="edge"
-     id="edge12"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title690">pyfinder.clients.services.shakemap_data.ShakeMapComponentNode-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
-    <path
-       style="fill:none;stroke:#000000"
-       inkscape:connector-curvature="0"
-       id="path692"
-       d="m 1385.8364,-276.921 c 3.6744,-19.8286 7.4569,-40.2414 11.1024,-59.9147" />
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon694"
-       points="1398.7737,-346.7374 1400.393,-336.267 1393.5102,-337.5425 " />
-  </g>
-  <g
-     class="node"
-     id="node23"
-     transform="translate(-36.315266,647.82215)">
-    <title
-       id="title697">pyfinder.clients.services.shakemap_data.ShakeMapEventData</title>
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon699"
-       points="1600.2207,-17.3 1465.2655,-17.3 1465.2655,-276.5 1600.2207,-276.5 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text701"
-       font-size="14.00"
-       y="-259.89999"
-       x="1473.2655">ShakeMapEventData</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline703"
-       points="1465.2655,-251.7 1600.2207,-251.7 " />
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline705"
-       points="1465.2655,-226.9 1600.2207,-226.9 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text707"
-       font-size="14.00"
-       y="-210.3"
-       x="1476.3792">get_catalog()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text709"
-       font-size="14.00"
-       y="-193.5"
-       x="1476.3792">get_creation_time()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text711"
-       font-size="14.00"
-       y="-176.7"
-       x="1476.3792">get_depth()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text713"
-       font-size="14.00"
-       y="-159.89999"
-       x="1476.3792">get_event_id()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text715"
-       font-size="14.00"
-       y="-143.10001"
-       x="1476.3792">get_latitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text717"
-       font-size="14.00"
-       y="-126.3"
-       x="1476.3792">get_loc_string()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text719"
-       font-size="14.00"
-       y="-109.5"
-       x="1476.3792">get_longitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text721"
-       font-size="14.00"
-       y="-92.699997"
-       x="1476.3792">get_magnitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text723"
-       font-size="14.00"
-       y="-75.900002"
-       x="1476.3792">get_network_code()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text725"
-       font-size="14.00"
-       y="-59.099998"
-       x="1476.3792">get_network_desc()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text727"
-       font-size="14.00"
-       y="-42.299999"
-       x="1476.3792">get_origin_time()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text729"
-       font-size="14.00"
-       y="-25.5"
-       x="1476.3792">get_time_zone()</text>
-  </g>
-  <g
-     class="edge"
-     id="edge13"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title732">pyfinder.clients.services.shakemap_data.ShakeMapEventData-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
-    <path
-       style="fill:none;stroke:#000000"
-       inkscape:connector-curvature="0"
-       id="path734"
-       d="m 1485.8026,-276.921 c -7.1913,-19.9192 -14.5953,-40.4278 -21.7278,-60.1841" />
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon736"
-       points="1460.5973,-346.7374 1467.2851,-338.5201 1460.7011,-336.143 " />
-  </g>
-  <g
-     class="node"
-     id="node24"
-     transform="translate(-41.646301,571.71926)">
-    <title
-       id="title739">pyfinder.clients.services.shakemap_data.ShakeMapStationAmplitudes</title>
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon741"
-       points="1799.1772,-92.9 1618.309,-92.9 1618.309,-200.9 1799.1772,-200.9 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text743"
-       font-size="14.00"
-       y="-184.3"
-       x="1626.309">ShakeMapStationAmplitudes</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline745"
-       points="1618.309,-176.1 1799.1772,-176.1 " />
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline747"
-       points="1618.309,-151.3 1799.1772,-151.3 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text749"
-       font-size="14.00"
-       y="-134.7"
-       x="1653.5439">get_creation_time()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text751"
-       font-size="14.00"
-       y="-117.9"
-       x="1653.5439">get_station_codes()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text753"
-       font-size="14.00"
-       y="-101.1"
-       x="1653.5439">get_stations()</text>
-  </g>
-  <g
-     class="edge"
-     id="edge14"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title756">pyfinder.clients.services.shakemap_data.ShakeMapStationAmplitudes-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
-    <path
-       style="fill:none;stroke:#000000"
-       inkscape:connector-curvature="0"
-       id="path758"
-       d="m 1660.1631,-233.48046 c -21.0998,-26.02129 -26.0871,-31.65274 -51.42,-60.31954 -18.3718,-20.7895 -39.2607,-41.487 -60.287,-60.8586"
-       sodipodi:nodetypes="ccc" />
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon760"
-       points="1541.017,-361.4532 1550.7611,-357.2935 1546.0403,-352.1249 " />
-  </g>
-  <g
-     class="node"
-     id="node25"
-     transform="translate(-37.922443,657.094)">
-    <title
-       id="title763">pyfinder.clients.services.shakemap_data.ShakeMapStationNode</title>
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon765"
-       points="1816.8125,-50.9 1816.8125,-242.9 1962.6737,-242.9 1962.6737,-50.9 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text767"
-       font-size="14.00"
-       y="-226.3"
-       x="1824.8125">ShakeMapStationNode</text>
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline769"
-       points="1816.8125,-218.1 1962.6737,-218.1 " />
-    <polyline
-       style="fill:none;stroke:#000000"
-       id="polyline771"
-       points="1816.8125,-193.3 1962.6737,-193.3 " />
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text773"
-       font-size="14.00"
-       y="-176.7"
-       x="1826.3687">get_components()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text775"
-       font-size="14.00"
-       y="-159.89999"
-       x="1826.3687">get_installation_type()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text777"
-       font-size="14.00"
-       y="-143.10001"
-       x="1826.3687">get_latitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text779"
-       font-size="14.00"
-       y="-126.3"
-       x="1826.3687">get_longitude()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text781"
-       font-size="14.00"
-       y="-109.5"
-       x="1826.3687">get_network_code()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text783"
-       font-size="14.00"
-       y="-92.699997"
-       x="1826.3687">get_station_code()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text785"
-       font-size="14.00"
-       y="-75.900002"
-       x="1826.3687">get_station_id()</text>
-    <text
-       style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000"
-       id="text787"
-       font-size="14.00"
-       y="-59.099998"
-       x="1826.3687">get_station_name()</text>
-  </g>
-  <g
-     class="edge"
-     id="edge15"
-     transform="translate(152.83886,647.82215)">
-    <title
-       id="title790">pyfinder.clients.services.shakemap_data.ShakeMapStationNode-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
-    <path
-       style="fill:none;stroke:#000000"
-       inkscape:connector-curvature="0"
-       id="path792"
-       d="m 1854.4228,-228.05598 c -11.4341,-18.979 -29.3728,-52.31502 -46.6797,-65.74402 -72.6334,-56.3588 -115.3315,-16.9786 -200,-52.8 -19.2391,-8.1397 -38.8592,-17.9885 -57.8148,-28.4414"
-       sodipodi:nodetypes="cccc" />
-    <polygon
-       style="fill:none;stroke:#000000"
-       id="polygon794"
-       points="1540.9763,-380.0488 1551.4124,-378.2216 1547.9951,-372.1124 " />
-  </g>
-  <g
-     class="node"
      id="node26"
      transform="translate(-2230.9072,1713.4142)">
     <title
@@ -2193,32 +1542,730 @@
        x="3551.9932" />
   </g>
   <g
-     id="g5442"
-     transform="translate(-0.6309667,0.66435641)">
-    <path
-       inkscape:connector-curvature="0"
-       id="path5390"
-       d="m 1951.8356,426.97483 h -24.663"
-       style="fill:none;stroke:#000000;stroke-width:0.7501834px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    <polygon
-       transform="rotate(81.398493,531.22015,499.83534)"
-       style="fill:#000000;stroke:#000000"
-       id="polygon414-3"
-       points="669.4963,-901.9002 664.6487,-896.5616 667.7122,-890.0335 672.5598,-895.3722 " />
-  </g>
-  <g
-     id="g5436">
-    <path
-       inkscape:connector-curvature="0"
-       id="path5392"
-       d="m 1779.0075,417.81429 h -21.1397"
-       style="fill:none;stroke:#000000;stroke-width:0.7501834px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    <polygon
-       inkscape:transform-center-y="-0.95225855"
-       inkscape:transform-center-x="6.7611227"
-       transform="rotate(81.167948,449.41187,400.20369)"
-       style="fill:#000000;stroke:#000000"
-       id="polygon414-3-6"
-       points="667.7122,-890.0335 672.5598,-895.3722 669.4963,-901.9002 664.6487,-896.5616 " />
+     id="g633">
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="node2"
+       class="node">
+      <title
+         id="title61">pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
+      <polygon
+         points="1540.875,-572.7 1540.875,-347.1 1298.6112,-347.1 1298.6112,-572.7 "
+         id="polygon63"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1367.2676"
+         y="-556.09998"
+         font-size="14.00"
+         id="text65"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">BaseDataStructure</text>
+      <polyline
+         points="1298.6112,-547.9 1540.875,-547.9 "
+         id="polyline67"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1383.1906"
+         y="-531.29999"
+         font-size="14.00"
+         id="text69"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">eventid : str</text>
+      <text
+         x="1383.1906"
+         y="-514.5"
+         font-size="14.00"
+         id="text71"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">testField : str</text>
+      <polyline
+         points="1298.6112,-506.3 1540.875,-506.3 "
+         id="polyline73"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1306.6112"
+         y="-489.70001"
+         font-size="14.00"
+         id="text75"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">add_field(field_name, value)</text>
+      <text
+         x="1306.6112"
+         y="-472.89999"
+         font-size="14.00"
+         id="text77"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get(field_name)</text>
+      <text
+         x="1306.6112"
+         y="-456.10001"
+         font-size="14.00"
+         id="text79"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_data()</text>
+      <text
+         x="1306.6112"
+         y="-439.29999"
+         font-size="14.00"
+         id="text81"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">items()</text>
+      <text
+         x="1306.6112"
+         y="-422.5"
+         font-size="14.00"
+         id="text83"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">keys()</text>
+      <text
+         x="1306.6112"
+         y="-405.70001"
+         font-size="14.00"
+         id="text85"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">remove_field(field_name)</text>
+      <text
+         x="1306.6112"
+         y="-388.89999"
+         font-size="14.00"
+         id="text87"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">set(field_name, value, add_if_not_exist)</text>
+      <text
+         x="1306.6112"
+         y="-372.10001"
+         font-size="14.00"
+         id="text89"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">set_data(data_dict)</text>
+      <text
+         x="1306.6112"
+         y="-355.29999"
+         font-size="14.00"
+         id="text91"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">values()</text>
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="node12"
+       class="node">
+      <title
+         id="title419">pyfinder.clients.services.feltreport_data.FeltReportEventData</title>
+      <polygon
+         points="1095.2193,-293.3 1095.2193,-0.5 918.2669,-0.5 918.2669,-293.3 "
+         id="polygon421"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="947.26062"
+         y="-276.70001"
+         font-size="14.00"
+         id="text423"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">FeltReportEventData</text>
+      <polyline
+         points="918.2669,-268.5 1095.2193,-268.5 "
+         id="polyline425"
+         style="fill:none;stroke:#000000" />
+      <polyline
+         points="918.2669,-243.7 1095.2193,-243.7 "
+         id="polyline427"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="926.26691"
+         y="-227.10001"
+         font-size="14.00"
+         id="text429"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_deltatime()</text>
+      <text
+         x="926.26691"
+         y="-210.3"
+         font-size="14.00"
+         id="text431"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_depth()</text>
+      <text
+         x="926.26691"
+         y="-193.5"
+         font-size="14.00"
+         id="text433"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_evid()</text>
+      <text
+         x="926.26691"
+         y="-176.7"
+         font-size="14.00"
+         id="text435"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_id()</text>
+      <text
+         x="926.26691"
+         y="-159.89999"
+         font-size="14.00"
+         id="text437"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_last_update()</text>
+      <text
+         x="926.26691"
+         y="-143.10001"
+         font-size="14.00"
+         id="text439"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_latitude()</text>
+      <text
+         x="926.26691"
+         y="-126.3"
+         font-size="14.00"
+         id="text441"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_longitude()</text>
+      <text
+         x="926.26691"
+         y="-109.5"
+         font-size="14.00"
+         id="text443"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_magnitude()</text>
+      <text
+         x="926.26691"
+         y="-92.699997"
+         font-size="14.00"
+         id="text445"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_magnitude_type()</text>
+      <text
+         x="926.26691"
+         y="-75.900002"
+         font-size="14.00"
+         id="text447"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_nbtestimonies()</text>
+      <text
+         x="926.26691"
+         y="-59.099998"
+         font-size="14.00"
+         id="text449"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_region()</text>
+      <text
+         x="926.26691"
+         y="-42.299999"
+         font-size="14.00"
+         id="text451"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_time()</text>
+      <text
+         x="926.26691"
+         y="-25.5"
+         font-size="14.00"
+         id="text453"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_unid()</text>
+      <text
+         x="926.26691"
+         y="-8.6999998"
+         font-size="14.00"
+         id="text455"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_full_count()</text>
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="edge8"
+       class="edge">
+      <title
+         id="title458">pyfinder.clients.services.feltreport_data.FeltReportEventData-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
+      <path
+         d="m 1095.3513,-284.8237 c 3.0728,-3.1022 6.2045,-6.1017 9.3918,-8.9763 53.6034,-48.3449 123.8346,-87.1418 184.3765,-115.0438"
+         id="path460"
+         inkscape:connector-curvature="0"
+         style="fill:none;stroke:#000000" />
+      <polygon
+         points="1298.3632,-413.0545 1290.7138,-405.7239 1287.8119,-412.0941 "
+         id="polygon462"
+         style="fill:none;stroke:#000000" />
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="node13"
+       class="node">
+      <title
+         id="title465">pyfinder.clients.services.feltreport_data.FeltReportItensityData</title>
+      <polygon
+         points="1257.8925,-200.9 1257.8925,-92.9 1113.5937,-92.9 1113.5937,-200.9 "
+         id="polygon467"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1121.5938"
+         y="-184.3"
+         font-size="14.00"
+         id="text469"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">FeltReportItensityData</text>
+      <polyline
+         points="1113.5937,-176.1 1257.8925,-176.1 "
+         id="polyline471"
+         style="fill:none;stroke:#000000" />
+      <polyline
+         points="1113.5937,-151.3 1257.8925,-151.3 "
+         id="polyline473"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1140.2571"
+         y="-134.7"
+         font-size="14.00"
+         id="text475"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_comments()</text>
+      <text
+         x="1140.2571"
+         y="-117.9"
+         font-size="14.00"
+         id="text477"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_id()</text>
+      <text
+         x="1140.2571"
+         y="-101.1"
+         font-size="14.00"
+         id="text479"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_intensities()</text>
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="edge9"
+       class="edge">
+      <title
+         id="title482">pyfinder.clients.services.feltreport_data.FeltReportItensityData-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
+      <path
+         d="m 1211.6636,-201.1138 c 14.6285,-28.5705 34.1451,-63.6179 55.0795,-92.6862 10.9262,-15.1715 23.0909,-30.4545 35.6535,-45.2808"
+         id="path484"
+         inkscape:connector-curvature="0"
+         style="fill:none;stroke:#000000" />
+      <polygon
+         points="1308.9978,-346.7894 1305.1518,-336.9173 1299.8349,-341.4704 "
+         id="polygon486"
+         style="fill:none;stroke:#000000" />
+    </g>
+    <g
+       transform="translate(675.23497,696.28289)"
+       id="node22"
+       class="node">
+      <title
+         id="title655">pyfinder.clients.services.shakemap_data.ShakeMapComponentNode</title>
+      <polygon
+         points="1447.5054,-17.3 1275.9808,-17.3 1275.9808,-276.5 1447.5054,-276.5 "
+         id="polygon657"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1283.9808"
+         y="-259.89999"
+         font-size="14.00"
+         id="text659"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">ShakeMapComponentNode</text>
+      <polyline
+         points="1275.9808,-251.7 1447.5054,-251.7 "
+         id="polyline661"
+         style="fill:none;stroke:#000000" />
+      <polyline
+         points="1275.9808,-226.9 1447.5054,-226.9 "
+         id="polyline663"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1294.8721"
+         y="-210.3"
+         font-size="14.00"
+         id="text665"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_acceleration()</text>
+      <text
+         x="1294.8721"
+         y="-193.5"
+         font-size="14.00"
+         id="text667"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_acceleration_flag()</text>
+      <text
+         x="1294.8721"
+         y="-176.7"
+         font-size="14.00"
+         id="text669"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_component_depth()</text>
+      <text
+         x="1294.8721"
+         y="-159.89999"
+         font-size="14.00"
+         id="text671"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_component_name()</text>
+      <text
+         x="1294.8721"
+         y="-143.10001"
+         font-size="14.00"
+         id="text673"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_psa03()</text>
+      <text
+         x="1294.8721"
+         y="-126.3"
+         font-size="14.00"
+         id="text675"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_psa03_flag()</text>
+      <text
+         x="1294.8721"
+         y="-109.5"
+         font-size="14.00"
+         id="text677"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_psa10()</text>
+      <text
+         x="1294.8721"
+         y="-92.699997"
+         font-size="14.00"
+         id="text679"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_psa10_flag()</text>
+      <text
+         x="1294.8721"
+         y="-75.900002"
+         font-size="14.00"
+         id="text681"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_psa30()</text>
+      <text
+         x="1294.8721"
+         y="-59.099998"
+         font-size="14.00"
+         id="text683"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_psa30_flag()</text>
+      <text
+         x="1294.8721"
+         y="-42.299999"
+         font-size="14.00"
+         id="text685"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_velocity()</text>
+      <text
+         x="1294.8721"
+         y="-25.5"
+         font-size="14.00"
+         id="text687"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_velocity_flag()</text>
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="edge12"
+       class="edge">
+      <title
+         id="title690">pyfinder.clients.services.shakemap_data.ShakeMapComponentNode-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
+      <path
+         d="m 1385.8364,-276.921 c 3.6744,-19.8286 7.4569,-40.2414 11.1024,-59.9147"
+         id="path692"
+         inkscape:connector-curvature="0"
+         style="fill:none;stroke:#000000" />
+      <polygon
+         points="1398.7737,-346.7374 1400.393,-336.267 1393.5102,-337.5425 "
+         id="polygon694"
+         style="fill:none;stroke:#000000" />
+    </g>
+    <g
+       transform="translate(-36.315266,647.82215)"
+       id="node23"
+       class="node">
+      <title
+         id="title697">pyfinder.clients.services.shakemap_data.ShakeMapEventData</title>
+      <polygon
+         points="1600.2207,-17.3 1465.2655,-17.3 1465.2655,-276.5 1600.2207,-276.5 "
+         id="polygon699"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1473.2655"
+         y="-259.89999"
+         font-size="14.00"
+         id="text701"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">ShakeMapEventData</text>
+      <polyline
+         points="1465.2655,-251.7 1600.2207,-251.7 "
+         id="polyline703"
+         style="fill:none;stroke:#000000" />
+      <polyline
+         points="1465.2655,-226.9 1600.2207,-226.9 "
+         id="polyline705"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1476.3792"
+         y="-210.3"
+         font-size="14.00"
+         id="text707"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_catalog()</text>
+      <text
+         x="1476.3792"
+         y="-193.5"
+         font-size="14.00"
+         id="text709"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_creation_time()</text>
+      <text
+         x="1476.3792"
+         y="-176.7"
+         font-size="14.00"
+         id="text711"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_depth()</text>
+      <text
+         x="1476.3792"
+         y="-159.89999"
+         font-size="14.00"
+         id="text713"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_event_id()</text>
+      <text
+         x="1476.3792"
+         y="-143.10001"
+         font-size="14.00"
+         id="text715"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_latitude()</text>
+      <text
+         x="1476.3792"
+         y="-126.3"
+         font-size="14.00"
+         id="text717"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_loc_string()</text>
+      <text
+         x="1476.3792"
+         y="-109.5"
+         font-size="14.00"
+         id="text719"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_longitude()</text>
+      <text
+         x="1476.3792"
+         y="-92.699997"
+         font-size="14.00"
+         id="text721"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_magnitude()</text>
+      <text
+         x="1476.3792"
+         y="-75.900002"
+         font-size="14.00"
+         id="text723"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_network_code()</text>
+      <text
+         x="1476.3792"
+         y="-59.099998"
+         font-size="14.00"
+         id="text725"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_network_desc()</text>
+      <text
+         x="1476.3792"
+         y="-42.299999"
+         font-size="14.00"
+         id="text727"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_origin_time()</text>
+      <text
+         x="1476.3792"
+         y="-25.5"
+         font-size="14.00"
+         id="text729"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_time_zone()</text>
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="edge13"
+       class="edge">
+      <title
+         id="title732">pyfinder.clients.services.shakemap_data.ShakeMapEventData-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
+      <path
+         d="m 1485.8026,-276.921 c -7.1913,-19.9192 -14.5953,-40.4278 -21.7278,-60.1841"
+         id="path734"
+         inkscape:connector-curvature="0"
+         style="fill:none;stroke:#000000" />
+      <polygon
+         points="1460.5973,-346.7374 1467.2851,-338.5201 1460.7011,-336.143 "
+         id="polygon736"
+         style="fill:none;stroke:#000000" />
+    </g>
+    <g
+       transform="translate(-41.646301,571.71926)"
+       id="node24"
+       class="node">
+      <title
+         id="title739">pyfinder.clients.services.shakemap_data.ShakeMapStationAmplitudes</title>
+      <polygon
+         points="1799.1772,-92.9 1618.309,-92.9 1618.309,-200.9 1799.1772,-200.9 "
+         id="polygon741"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1626.309"
+         y="-184.3"
+         font-size="14.00"
+         id="text743"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">ShakeMapStationAmplitudes</text>
+      <polyline
+         points="1618.309,-176.1 1799.1772,-176.1 "
+         id="polyline745"
+         style="fill:none;stroke:#000000" />
+      <polyline
+         points="1618.309,-151.3 1799.1772,-151.3 "
+         id="polyline747"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1653.5439"
+         y="-134.7"
+         font-size="14.00"
+         id="text749"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_creation_time()</text>
+      <text
+         x="1653.5439"
+         y="-117.9"
+         font-size="14.00"
+         id="text751"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_station_codes()</text>
+      <text
+         x="1653.5439"
+         y="-101.1"
+         font-size="14.00"
+         id="text753"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_stations()</text>
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="edge14"
+       class="edge">
+      <title
+         id="title756">pyfinder.clients.services.shakemap_data.ShakeMapStationAmplitudes-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
+      <path
+         sodipodi:nodetypes="ccc"
+         d="m 1660.1631,-233.48046 c -21.0998,-26.02129 -26.0871,-31.65274 -51.42,-60.31954 -18.3718,-20.7895 -39.2607,-41.487 -60.287,-60.8586"
+         id="path758"
+         inkscape:connector-curvature="0"
+         style="fill:none;stroke:#000000" />
+      <polygon
+         points="1541.017,-361.4532 1550.7611,-357.2935 1546.0403,-352.1249 "
+         id="polygon760"
+         style="fill:none;stroke:#000000" />
+    </g>
+    <g
+       transform="translate(-37.922443,657.094)"
+       id="node25"
+       class="node">
+      <title
+         id="title763">pyfinder.clients.services.shakemap_data.ShakeMapStationNode</title>
+      <polygon
+         points="1816.8125,-50.9 1816.8125,-242.9 1962.6737,-242.9 1962.6737,-50.9 "
+         id="polygon765"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1824.8125"
+         y="-226.3"
+         font-size="14.00"
+         id="text767"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">ShakeMapStationNode</text>
+      <polyline
+         points="1816.8125,-218.1 1962.6737,-218.1 "
+         id="polyline769"
+         style="fill:none;stroke:#000000" />
+      <polyline
+         points="1816.8125,-193.3 1962.6737,-193.3 "
+         id="polyline771"
+         style="fill:none;stroke:#000000" />
+      <text
+         x="1826.3687"
+         y="-176.7"
+         font-size="14.00"
+         id="text773"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_components()</text>
+      <text
+         x="1826.3687"
+         y="-159.89999"
+         font-size="14.00"
+         id="text775"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_installation_type()</text>
+      <text
+         x="1826.3687"
+         y="-143.10001"
+         font-size="14.00"
+         id="text777"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_latitude()</text>
+      <text
+         x="1826.3687"
+         y="-126.3"
+         font-size="14.00"
+         id="text779"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_longitude()</text>
+      <text
+         x="1826.3687"
+         y="-109.5"
+         font-size="14.00"
+         id="text781"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_network_code()</text>
+      <text
+         x="1826.3687"
+         y="-92.699997"
+         font-size="14.00"
+         id="text783"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_station_code()</text>
+      <text
+         x="1826.3687"
+         y="-75.900002"
+         font-size="14.00"
+         id="text785"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_station_id()</text>
+      <text
+         x="1826.3687"
+         y="-59.099998"
+         font-size="14.00"
+         id="text787"
+         style="font-size:14px;font-family:Times, serif;text-anchor:start;fill:#000000">get_station_name()</text>
+    </g>
+    <g
+       transform="translate(152.83886,647.82215)"
+       id="edge15"
+       class="edge">
+      <title
+         id="title790">pyfinder.clients.services.shakemap_data.ShakeMapStationNode-&gt;pyfinder.clients.services.basedatastructure.BaseDataStructure</title>
+      <path
+         sodipodi:nodetypes="cccc"
+         d="m 1854.4228,-228.05598 c -11.4341,-18.979 -29.3728,-52.31502 -46.6797,-65.74402 -72.6334,-56.3588 -115.3315,-16.9786 -200,-52.8 -19.2391,-8.1397 -38.8592,-17.9885 -57.8148,-28.4414"
+         id="path792"
+         inkscape:connector-curvature="0"
+         style="fill:none;stroke:#000000" />
+      <polygon
+         points="1540.9763,-380.0488 1551.4124,-378.2216 1547.9951,-372.1124 "
+         id="polygon794"
+         style="fill:none;stroke:#000000" />
+    </g>
+    <g
+       transform="translate(-0.6309667,0.66435641)"
+       id="g5442">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.7501834px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 1951.8356,426.97483 h -24.663"
+         id="path5390"
+         inkscape:connector-curvature="0" />
+      <polygon
+         points="669.4963,-901.9002 664.6487,-896.5616 667.7122,-890.0335 672.5598,-895.3722 "
+         id="polygon414-3"
+         style="fill:#000000;stroke:#000000"
+         transform="rotate(81.398493,531.22015,499.83534)" />
+    </g>
+    <g
+       id="g5436">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.7501834px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 1779.0075,417.81429 h -21.1397"
+         id="path5392"
+         inkscape:connector-curvature="0" />
+      <polygon
+         points="667.7122,-890.0335 672.5598,-895.3722 669.4963,-901.9002 664.6487,-896.5616 "
+         id="polygon414-3-6"
+         style="fill:#000000;stroke:#000000"
+         transform="rotate(81.167948,449.41187,400.20369)"
+         inkscape:transform-center-x="6.7611227"
+         inkscape:transform-center-y="-0.95225855" />
+    </g>
+    <text
+       id="text446"
+       y="442.17642"
+       x="1926.9634"
+       style="font-style:normal;font-weight:normal;font-size:12.00293446px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.7501834"
+       xml:space="preserve"><tspan
+         style="font-size:12.00293446px;stroke-width:0.7501834"
+         y="442.17642"
+         x="1926.9634"
+         id="tspan444"
+         sodipodi:role="line">1</tspan></text>
+    <text
+       id="text446-3"
+       y="443.89218"
+       x="1943.546"
+       style="font-style:normal;font-weight:normal;font-size:12.00293446px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.7501834"
+       xml:space="preserve"><tspan
+         style="font-size:12.00293446px;stroke-width:0.7501834"
+         y="443.89218"
+         x="1943.546"
+         id="tspan444-6"
+         sodipodi:role="line">*</tspan></text>
+    <text
+       id="text446-7"
+       y="431.22614"
+       x="1758.3551"
+       style="font-style:normal;font-weight:normal;font-size:12.00293446px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.7501834"
+       xml:space="preserve"><tspan
+         style="font-size:12.00293446px;stroke-width:0.7501834"
+         y="431.22614"
+         x="1758.3551"
+         id="tspan444-5"
+         sodipodi:role="line">1</tspan></text>
+    <text
+       id="text446-3-3"
+       y="432.94189"
+       x="1771.937"
+       style="font-style:normal;font-weight:normal;font-size:12.00293446px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.7501834"
+       xml:space="preserve"><tspan
+         style="font-size:12.00293446px;stroke-width:0.7501834"
+         y="432.94189"
+         x="1771.937"
+         id="tspan444-6-5"
+         sodipodi:role="line">*</tspan></text>
   </g>
 </svg>
