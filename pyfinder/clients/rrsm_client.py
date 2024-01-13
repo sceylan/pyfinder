@@ -47,7 +47,7 @@ class RRSMShakeMapClient(BaseClient):
     def get_stations(self):
         return self.amplitude_data.get_stations()
     
-    def create_web_service(self):
+    def create_web_service(self)->RRSMShakeMapWebService:
         """ Creates a new ESM shakemap web service client. """
         self.ws_client = RRSMShakeMapWebService(
             agency=self.agency, base_url=self.base_url, 

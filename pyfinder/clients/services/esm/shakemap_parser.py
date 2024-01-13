@@ -17,7 +17,7 @@ class ESMShakeMapParser(BaseParser):
     def __init__(self):
         super().__init__()
 
-    def _parse_amplitudes(self, data):
+    def _parse_amplitudes(self, data)->ShakeMapStationAmplitudes:
         """
         Parse the data returned by the ESM ShakeMap web service.
         This method converts the XML content to a dictionary only
@@ -124,7 +124,7 @@ class ESMShakeMapParser(BaseParser):
         # Pass the main data structure back to the caller
         return esm_shakemap_data
     
-    def parse(self, data):
+    def parse(self, data)->ShakeMapStationAmplitudes:
         """
         Calls the internal parsing method for format="event_dat" option
         if the data is successfully validated. 
@@ -139,7 +139,7 @@ class ESMShakeMapParser(BaseParser):
         """Check the content of the data."""
         return True
     
-    def parse_earthquake(self, data):
+    def parse_earthquake(self, data)->ShakeMapEventData:
         """ 
         Parse the data returned by the ESM ShakeMap web service 
         when format='event'. Called by the parse_response() method

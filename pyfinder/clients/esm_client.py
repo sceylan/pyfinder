@@ -89,7 +89,7 @@ class ESMShakeMapClient(BaseClient):
             self.event_options['flag'] = '0'
             self.amplitude_options['flag'] = '0'
         
-    def create_web_service(self):
+    def create_web_service(self)->ESMShakeMapWebService:
         """ Creates a new ESM shakemap web service client. """
         self.ws_client = ESMShakeMapWebService(
             agency=self.agency, base_url=self.base_url, 

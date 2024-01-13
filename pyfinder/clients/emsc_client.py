@@ -49,7 +49,7 @@ class EMSCFeltReportClient(BaseClient):
         return self.felt_report_options['unids'].replace(
             '[', '').replace(']', '')
     
-    def create_web_service(self):
+    def create_web_service(self)->EMSCFeltReportWebService:
         """ Creates a new EMSC felt report web service client. """
         self.ws_client = EMSCFeltReportWebService(
             agency=self.agency, base_url=self.base_url, 

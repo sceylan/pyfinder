@@ -99,7 +99,7 @@ class EMSCFeltReportParser(BaseParser):
                                 'intensities': _intensities, 
                                 'comments': _comment_string}}
 
-    def parse_testimonies(self, data):
+    def parse_testimonies(self, data)->FeltReportItensityData:
         """
         "data" is a zip file containing the intensity data in comma-seperated
         txt format. There might be more than one files, with file names 
@@ -157,7 +157,7 @@ class EMSCFeltReportParser(BaseParser):
             
             return intensities
             
-    def parse(self, data):
+    def parse(self, data)->FeltReportEventData:
         """
         Parse the data returned by the EMSC felt report web service.
         with tetimonies (intensity). The data is in csv format.
