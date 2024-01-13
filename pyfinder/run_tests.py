@@ -8,11 +8,15 @@ class LoggingFormatter(logging.Formatter):
     Colors logging entries by their level. The code is taken from
     https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
     """
-    magenta = "\033[95m"
+    yellow = "\x1b[33;20m"
+    bold_gray_bg = "\x1b[0;100m"
     reset = "\x1b[0m"
     format = "%(message)8s"
     
-    FORMATS = {logging.INFO: magenta + format + reset}
+    FORMATS = {
+        logging.INFO: yellow + format + reset,
+        logging.WARNING: bold_gray_bg + format + reset
+        }
 
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
@@ -31,18 +35,20 @@ if __name__ == '__main__':
     # Folders containing the tests.
     test_groups = ['tests/parsers', 
                    'tests/services',
-                   'tests/clients']
+                   'tests/clients',
+                   'tests/cpp_library']
 
     # Messages to be displayed before each test group.
-    messages = ["Testing parsers ...", 
-                "Testing web service clients ...",
-                "Testing client encapsulation ..."]
+    test_desc = ['Parsers', 
+                 'Web service clients', 
+                 'Client encapsulation', 
+                 'C++ library loader']
 
     # Collect the results of the tests.
     results = []
-    for grp, msg in zip(test_groups, messages):
+    for grp, msg in zip(test_groups, test_desc):
         # Provide a header
-        logging.info(msg)
+        logging.info("\n" + msg)
         
         # Run the tests.
         loader = unittest.TestLoader()
@@ -52,14 +58,14 @@ if __name__ == '__main__':
     
     # Final report
     logging.info("="*23 + " Test results " + "="*23)
-    test_desc = ['Parsers', 'Web service clients', 'Client encapsulation']
+        
     for grp, result in zip(test_desc, results):
         error = len(result.errors)
         failure = len(result.failures)
         skipped = len(result.skipped)
         succeeded = result.testsRun - error - failure - skipped
         
-        logging.info(
+        logging.warning(
             "{:20s}: Total {:2d} tests ({:2d} succeeded, {:2d}"
             " failed, {:2d} error(s), {:2d} skipped)".format(
                 grp, result.testsRun, succeeded, failure, error, skipped))
