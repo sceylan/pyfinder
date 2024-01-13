@@ -59,7 +59,8 @@ class RRSMShakeMapWebService(ESMShakeMapWebService):
 
         # Ensure the options dictionary is properly encoded as a 
         # URL-compatible string
-        options = urllib.parse.urlencode(options)
+        options = urllib.parse.urlencode(options, safe=':/?&=', 
+                                         encoding='utf-8')
         
         # Combine the URL
         self.combined_url = \

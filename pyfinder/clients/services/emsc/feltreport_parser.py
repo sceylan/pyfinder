@@ -1,6 +1,9 @@
 # -*- coding utf-8 -*-
+import io
 import os
 import zipfile
+import json
+import urllib
 from ..baseparser import BaseParser
 from ..feltreport_data import FeltReportEventData, FeltReportItensityData
 
@@ -30,8 +33,13 @@ class EMSCFeltReportParser(BaseParser):
         else:
             try:
                 # Check if "data" is a zip file content
-                with zipfile.ZipFile(data) as _zip_content:
-                    return _zip_content
+                if zipfile.is_zipfile(data):
+                    # Yes. Return the zip file
+                    return zipfile.ZipFile(data, 'r')
+                
+                elif isinstance(data, urllib.request.http.client.HTTPResponse):
+                    # No. Open it as a zip file
+                    return zipfile.ZipFile(io.BytesIO(data.read()), 'r')
                 
             except zipfile.BadZipFile:
                 return None
@@ -114,7 +122,7 @@ class EMSCFeltReportParser(BaseParser):
         if zip_file is None:
             # Failed. Something is wrong with the data.
             return None
-        
+            
         else:
             # Create the data structure to store the intensity data
             intensities = FeltReportItensityData()
@@ -158,9 +166,14 @@ class EMSCFeltReportParser(BaseParser):
             # Store the original content for possible future use
             self.set_original_content(content=data)
 
-            # data is a json file content. Convert it to a dictionary
-            # and store it in the data attribute. No need to parse it.
-            return FeltReportEventData(data_dict=data)
+            # data is a HTTPResponse object that contains a io.BytesIO. 
+            # Read the response content first, decode it, finally convert 
+            # to json. This should be a list with one dictinary content.
+            _data = data.read().decode('utf-8')
+            _data = json.loads(_data)[0]
+
+            # Now create the data structure
+            return FeltReportEventData(data_dict=_data)
         
         # Failed. Something is wrong with the data.
         return None

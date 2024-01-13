@@ -70,13 +70,18 @@ class BaseClient(ABC):
         self.event_data = event_data
 
     def set_amplitudes(self, amplitude_data):
-        """ Set the amplitudes or intensities. """
+        """ 
+        Set the amplitudes or intensities. Same as 
+        set_feltreports(), but included for clarity.
+        Both use the same attribute for storing the data.
+        """
         self.amplitude_data = amplitude_data
 
-    def set_intensities(self, amplitude_data):
+    def set_feltreports(self, amplitude_data):
         """ 
         Set the amplitudes or intensities. Same as 
         set_amplitudes(), but included for clarity.
+        Both use the same attribute for storing the data.
         """
         self.amplitude_data = amplitude_data
 
@@ -108,7 +113,7 @@ class BaseClient(ABC):
         """ Return the amplitudes or intensities. """
         return self.amplitude_data    
 
-    def get_intensities(self):
+    def get_feltreports(self):
         """ 
         Return the amplitudes or intensities. Same as 
         get_amplitudes(), but included for clarity.
