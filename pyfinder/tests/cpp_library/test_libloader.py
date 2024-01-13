@@ -20,7 +20,7 @@ class TestFinderLibrary(unittest.TestCase):
     def test_cpp_lib_loader(self):
         # Test cpp library loading
         # Compile the C++ code to create a shared library
-        lib_path = os.path.join(os.path.dirname(__file__), "lib")
+        lib_path = os.path.join(os.path.dirname(__file__), "testcpp")
         if os.path.exists(os.path.join(lib_path, "libtest.so")):
             os.remove(os.path.join(lib_path, "libtest.so"))
         compile(lib_path)
