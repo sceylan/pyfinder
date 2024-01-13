@@ -50,7 +50,7 @@ class EMSCFeltReportClient(BaseClient):
             '[', '').replace(']', '')
     
     def create_web_service(self):
-        """ Creates a new ESM shakemap web service client. """
+        """ Creates a new EMSC felt report web service client. """
         self.ws_client = EMSCFeltReportWebService(
             agency=self.agency, base_url=self.base_url, 
             end_point=self.end_point, version=self.version)

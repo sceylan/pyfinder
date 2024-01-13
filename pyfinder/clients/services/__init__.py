@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ 
 Client modules that consume the web services of the data centers 
 with their data structures.

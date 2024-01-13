@@ -13,7 +13,8 @@ class TestEMSCShakeMapParser(unittest.TestCase):
     """ Test the parser for ESM ShakeMap web service. """
     def test_EMSC_parse_testimonies(self):
         # Test if the downlinked zip file is handled properly.
-        zip_path = os.path.join(module_path, 'testdata', 'mt-export-single.zip')
+        zip_path = os.path.join(
+            module_path, 'testdata', 'mt-export-single.zip')
         
         with zipfile.ZipFile(zip_path) as zip:
             parser = EMSCFeltReportParser()
@@ -27,7 +28,8 @@ class TestEMSCShakeMapParser(unittest.TestCase):
 
     def test_EMSC_intensities_integrity(self):
         # Test if the intensities correctly parsed. 
-        zip_path = os.path.join(module_path, 'testdata', 'mt-export-single.zip')
+        zip_path = os.path.join(
+            module_path, 'testdata', 'mt-export-single.zip')
         
         with zipfile.ZipFile(zip_path) as zip:
             parser = EMSCFeltReportParser()
@@ -35,7 +37,8 @@ class TestEMSCShakeMapParser(unittest.TestCase):
 
             # Check the event id
             for key, _ in parsed_data.get_data().items():
-                self.assertEqual(parsed_data.get_data()[key]['unid'], '20201230_0000049')
+                self.assertEqual(
+                    parsed_data.get_data()[key]['unid'], '20201230_0000049')
 
             # Check the intensities: make sure we have four columns
             unid = parsed_data.get_data()[key]['unid']

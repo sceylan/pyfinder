@@ -66,4 +66,3 @@ class TestESMClient(unittest.TestCase):
                 self.assertIsNotNone(_comp.get_psa10_flag())
                 self.assertIsNotNone(_comp.get_psa30_flag())
             
-        

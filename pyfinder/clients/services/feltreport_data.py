@@ -81,4 +81,3 @@ class FeltReportEventData(BaseDataStructure):
         """ Return the full count. """
         return self._get('full_count')
     
-    

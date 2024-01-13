@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 """Unit tests for the base client class."""
 import unittest
-import os
-import sys
 from clients.services import RRSMShakeMapWebService
-from clients.services import InvalidQueryOption
 
 class TestRRSMShakeMapWebService(unittest.TestCase):
     """Unit tests for the RRSM Shakemap web service client."""
@@ -90,4 +87,3 @@ class TestRRSMShakeMapWebService(unittest.TestCase):
         # Check if unsupported options are removed from the URL
         self.assertEqual(url, "http://orfeus-eu.org/odcws/rrsm/1/"
                          "shakemap?eventid=20170524_0000045")
-        

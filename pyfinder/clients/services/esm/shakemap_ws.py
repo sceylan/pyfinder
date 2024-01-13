@@ -5,7 +5,6 @@ import urllib
 module_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(module_path)
 sys.path.append(parent_dir)
-
 from ..basewebservice import BaseWebService
 from .shakemap_parser import ESMShakeMapParser
 

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """Unit tests for the base client class."""
 import unittest
-import os
-import sys
-from clients.services import InvalidQueryOption, InvalidOptionValue
+from clients.services import InvalidOptionValue
 from clients.services import ESMShakeMapWebService
 
 class TestESMShakeMapWebService(unittest.TestCase):

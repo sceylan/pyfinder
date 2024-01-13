@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Unit tests for the base client class."""
 import unittest
-import os
-import sys
 from clients.services import BaseWebService
 
 class TestBaseWebService(unittest.TestCase):

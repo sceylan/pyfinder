@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 """Unit tests for the base client class."""
 import unittest
-import os
-import sys
 from clients.services import EMSCFeltReportWebService
-from clients.services import InvalidQueryOption
 
 class TestEMSCFeltReportWebService(unittest.TestCase):
     """Unit tests for the RRSM Shakemap web service client."""

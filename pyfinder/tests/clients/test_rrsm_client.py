@@ -10,7 +10,8 @@ class TestESMClient(unittest.TestCase):
         self.assertEqual(client.get_agency(), "ORFEUS")
         self.assertEqual(client.get_version(), "1")
         self.assertEqual(client.get_end_point(), "shakemap")
-        self.assertEqual(client.get_base_url(), "http://orfeus-eu.org/odcws/rrsm/")
+        self.assertEqual(client.get_base_url(), 
+                         "http://orfeus-eu.org/odcws/rrsm/")
 
     def test_set_url_attributes(self):
         # Test the parts of the query url. 
@@ -22,7 +23,8 @@ class TestESMClient(unittest.TestCase):
         self.assertEqual(client.get_agency(), "ORFEUS")
         self.assertEqual(client.get_version(), "1")
         self.assertEqual(client.get_end_point(), "shakemap")
-        self.assertEqual(client.get_base_url(), "http://orfeus-eu.org/odcws/rrsm/")
+        self.assertEqual(client.get_base_url(), 
+                         "http://orfeus-eu.org/odcws/rrsm/")
 
     def test_query_null_event_id(self):
         # Test the query method. 

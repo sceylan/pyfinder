@@ -14,7 +14,7 @@ class EMSCFeltReportWebService(BaseWebService):
 
     def get_supported_options(self):
         """ 
-        Return the list of options available at the ESM shakemap 
+        Return the list of options available at the EMSD felt reports 
         web service. RRSM allows for only "eventid".
         """
         return ['unids', 'includeTestimonies']

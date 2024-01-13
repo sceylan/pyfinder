@@ -47,7 +47,7 @@ class BaseClient(ABC):
         self.ws_client.set_version(version)
 
     def set_end_point(self, end_point):
-        """ Set the end point for the web service. """
+        """ Set the service end point for the web service. """
         self.ws_client.set_end_point(end_point) 
 
     def set_base_url(self, base_url):

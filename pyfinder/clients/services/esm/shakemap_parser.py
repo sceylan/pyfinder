@@ -166,4 +166,3 @@ class ESMShakeMapParser(BaseParser):
             esm_shakemap_data = ShakeMapEventData(event_data)
 
             return esm_shakemap_data
-        

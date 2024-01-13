@@ -177,3 +177,4 @@ class EMSCFeltReportParser(BaseParser):
         
         # Failed. Something is wrong with the data.
         return None
+    
