@@ -17,6 +17,7 @@ class ESMShakeMapWebService(BaseWebService):
     - parse_response(self, file_like_obj)
     - get_supported_options(self)
     - is_value_valid(self, option, value)
+    - buld_url(self, **options)
     """
     def __init__(self, agency="ESM", base_url="https://esm-db.eu/esmws/", 
                  end_point="shakemap", version="1"):

@@ -8,6 +8,15 @@ class MissingRequiredFieldError(Exception):
     pass
 
 class EMSCFeltReportWebService(BaseWebService):
+    """
+    Class for EMSC felt report web service client.
+
+    It overrides the following abstract methods:
+    - parse_response(self, file_like_obj)
+    - get_supported_options(self)
+    - is_value_valid(self, option, value)
+    - buld_url(self, **options)
+    """
     def __init__(self, agency='EMSC', end_point='api', version="1.1",
                  base_url='https://www.seismicportal.eu/testimonies-ws/'):
         super().__init__(agency, base_url, end_point, version)

@@ -9,6 +9,12 @@ class RRSMShakeMapWebService(ESMShakeMapWebService):
     is similar to ESM shakemap client, but query has no options
     other than a compulsory eventid; hence, needs to be handled 
     slightly differently.
+
+    It overrides these abstract methods:
+    - parse_response(self, file_like_obj)
+    - get_supported_options(self)
+    - is_value_valid(self, option, value)
+    - buld_url(self, **options)
     """
     def __init__(self, agency="ORFEUS", base_url="http://orfeus-eu.org/odcws/rrsm/", 
                  end_point="shakemap", version="1"):
