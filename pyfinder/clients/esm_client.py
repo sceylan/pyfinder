@@ -125,3 +125,7 @@ class ESMShakeMapClient(BaseClient):
         _url = self.ws_client.build_url(**self.amplitude_options)
         _code, _data = self.ws_client.query(url=_url)
         self.set_amplitudes(_data)
+
+        # Return the code and data from the last query.
+        return _code, _data
+    

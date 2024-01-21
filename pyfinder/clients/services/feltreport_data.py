@@ -2,7 +2,7 @@
 from .basedatastructure import BaseDataStructure
 
 class FeltReportItensityData(BaseDataStructure):
-    """ Data structure for fel report intensities. """
+    """ Data structure for feltreport intensities """
     def __init__(self, data_dict=None, **kwargs):
         super().__init__(data_dict=data_dict, kwargs=kwargs)
 
@@ -20,8 +20,7 @@ class FeltReportItensityData(BaseDataStructure):
     
 
 class FeltReportEventData(BaseDataStructure):
-    """ Data structure for felt report event information .
-    """
+    """ Data structure for feltreport event information"""
     def __init__(self, data_dict=None, **kwargs):
         super().__init__(data_dict=data_dict, kwargs=kwargs)
         

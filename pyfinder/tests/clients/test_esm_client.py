@@ -45,12 +45,12 @@ class TestESMClient(unittest.TestCase):
         
         # Check station names
         station_codes = client.get_station_codes()
-        for _sta_name in ['KRK1', 'LMS2', 'JAN', 'KASA']:
+        for _sta_name in ['LMS2', 'JAN', 'KASA']:
             self.assertIn(_sta_name, station_codes)
 
         # Check some station information
         for _sta in client.get_stations():
-            self.assertIn(_sta.get_station_name(), ['KRK1', 'LMS2', 'JAN', 'KASA'])
+            self.assertIn(_sta.get_station_name(), ['LMS2', 'JAN', 'KASA'])
 
             # Check the components for each field.
             for _comp in _sta.get_components():

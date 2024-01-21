@@ -4,8 +4,7 @@ from abc import ABC, abstractmethod
 class BaseParser(ABC):
     """ Base class for all parsers."""
     def __init__(self):
-        # To store the original content of the 
-        # data (content) passed for parsing.
+        # Stores the original content of the data passed for parsing.
         self.original_content = None
         
         super().__init__()

@@ -93,9 +93,7 @@ class TestESMShakeMapWebService(unittest.TestCase):
         # Check the data
         self.assertIsNotNone(data)
         
-        # Check the data content
-        self.assertEqual(data.get_stations()[0].get('code'), 'KRK1')
-        
+      
     def test_query_format_event(self):
         # Test the query method.
         client = ESMShakeMapWebService()

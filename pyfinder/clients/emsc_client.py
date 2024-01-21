@@ -92,3 +92,6 @@ class EMSCFeltReportClient(BaseClient):
         _url = self.ws_client.build_url(**self.event_data_options)
         _code, _data = self.ws_client.query(url=_url)
         self.set_event_data(_data)
+
+        return _code, _data
+    

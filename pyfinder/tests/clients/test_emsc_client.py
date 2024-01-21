@@ -32,8 +32,11 @@ class TestESMClient(unittest.TestCase):
     def test_query(self):
         # Test the query method and returned data. 
         client = EMSCFeltReportClient()
-        client.query(event_id='20170919_0000091')
+        code, _ = client.query(event_id='20170919_0000091')
 
+        if code != 200:
+            self.skipTest("The web service is not available.")
+            
         event_data = client.get_event()
         self.assertIsNotNone(event_data.get_event_deltatime())
         self.assertIsNotNone(event_data.get_event_id())

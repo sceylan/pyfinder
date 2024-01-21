@@ -7,14 +7,15 @@ from urllib.parse import urlparse
 from . import http
 
 class InvalidQueryOption(Exception):
-    """ Raised when the given option is not supported."""
+    """ Raised when the given query option is not supported."""
     pass
 
 class InvalidOptionValue(ValueError):
-    """ Raised when the given option value is not allowed."""
+    """ Raised when the given query option value is not allowed."""
     pass
 
 class BaseWebService(ABC):
+    """ Base class for all web service clients."""
     def __init__(self, agency=None, base_url=None, end_point=None, version="1"):
         # The web service base URL, e.g. "https://esm-db.eu/fdsnws"
         self.base_url = base_url
