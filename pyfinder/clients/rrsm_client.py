@@ -5,10 +5,13 @@ from .services import RRSMShakeMapWebService
 class RRSMShakeMapClient(BaseClient):
     """ 
     This class encapsulates the worker class for the RRSM shakemap 
-    web service and its data structure(s). The RRSM shakemap web 
-    service is the same as ESM shakemap web service, but there are 
-    fewer options: There is no event information query, but only the
-    station amplitudes.
+    web service and its data structure(s). 
+    
+    The RRSM shakemap web service is the same as ESM shakemap web service, 
+    but there are fewer options: The event information is queried with 
+    `type=event` instead of `format=event` as was the case for ESM web 
+    services. 
+    e.g. http://orfeus-eu.org/odcws/rrsm/1/shakemap?eventid=20240118_0000062&type=event
     """
     def __init__(self):
         super().__init__()
@@ -27,6 +30,9 @@ class RRSMShakeMapClient(BaseClient):
         
         # Options for querying the amplitude data.
         self.amplitude_options = {'eventid': None}
+
+        # Options for querying the event data.
+        self.event_options = {'eventid': None, 'type': 'event'}
         
         # Initialize the web service client.
         if self.get_web_service() is None:
@@ -34,6 +40,7 @@ class RRSMShakeMapClient(BaseClient):
                 
     def set_event_id(self, event_id):
         """ Set the event id. """
+        self.event_options['eventid'] = event_id
         self.amplitude_options['eventid'] = event_id
 
     def get_event_id(self):
@@ -68,6 +75,16 @@ class RRSMShakeMapClient(BaseClient):
             raise MissingRequiredOption(
                 "Missing required option: event_id")
         
+        # Override the default `type` option with the 
+        # other_options['type'] option if it is provided.
+        if 'type' in other_options:
+            self.event_options['type'] = other_options['type']
+
+        # Query the web service for the event information.
+        _url = self.ws_client.build_url(**self.event_options)
+        _code, _data = self.ws_client.query(url=_url)
+        self.set_event_data(_data)
+
         # Query the web service for the amplitude data.
         _url = self.ws_client.build_url(**self.amplitude_options)
         _code, _data = self.ws_client.query(url=_url)

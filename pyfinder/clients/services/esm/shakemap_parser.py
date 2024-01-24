@@ -153,16 +153,25 @@ class ESMShakeMapParser(BaseParser):
             xml_content = xmltodict.parse(data)
 
             eq = xml_content['earthquake']
-            event_data = {'id': eq['@id'], 'catalog': eq['@catalog'], 
-                          'lat': float(eq['@lat']), 'lon': float(eq['@lon']), 
-                          'depth': float(eq['@depth']), 'mag': float(eq['@mag']), 
-                          'year': eq['@year'], 'month': eq['@month'],
-                          'day': eq['@day'], 'hour': eq['@hour'], 
-                          'minute': eq['@minute'], 'second': eq['@second'], 
-                          'timezone': eq['@timezone'], 'time': eq['@time'], 
-                          'locstring': eq['@locstring'], 'netid': eq['@netid'], 
-                          'network': eq['@network'], 'created': eq['@created']}
-            
+
+            # The keys in the dictionary 
+            keys = ['id', 'catalog', 'lat', 'lon', 'depth', 'mag', 'year', 
+                    'month', 'day', 'hour', 'minute', 'second', 'timezone', 
+                    'time', 'locstring', 'netid', 'network', 'created']
+            event_data = {}
+
+            for key in keys:
+                if '@' + key in eq:
+                    if key in ['lat', 'lon', 'depth', 'mag', 'second']:
+                        event_data[key] = float(eq['@' + key])
+                    elif key in ['year', 'month', 'day', 'hour', 'minute']:
+                        event_data[key] = int(eq['@' + key])
+                    else:
+                        event_data[key] = eq['@' + key]
+                else:
+                    event_data[key] = None
+
+            # Create a ShakeMapEventData object            
             esm_shakemap_data = ShakeMapEventData(event_data)
 
             return esm_shakemap_data

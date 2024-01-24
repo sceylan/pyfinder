@@ -25,7 +25,10 @@ class RRSMShakeMapWebService(ESMShakeMapWebService):
         if file_like_obj:
             parser = RRSMShakeMapParser()
 
-            data = parser.parse(file_like_obj)
+            if 'type' in options and options['type'] == "event":
+                data = parser.parse_earthquake(file_like_obj)
+            else:
+                data = parser.parse(file_like_obj)
             
             self.set_data(data)
 
@@ -36,7 +39,7 @@ class RRSMShakeMapWebService(ESMShakeMapWebService):
         Return the list of options available at the ESM shakemap 
         web service. RRSM allows for only "eventid".
         """
-        return ['eventid']
+        return ['eventid', 'type']
     
     def is_value_valid(self, option, value):
         """ 
