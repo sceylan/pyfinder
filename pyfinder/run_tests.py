@@ -15,15 +15,13 @@ if __name__ == '__main__':
                    'tests/services',
                    'tests/clients',
                    'tests/cpp_library']
-    test_groups = ['tests/parsers']
-
+    
     # Messages to be displayed before each test group.
     test_desc = ['Parsers', 
                  'Web service clients', 
                  'Client encapsulation', 
                  'C++ library loader']
-    test_desc = ['Parsers']
-
+    
     # Collect the results of the tests.
     results = []
     for grp, msg in zip(test_groups, test_desc):
