@@ -68,53 +68,21 @@ class ESMShakeMapParser(BaseParser):
             esm_shakemap_data.stations.append(station_node)
 
             # Each component is again a dictionary
+            keys = ['depth', 'acc', 'vel', 'psa03', 'psa10', 'psa30']            
             if 'comp' in _sta:
                 for _comp in _sta['comp']:
                     component = {'name': _comp['@name']}
-                    # Depth if available or None
-                    try:
-                        component['depth'] = float(_comp['@depth'])
-                    except:
-                        component['depth'] = None
 
-                    # Acceleration, velocity, and PSA values with their
-                    # quality flags. If any of the the values is not available
-                    # or something is not correct with type casting, set it to None
-                    try:
-                        component['acc'] = float(_comp['acc']['@value'])
-                        component['accflag'] = int(_comp['acc']['@flag'])
-                    except:
-                        component['acc'] = None
-                        component['accflag'] = None
-     
-                    try:
-                        component['vel'] = float(_comp['vel']['@value'])
-                        component['velflag'] = int(_comp['vel']['@flag'])
-                    except:
-                        component['vel'] = None
-                        component['velflag'] = None
+                    for key in keys:
+                        try:
+                            component[key] = float(_comp[key]['@value'])
+                            component[key + 'flag'] = int(_comp[key]['@flag'])
+                        except:
+                            if key == 'depth':
+                                component[key] = 0.0
+                            else:
+                                component[key] = None
 
-                    try:
-                        component['psa03'] = float(_comp['psa03']['@value'])
-                        component['psa03flag'] = int(_comp['psa03']['@flag'])
-                    except:
-                        component['psa03'] = None
-                        component['psa03flag'] = None
-
-                    try:
-                        component['psa10'] = float(_comp['psa10']['@value'])
-                        component['psa10flag'] = int(_comp['psa10']['@flag'])
-                    except:
-                        component['psa10'] = None
-                        component['psa10flag'] = None
-
-                    try:
-                        component['psa30'] = float(_comp['psa30']['@value'])
-                        component['psa30flag'] = int(_comp['psa30']['@flag'])
-                    except:
-                        component['psa30'] = None
-                        component['psa30flag'] = None
-                        
                     # Create a channel-level dictionary
                     channel_node = ShakeMapComponentNode(data_dict=component)
 
