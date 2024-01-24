@@ -106,7 +106,7 @@ class BaseDataStructure:
         if isinstance(data_dict, dict):
             self._data = copy.deepcopy(data_dict)
         else:
-            raise ValueError("Data must be a dictionary.")
+            raise ValueError("Data must be a dictionary, not a " + str(type(data_dict)))
         
     def get(self, field_name):
         """ Return the value of a field. """
@@ -168,6 +168,9 @@ if __name__ == "__main__":
 
     dst.testField = "test field"
     print(dst.testField)
+
+    dst['testField2'] = "test field 2"
+    print(dst['testField2'])
 
     dst.set('event_lat', 38.8, add_if_not_exist=True)
     print(dst.get('event_lat'))
