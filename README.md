@@ -4,7 +4,9 @@
 This tool is able to query:
 - The ESM ```shakemap``` endpoint, using both ```format=event_dat``` for amplitudes and ```format=event``` option to retrieve the basic event information. See the [ESM Shakemap web service](https://esm-db.eu//esmws/shakemap/1/query-options.html) for more information. 
 
-- RRSM ```shakemap``` web service, which also uses the same web service as the ESM. The tool only implements minor changes such as the base service URL and order of options for queries. RRSM queries are slightly different than ESM, and do not support ```format``` option. The tool is designed to handle these nuances.  
+- RRSM ```shakemap``` web service, which also uses the same web service as the ESM. The tool only implements minor changes such as the base service URL and order of options for queries. RRSM queries are slightly different than ESM, and support ```type``` instead of the ```format``` option. The tool is designed to handle these nuances.  
+
+- The same RRSM shakemap data is also be retrieved via the ```peak-motions``` service end point. This service returns a json file that includes a list of stations merged with event and amplitude information.  
 
 - The EMSC felt reports, for the basic event information (```includeTestimonies=false```) and intensities (```includeTestimonies=true```).
 
