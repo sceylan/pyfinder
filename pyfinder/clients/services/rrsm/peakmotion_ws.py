@@ -4,7 +4,7 @@ from .peakmotion_parser import RRSMPeakMotionParser
 
 class RRSMPeakMotionWebService(RRSMShakeMapWebService):
     """ 
-    This class is web service client for the RRSM peak motion web service.
+    This class is web service client for the RRSM peak motions.
     The RRSM peak motion web service complementary to the RRSM shakemap web
     service, but also includes the event information in addition to the PGA
     and PGV values. Spectral amplitudes are not included. The end point is
@@ -14,6 +14,21 @@ class RRSMPeakMotionWebService(RRSMShakeMapWebService):
                  end_point="peak-motion", version="1"):
         super().__init__(agency, base_url, end_point, version)
 
+    def get_supported_options(self):
+        """ 
+        Return the list of options available at the ESM shakemap 
+        web service. RRSM peak-motions allows for only "eventid".
+        """
+        return ['eventid']
+    
+    def is_value_valid(self, option, value):
+        """ 
+        Normally checks whether the given value is allowed for 
+        the given option. Since RRSM allows only "eventid", always 
+        returns True. 
+        """
+        return True
+    
     def parse_response(self, file_like_obj=None, options=None):
         """ Parse the data returned by the web service. """
         if file_like_obj:

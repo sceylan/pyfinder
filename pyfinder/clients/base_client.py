@@ -1,5 +1,7 @@
 # -*-coding: utf-8 -*-
 from abc import ABC, abstractmethod
+from .services import BaseWebService
+from .services.basedatastructure import BaseDataStructure
 
 class MissingRequiredOption(ValueError):
     """ 
@@ -16,14 +18,14 @@ class BaseClient(ABC):
     """
     def __init__(self):
         # The actual client for the ESM shakemap web service.
-        self.ws_client = None
+        self.ws_client:BaseWebService = None
 
         # Event parameters from the shakemap format=event option.
-        self.event_data = None
+        self.event_data: BaseDataStructure = None
 
         # Amplitudes from the shakemap format=event_dat option,
         # or intensities from EMSC felt reports.
-        self.amplitude_data = None
+        self.amplitude_data: BaseDataStructure = None
 
     @abstractmethod
     def create_web_service(self):
@@ -77,6 +79,10 @@ class BaseClient(ABC):
     def get_web_service(self):
         """ Get the web service client. """
         return self.ws_client
+    
+    def get_url(self):
+        """ Return the combined URL (base + options) for the web service. """
+        return self.ws_client.get_combined_url()
     
     def get_agency(self):
         """ Get the agency for the web service. """

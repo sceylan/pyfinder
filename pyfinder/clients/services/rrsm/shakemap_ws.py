@@ -37,15 +37,15 @@ class RRSMShakeMapWebService(ESMShakeMapWebService):
     def get_supported_options(self):
         """ 
         Return the list of options available at the ESM shakemap 
-        web service. RRSM allows for only "eventid".
+        web service. RRSM allows for only "eventid" and "type".
         """
         return ['eventid', 'type']
     
     def is_value_valid(self, option, value):
         """ 
         Normally checks whether the given value is allowed for 
-        the given option. Since RRSM allows only "eventid", always 
-        returns True. 
+        the given option. Since RRSM allows only "eventid" and "type", 
+        always returns True. 
         """
         return True
 

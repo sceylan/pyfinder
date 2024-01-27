@@ -81,4 +81,32 @@ class TestRRSMClient(unittest.TestCase):
                 self.assertIsNotNone(_comp.get_channel_code())
                 self.assertIsNotNone(_comp.get_acceleration())
                 self.assertIsNotNone(_comp.get_velocity())
+
+    def test_rrsm_peakmotions_query_invalid_options(self):
+        # Test the query method and returned data. 
+        client = RRSMPeakMotionClient()
+        client.query(event_id="20170524_0000045", type="event")
+
+        # The type option should be eliminated internally from the query
+        # as it is not a valid option for the peak motion web service.
+        url = client.get_web_service().get_combined_url()
+        self.assertEqual(url, "http://orfeus-eu.org/odcws/rrsm/1/peak-motion?eventid=20170524_0000045")
+        
+        # Check eveything is in place after the removal of the invalid option.
+        self.assertIsNotNone(client.get_station_amplitudes())
+
+        # Check station names
+        station_codes = client.get_station_codes()
+        for _sta_name in ['KBN', 'PDG', 'TIR']:
+            self.assertIn(_sta_name, station_codes)
+
+        # Check some station information
+        for _sta in client.get_stations():
+            self.assertIn(_sta.get_station_code(), ['KBN', 'PDG', 'TIR'])
+
+            # Check the components for each field.
+            for _comp in _sta.get_channels():
+                self.assertIsNotNone(_comp.get_channel_code())
+                self.assertIsNotNone(_comp.get_acceleration())
+                self.assertIsNotNone(_comp.get_velocity())
                 

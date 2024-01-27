@@ -119,6 +119,10 @@ class BaseWebService(ABC):
 
         self.base_url = base_url
 
+    def get_combined_url(self):
+        """ Return the combined URL."""
+        return self.combined_url
+    
     def query(self, url=None, user=None, password=None, **options):
         """ 
         Query the web service. If url is given, use it. Otherwise,
