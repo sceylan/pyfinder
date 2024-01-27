@@ -9,10 +9,32 @@ class PeakMotionChannelData(BaseDataStructure):
     def get_channel_code(self):
         return self._get('channel-code')
     
-    def get_channel_pga(self):
+    def get_acceleration(self):
+        """ 
+        Return the channel acceleration value.
+        Same as get_channel_pga()
+        """
         return self._get('pga-value')
     
+    def get_channel_pga(self):
+        """ 
+        Return the channel PGA value.
+        Same as get_acceleration()
+        """
+        return self._get('pga-value')
+    
+    def get_velocity(self):
+        """ 
+        Return the channel velocity value.
+        Same as get_channel_pgv()
+        """
+        return self._get('pgv-value')
+    
     def get_channel_pgv(self):
+        """ 
+        Return the channel PGV value.
+        Same as get_velocity()
+        """
         return self._get('pgv-value')
     
     def get_sensor_azimuth(self):

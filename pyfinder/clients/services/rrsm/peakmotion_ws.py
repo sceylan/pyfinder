@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from shakemap_ws import RRSMShakeMapWebService
-from peakmotion_parser import RRSMPeakMotionParser
+from .shakemap_ws import RRSMShakeMapWebService
+from .peakmotion_parser import RRSMPeakMotionParser
 
 class RRSMPeakMotionWebService(RRSMShakeMapWebService):
     """ 

@@ -9,7 +9,6 @@ if __name__ == '__main__':
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     
-
     # Folders containing the tests.
     test_groups = ['tests/parsers', 
                    'tests/services',

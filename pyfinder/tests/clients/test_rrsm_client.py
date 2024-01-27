@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
 from clients import RRSMShakeMapClient
+from clients import RRSMPeakMotionClient
 
-class TestESMClient(unittest.TestCase):
+class TestRRSMClient(unittest.TestCase):
     def test_default_contructor(self):
         # Test the constructor with default values. 
         client = RRSMShakeMapClient()
@@ -31,7 +32,7 @@ class TestESMClient(unittest.TestCase):
         client = RRSMShakeMapClient()
         self.assertRaises(ValueError, client.query, event_id=None)
 
-    def test_query(self):
+    def test_rrsm_shakemap_query(self):
         # Test the query method and returned data. 
         client = RRSMShakeMapClient()
         client.query(event_id="20170524_0000045")
@@ -59,3 +60,25 @@ class TestESMClient(unittest.TestCase):
                 self.assertIsNotNone(_comp.get_psa03_flag())
                 self.assertIsNotNone(_comp.get_psa10_flag())
                 self.assertIsNotNone(_comp.get_psa30_flag())
+
+    def test_rrsm_peakmotions_query(self):
+        # Test the query method and returned data. 
+        client = RRSMPeakMotionClient()
+        client.query(event_id="20170524_0000045")
+        self.assertIsNotNone(client.get_station_amplitudes())
+
+        # Check station names
+        station_codes = client.get_station_codes()
+        for _sta_name in ['KBN', 'PDG', 'TIR']:
+            self.assertIn(_sta_name, station_codes)
+
+        # Check some station information
+        for _sta in client.get_stations():
+            self.assertIn(_sta.get_station_code(), ['KBN', 'PDG', 'TIR'])
+
+            # Check the components for each field.
+            for _comp in _sta.get_channels():
+                self.assertIsNotNone(_comp.get_channel_code())
+                self.assertIsNotNone(_comp.get_acceleration())
+                self.assertIsNotNone(_comp.get_velocity())
+                
