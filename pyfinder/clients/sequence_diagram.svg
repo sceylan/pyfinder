@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   contentStyleType="text/css"
+   height="511px"
+   preserveAspectRatio="none"
+   style="width:956px;height:511px;background:#F9F9F9;"
+   version="1.1"
+   viewBox="0 0 956 511"
+   width="956px"
+   zoomAndPan="magnify"
+   id="svg140"
+   sodipodi:docname="sequence_diagram.svg"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+  <metadata
+     id="metadata144">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2502"
+     inkscape:window-height="1403"
+     id="namedview142"
+     showgrid="false"
+     inkscape:zoom="1.7689375"
+     inkscape:cx="497.43089"
+     inkscape:cy="250.01084"
+     inkscape:window-x="2106"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg140" />
+  <defs
+     id="defs2" />
+  <g
+     id="g138">
+    <rect
+       fill="#F9F9F9"
+       height="511"
+       style="stroke:none;stroke-width:1.0;"
+       width="956"
+       x="0"
+       y="0"
+       id="rect4" />
+    <line
+       style="stroke:#393939;stroke-width:0.5;stroke-dasharray:5.0,5.0;"
+       x1="46"
+       x2="46"
+       y1="67.2969"
+       y2="432.9531"
+       id="line6" />
+    <line
+       style="stroke:#393939;stroke-width:0.5;stroke-dasharray:5.0,5.0;"
+       x1="208"
+       x2="208"
+       y1="67.2969"
+       y2="432.9531"
+       id="line8" />
+    <line
+       style="stroke:#393939;stroke-width:0.5;stroke-dasharray:5.0,5.0;"
+       x1="370.5"
+       x2="370.5"
+       y1="67.2969"
+       y2="432.9531"
+       id="line10" />
+    <line
+       style="stroke:#393939;stroke-width:0.5;stroke-dasharray:5.0,5.0;"
+       x1="571.5"
+       x2="571.5"
+       y1="224.4766"
+       y2="432.9531"
+       id="line12" />
+    <line
+       style="stroke:#393939;stroke-width:0.5;stroke-dasharray:5.0,5.0;"
+       x1="796"
+       x2="796"
+       y1="274.2734"
+       y2="432.9531"
+       id="line14" />
+    <line
+       style="stroke:#393939;stroke-width:0.5;stroke-dasharray:5.0,5.0;"
+       x1="907"
+       x2="907"
+       y1="67.2969"
+       y2="432.9531"
+       id="line16" />
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;fill:#2b5756;fill-opacity:1"
+       width="83"
+       x="5"
+       y="36"
+       id="rect18" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="69"
+       x="12"
+       y="55.9951"
+       id="text20">User class</text>
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;fill:#2b5756;fill-opacity:1"
+       width="83"
+       x="5"
+       y="431.9531"
+       id="rect22" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="69"
+       x="12"
+       y="451.9482"
+       id="text24">User class</text>
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;"
+       width="143"
+       x="137"
+       y="36"
+       id="rect26" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="129"
+       x="144"
+       y="55.9951"
+       id="text28">WebServiceClient</text>
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;"
+       width="143"
+       x="137"
+       y="431.9531"
+       id="rect30" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="129"
+       x="144"
+       y="451.9482"
+       id="text32">WebServiceClient</text>
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;"
+       width="100"
+       x="320.5"
+       y="36"
+       id="rect34" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="86"
+       x="327.5"
+       y="55.9951"
+       id="text36">WebService</text>
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;"
+       width="100"
+       x="320.5"
+       y="431.9531"
+       id="rect38" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="86"
+       x="327.5"
+       y="451.9482"
+       id="text40">WebService</text>
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;"
+       width="59"
+       x="542.5"
+       y="431.9531"
+       id="rect42" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="45"
+       x="549.5"
+       y="451.9482"
+       id="text44">Parser</text>
+    <text
+       fill="#191919"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="102"
+       x="742"
+       y="444.9482"
+       id="text46">DataStructure</text>
+    <ellipse
+       cx="796"
+       cy="464.25"
+       fill="#EFBABC"
+       rx="12"
+       ry="12"
+       style="stroke:#191919;stroke-width:0.5;"
+       id="ellipse48" />
+    <polygon
+       fill="#191919"
+       points="792,452.25,798,447.25,796,452.25,798,457.25,792,452.25"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon50" />
+    <text
+       fill="#191919"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="89"
+       x="860"
+       y="63.9951"
+       id="text52">Data service</text>
+    <path
+       d="M889.5,15 C889.5,5 907.5,5 907.5,5 C907.5,5 925.5,5 925.5,15 L925.5,41 C925.5,51 907.5,51 907.5,51 C907.5,51 889.5,51 889.5,41 L889.5,15 "
+       fill="#A4DBD8"
+       style="stroke:#191919;stroke-width:1.5;"
+       id="path54" />
+    <path
+       d="M889.5,15 C889.5,25 907.5,25 907.5,25 C907.5,25 925.5,25 925.5,15 "
+       fill="none"
+       style="stroke:#191919;stroke-width:1.5;"
+       id="path56" />
+    <text
+       fill="#191919"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="89"
+       x="860"
+       y="444.9482"
+       id="text58">Data service</text>
+    <path
+       d="M889.5,458.25 C889.5,448.25 907.5,448.25 907.5,448.25 C907.5,448.25 925.5,448.25 925.5,458.25 L925.5,484.25 C925.5,494.25 907.5,494.25 907.5,494.25 C907.5,494.25 889.5,494.25 889.5,484.25 L889.5,458.25 "
+       fill="#A4DBD8"
+       style="stroke:#191919;stroke-width:1.5;"
+       id="path60" />
+    <path
+       d="M889.5,458.25 C889.5,468.25 907.5,468.25 907.5,468.25 C907.5,468.25 925.5,468.25 925.5,458.25 "
+       fill="none"
+       style="stroke:#191919;stroke-width:1.5;"
+       id="path62" />
+    <polygon
+       fill="#191919"
+       points="196.5,94.4297,206.5,98.4297,196.5,102.4297,200.5,98.4297"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon64" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="46.5"
+       x2="202.5"
+       y1="98.4297"
+       y2="98.4297"
+       id="line66" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="127"
+       x="53.5"
+       y="93.3638"
+       id="text68">Request event data</text>
+    <polygon
+       fill="#191919"
+       points="358.5,123.5625,368.5,127.5625,358.5,131.5625,362.5,127.5625"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon70" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="208.5"
+       x2="364.5"
+       y1="127.5625"
+       y2="127.5625"
+       id="line72" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="121"
+       x="215.5"
+       y="122.4966"
+       id="text74">Query request URL</text>
+    <polygon
+       fill="#191919"
+       points="895.5,152.6953,905.5,156.6953,895.5,160.6953,899.5,156.6953"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon76" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="370.5"
+       x2="901.5"
+       y1="156.6953"
+       y2="156.6953"
+       id="line78" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="85"
+       x="377.5"
+       y="151.6294"
+       id="text80">Send request</text>
+    <polygon
+       fill="#191919"
+       points="381.5,181.8281,371.5,185.8281,381.5,189.8281,377.5,185.8281"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon82" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;stroke-dasharray:2.0,2.0;"
+       x1="375.5"
+       x2="906.5"
+       y1="185.8281"
+       y2="185.8281"
+       id="line84" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="106"
+       x="387.5"
+       y="180.7622"
+       id="text86">Return response</text>
+    <polygon
+       fill="#191919"
+       points="530.5,210.9609,540.5,214.9609,530.5,218.9609,534.5,214.9609"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon88" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="370.5"
+       x2="536.5"
+       y1="214.9609"
+       y2="214.9609"
+       id="line90" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="148"
+       x="377.5"
+       y="209.895"
+       id="text92">Send response content</text>
+    <rect
+       fill="#E55756"
+       height="30.2969"
+       rx="3.5"
+       ry="3.5"
+       style="stroke:#191919;stroke-width:1.5;"
+       width="59"
+       x="542.5"
+       y="193.8281"
+       id="rect94" />
+    <text
+       fill="#F9F9F9"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="45"
+       x="549.5"
+       y="213.8232"
+       id="text96">Parser</text>
+    <polygon
+       fill="#191919"
+       points="730,252.2578,740,256.2578,730,260.2578,734,256.2578"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon98" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="572"
+       x2="736"
+       y1="256.2578"
+       y2="256.2578"
+       id="line100" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="146"
+       x="579"
+       y="251.1919"
+       id="text102">Initialize data structure</text>
+    <text
+       fill="#191919"
+       font-family="sans-serif"
+       font-size="14"
+       lengthAdjust="spacing"
+       textLength="102"
+       x="742"
+       y="280.1201"
+       id="text104">DataStructure</text>
+    <ellipse
+       cx="796"
+       cy="251.125"
+       fill="#EFBABC"
+       rx="12"
+       ry="12"
+       style="stroke:#191919;stroke-width:0.5;"
+       id="ellipse106" />
+    <polygon
+       fill="#191919"
+       points="792,239.125,798,234.125,796,239.125,798,244.125,792,239.125"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon108" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="572"
+       x2="614"
+       y1="314.5547"
+       y2="314.5547"
+       id="line110" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="614"
+       x2="614"
+       y1="314.5547"
+       y2="327.5547"
+       id="line112" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;"
+       x1="573"
+       x2="614"
+       y1="327.5547"
+       y2="327.5547"
+       id="line114" />
+    <polygon
+       fill="#191919"
+       points="583,323.5547,573,327.5547,583,331.5547,579,327.5547"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon116" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="99"
+       x="579"
+       y="309.4888"
+       id="text118">Parse response</text>
+    <polygon
+       fill="#191919"
+       points="381.5,352.6875,371.5,356.6875,381.5,360.6875,377.5,356.6875"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon120" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;stroke-dasharray:2.0,2.0;"
+       x1="375.5"
+       x2="571"
+       y1="356.6875"
+       y2="356.6875"
+       id="line122" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="138"
+       x="387.5"
+       y="351.6216"
+       id="text124">Return data structure</text>
+    <polygon
+       fill="#191919"
+       points="219.5,381.8203,209.5,385.8203,219.5,389.8203,215.5,385.8203"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon126" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;stroke-dasharray:2.0,2.0;"
+       x1="213.5"
+       x2="369.5"
+       y1="385.8203"
+       y2="385.8203"
+       id="line128" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="138"
+       x="225.5"
+       y="380.7544"
+       id="text130">Return data structure</text>
+    <polygon
+       fill="#191919"
+       points="57.5,410.9531,47.5,414.9531,57.5,418.9531,53.5,414.9531"
+       style="stroke:#191919;stroke-width:1.0;"
+       id="polygon132" />
+    <line
+       style="stroke:#191919;stroke-width:1.0;stroke-dasharray:2.0,2.0;"
+       x1="51.5"
+       x2="207.5"
+       y1="414.9531"
+       y2="414.9531"
+       id="line134" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="13"
+       lengthAdjust="spacing"
+       textLength="138"
+       x="63.5"
+       y="409.8872"
+       id="text136">Return data structure</text>
+    <!--SRC=[TP0nJyCm48Nt-nL7nagH69WoPA4B4WCagfXT-oGifOwvkmJ1h-USjBH5TB8lttj-BtUdxtGWF3WMo8ur-fXTKgnsGen-S28LEi79ncl16-rxuZbwUXmY9Lrad-9lgOxy6hzOBl62CWIdRk-4iDhQ3UN25mH73jReuHwWTC6wBM4DTlGnaIZIR1smF07sVSKDlax4NyX7pQvx1gC51eCzfN1YO0drqTIHJfoCI1wJKB7KRSRDvjUo0lHZKai5y4nErvd70KlzNddozWwL-bkR8DTjEHjyIb6Z6-8tBNrHJj8YoGqkIpd7P-jrKUkF1G8vht4k-Ndzk_Dg_ZCisp59sU8DpGy0]-->
+  </g>
+</svg>

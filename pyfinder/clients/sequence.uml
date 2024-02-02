@@ -1,0 +1,27 @@
+@startuml
+!theme mars
+participant "User class" as user
+participant "WebServiceClient" as wsc
+participant "WebService" as ws
+participant "Parser" as p
+database "Data service" as ds order 40
+
+user -> wsc: Request event data
+wsc -> ws: Query request URL
+
+ws -> ds: Send request
+ds --> ws: Return response
+
+ws->p **: Send response content
+
+create control DataStructure as DStr
+p->DStr: Initialize data structure
+p->p: Parse response
+p-->ws: Return data structure
+
+deactivate p
+
+ws --> wsc: Return data structure
+wsc --> user: Return data structure
+
+@enduml

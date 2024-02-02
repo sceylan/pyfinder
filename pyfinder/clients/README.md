@@ -1,3 +1,6 @@
+**Simplified sequence diagram**
+![Alt text](./sequence_diagram.svg)
+
 **Packages**
 ![Alt text](./packages.svg)
 
