@@ -1,5 +1,7 @@
 # pyfinder
-**pyfinder** is a Python wrapper for the [FinDer](https://docs.gempa.de/sed-eew/current/base/intro-finder.html#finder) (Finite Fault Rupture Detector) library. It is designed to query the ESM, EMSC and RRSM web services to retrieve the acceleration amplitudes and felt reports, and trigger the FinDer with this new external parametric information. This tool works within the SeisComp framework.
+**pyfinder** is a Python wrapper for the [FinDer](https://docs.gempa.de/sed-eew/current/base/intro-finder.html#finder) (Finite Fault Rupture Detector) library. It is designed to query the ESM, EMSC and RRSM web services to retrieve the acceleration amplitudes and felt reports, and trigger the FinDer with this external parametric information. This package is currently under development, designed to also work within the SeisComp framework. In a nutshell, two key innovations are targeted: (1) rapid data assimilation from different services and (2) rapid finite-source modeling using the Finite Fault Rupture Detector (FinDer) algorithm.
+
+> This code is being developed as part of the EU project "A Digital Twin for Geophysical Extremes" (DT-GEO; https://dtgeo.eu/) and has received funding from Horizon Europe under Grant Agreement No 101058129.  The Digital Twin Component (DTC) E6 ("Rapid Source and Shaking Characterization") aims to provide rapid information on ground shaking and warnings for significant earthquakes in the Euro-Mediterranean region.
 
 This tool is able to query:
 - The ESM ```shakemap``` endpoint, using both ```format=event_dat``` for amplitudes and ```format=event``` option to retrieve the basic event information. See the [ESM Shakemap web service](https://esm-db.eu//esmws/shakemap/1/query-options.html) for more information. 
