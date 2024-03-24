@@ -6,7 +6,7 @@ import ctypes
 module_path = os.path.dirname(os.path.abspath(__file__))
 one_up = os.path.join(module_path, '..')
 sys.path.append(one_up)
-from utils import FinderLibrary
+from libfinder import FinderLibrary
 
 def compile(libpath):
     # Compile the C++ code to create a shared library 
