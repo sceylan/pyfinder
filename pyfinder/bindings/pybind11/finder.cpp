@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <sstream>
-#include "Finder.h"  // Ensure this includes all necessary definitions
+#include "finder_headers/finder.h"  // Ensure this includes all necessary definitions
 
 namespace py = pybind11;
 

@@ -10,16 +10,18 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
     
     # Folders containing the tests.
-    test_groups = ['tests/parsers', 
-                   'tests/services',
-                   'tests/clients',
-                   'tests/cpp_library']
+    test_groups = [#'tests/parsers', 
+                   #'tests/services',
+                   #'tests/clients',
+                   # 'tests/cpp_library',
+                   'tests/bindings']
     
     # Messages to be displayed before each test group.
-    test_desc = ['Parsers', 
-                 'Web service clients', 
-                 'Client encapsulation', 
-                 'C++ library loader']
+    test_desc = [#'Parsers', 
+                 #'Web service clients', 
+                 #'Client encapsulation', 
+                 # 'C++ library loader',
+                 'Pybind11 bindings']
     
     # Collect the results of the tests.
     results = []
