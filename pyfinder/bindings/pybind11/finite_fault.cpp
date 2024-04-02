@@ -35,7 +35,7 @@ void bind_TemplateCollection(py::module &m, const std::string &typeName) {
         // Add other std::vector methods and custom methods of TemplateCollection as needed
 }
 
-
+// Bindings for the FiniteFault namespace
 PYBIND11_MODULE(pylibfinder, m) {
     m.doc() = "Python bindings for the FinDer library FiniteFault module";
 
@@ -59,96 +59,90 @@ PYBIND11_MODULE(pylibfinder, m) {
     // within FiniteFault namespace. Pybind11 bind_vector did not work.
     bind_TemplateCollection<FiniteFault::Coordinate>(ff, "CoordinateCollection");
 
-    //  // Use an alias for CoordinateList since it is a specialization of TemplateCollection
-    // ff.attr("CoordinateList") = ff.attr("CoordinateCollection");
+     // Use an alias for CoordinateList since it is a specialization of TemplateCollection
+    ff.attr("CoordinateList") = ff.attr("CoordinateCollection");
 
-    // // Bind PGA_Data class within FiniteFault
-    // py::class_<FiniteFault::PGA_Data>(ff, "PGA_Data")
-    //     .def(py::init<const std::string&, const std::string&, const std::string&, const std::string&, const FiniteFault::Coordinate&, double, double, bool>(),
-    //          py::arg("name") = "nan", py::arg("network") = "nan", py::arg("channel") = "nan",
-    //          py::arg("location_code") = "nan", py::arg("location") = FiniteFault::Coordinate(NAN,NAN),
-    //          py::arg("value") = NAN, py::arg("timestamp") = NAN, py::arg("include") = true)
-    //     .def("get_name", &FiniteFault::PGA_Data::get_name)
-    //     .def("get_network", &FiniteFault::PGA_Data::get_network)
-    //     .def("get_channel", &FiniteFault::PGA_Data::get_channel)
-    //     .def("get_location_code", &FiniteFault::PGA_Data::get_location_code)
-    //     .def("get_location", &FiniteFault::PGA_Data::get_location)
-    //     .def("get_value", &FiniteFault::PGA_Data::get_value)
-    //     .def("get_timestamp", &FiniteFault::PGA_Data::get_timestamp)
-    //     .def("get_include", &FiniteFault::PGA_Data::get_include)
-    //     .def("get_trigger_flag", &FiniteFault::PGA_Data::get_trigger_flag)
-    //     .def("get_event_id_list", &FiniteFault::PGA_Data::get_event_id_list)
-    //     .def("update_value", &FiniteFault::PGA_Data::update_value)
-    //     .def("set_include", &FiniteFault::PGA_Data::set_include)
-    //     .def("set_trigger_flag", &FiniteFault::PGA_Data::set_trigger_flag)
-    //     .def("set_event_id_list", &FiniteFault::PGA_Data::set_event_id_list)
-    //     .def("resize_event_id_list", &FiniteFault::PGA_Data::resize_event_id_list)
-    //     .def("size_event_id_list", &FiniteFault::PGA_Data::size_event_id_list)
+    // Bind PGA_Data class within FiniteFault
+    py::class_<FiniteFault::PGA_Data>(ff, "PGA_Data")
+        .def(py::init<const std::string&, const std::string&, const std::string&, const std::string&, const FiniteFault::Coordinate&, double, double, bool>(),
+             py::arg("name") = "nan", py::arg("network") = "nan", py::arg("channel") = "nan",
+             py::arg("location_code") = "nan", py::arg("location") = FiniteFault::Coordinate(NAN,NAN),
+             py::arg("value") = NAN, py::arg("timestamp") = NAN, py::arg("include") = true)
+        .def("get_name", &FiniteFault::PGA_Data::get_name)
+        .def("get_network", &FiniteFault::PGA_Data::get_network)
+        .def("get_channel", &FiniteFault::PGA_Data::get_channel)
+        .def("get_location_code", &FiniteFault::PGA_Data::get_location_code)
+        .def("get_location", &FiniteFault::PGA_Data::get_location)
+        .def("get_value", &FiniteFault::PGA_Data::get_value)
+        .def("get_timestamp", &FiniteFault::PGA_Data::get_timestamp)
+        .def("get_include", &FiniteFault::PGA_Data::get_include)
+        .def("get_trigger_flag", &FiniteFault::PGA_Data::get_trigger_flag)
+        .def("get_event_id_list", &FiniteFault::PGA_Data::get_event_id_list)
+        .def("update_value", &FiniteFault::PGA_Data::update_value)
+        .def("set_include", &FiniteFault::PGA_Data::set_include)
+        .def("set_trigger_flag", &FiniteFault::PGA_Data::set_trigger_flag)
+        .def("set_event_id_list", &FiniteFault::PGA_Data::set_event_id_list)
+        .def("resize_event_id_list", &FiniteFault::PGA_Data::resize_event_id_list)
+        .def("size_event_id_list", &FiniteFault::PGA_Data::size_event_id_list);
 
-    // // Bind Finder_Centroid, inheriting from Coordinate
-    // py::class_<FiniteFault::Finder_Centroid, FiniteFault::Coordinate>(ff, "FinderCentroid")
-    //     .def(py::init<double, double>(),
-    //          py::arg("lat") = NAN, py::arg("lon") = NAN)
-    //     // Inherits methods from Coordinate, no additional methods to bind
-    //     .def("__repr__",
-    //          [](const FiniteFault::Finder_Centroid &fc) {
-    //              std::ostringstream os;
-    //              os << std::fixed << std::setprecision(3) << "<FinderCentroid lat=" << fc.get_lat() << ", lon=" << fc.get_lon() << ">";
-    //              return os.str();
-    //          });
+    // Bind Finder_Centroid, inheriting from Coordinate.
+    // Finder_Centroid is the mid-point of the line source.
+    py::class_<FiniteFault::Finder_Centroid, FiniteFault::Coordinate>(ff, "Finder_Centroid")
+        .def(py::init<double, double>(),
+             py::arg("lat") = NAN, py::arg("lon") = NAN)
+        // Inherits methods from Coordinate, no additional methods to bind
+        .def("__repr__",
+             [](const FiniteFault::Finder_Centroid &fc) {
+                 std::ostringstream os;
+                 os << std::fixed << std::setprecision(3) << "<Finder_Centroid lat=" << fc.get_lat() << ", lon=" << fc.get_lon() << ">";
+                 return os.str();
+             });
 
-    // // Bind Finder_Rupture, inheriting from Coordinate
-    // py::class_<FiniteFault::Finder_Rupture, FiniteFault::Coordinate>(m, "FinderRupture")
-    //     .def(py::init<double, double, double>(),
-    //          py::arg("lat") = NAN, py::arg("lon") = NAN, py::arg("depth") = NAN)
-    //     .def("get_depth", &FiniteFault::Finder_Rupture::get_depth)
-    //     .def("__repr__",
-    //          [](const FiniteFault::Finder_Rupture &fr) {
-    //              std::ostringstream os;
-    //              os << std::fixed << std::setprecision(3) << "<FinderRupture lat=" << fr.get_lat() << ", lon=" << fr.get_lon() << ", depth=" << fr.get_depth() << ">";
-    //              return os.str();
-    //          });
+    // Bind Finder_Rupture, inheriting from Coordinate
+    py::class_<FiniteFault::Finder_Rupture, FiniteFault::Coordinate>(ff, "Finder_Rupture")
+        .def(py::init<double, double, double>(),
+             py::arg("lat") = NAN, py::arg("lon") = NAN, py::arg("depth") = NAN)
+        .def("get_depth", &FiniteFault::Finder_Rupture::get_depth)
+        .def("__repr__",
+             [](const FiniteFault::Finder_Rupture &fr) {
+                 std::ostringstream os;
+                 os << std::fixed << std::setprecision(3) << "<Finder_Rupture lat=" << fr.get_lat() << ", lon=" << fr.get_lon() << ", depth=" << fr.get_depth() << ">";
+                 return os.str();
+             });
 
-    // // Bind Finder_Rupture_List
-    // py::bind_vector<FiniteFault::Finder_Rupture_List>(ff, "FinderRuptureList")
-    //     .def(py::init<>())
-    //     // Finder_Rupture_List inherits TemplateCollection's methods, so 
-    //     // most of the common functionalities are covered by py::bind_vector.
-    //     ;
+    // Bind Finder_Rupture_List
+    bind_TemplateCollection<FiniteFault::Finder_Rupture>(ff, "Finder_Rupture_List");
+    
+    // Bind Misfit class within FiniteFault
+    py::class_<FiniteFault::Misfit>(ff, "Misfit")
+        .def(py::init<double, double>(),
+             py::arg("value") = NAN, py::arg("misf") = NAN)
+        .def("get_value", &FiniteFault::Misfit::get_value)
+        .def("get_misf", &FiniteFault::Misfit::get_misf)
+        .def("__repr__",
+             [](const FiniteFault::Misfit &misfit) {
+                 std::ostringstream os;
+                 os << std::fixed << std::setprecision(3) << "<Misfit value=" << misfit.get_value() << ", misf=" << misfit.get_misf() << ">";
+                 return os.str();
+             });
 
-    // // Bind Misfit class within FiniteFault
-    // py::class_<FiniteFault::Misfit>(ff, "Misfit")
-    //     .def(py::init<double, double>(),
-    //          py::arg("value") = NAN, py::arg("misf") = NAN)
-    //     .def("get_value", &FiniteFault::Misfit::get_value)
-    //     .def("get_misf", &FiniteFault::Misfit::get_misf)
-    //     .def("__repr__",
-    //          [](const FiniteFault::Misfit &misfit) {
-    //              std::ostringstream os;
-    //              os << std::fixed << std::setprecision(3) << "<Misfit value=" << misfit.get_value() << ", misf=" << misfit.get_misf() << ">";
-    //              return os.str();
-    //          });
+    // Bind Misfit_List as a vector of Misfit pointers withtin FiniteFault namespace
+    bind_TemplateCollection<FiniteFault::Misfit>(ff, "Misfit_List");
 
-    // // Bind Misfit_List as a vector of Misfit pointers withtin FiniteFault namespace
-    // py::bind_vector<FiniteFault::Misfit_List>(ff, "MisfitList")
-    //     .def(py::init<>());
+    // Bind Finder_Azimuth which inherits from Misfit
+    py::class_<FiniteFault::Finder_Azimuth, FiniteFault::Misfit>(ff, "Finder_Azimuth")
+        .def(py::init<double, double>(),
+             py::arg("azimuth") = NAN, py::arg("misf") = NAN)
+        // Inherits get_value() and get_misf() from Misfit, so no need to redefine those
+        .def("__repr__",
+             [](const FiniteFault::Finder_Azimuth &azimuth) {
+                 std::ostringstream os;
+                 os << std::fixed << std::setprecision(3) << "<Finder_Azimuth azimuth=" << azimuth.get_value() << ", misf=" << azimuth.get_misf() << ">";
+                 return os.str();
+             });
 
-    // // Bind Finder_Azimuth which inherits from Misfit
-    // py::class_<FiniteFault::Finder_Azimuth, FiniteFault::Misfit>(ff, "FinderAzimuth")
-    //     .def(py::init<double, double>(),
-    //          py::arg("azimuth") = NAN, py::arg("misf") = NAN)
-    //     // Inherits get_value() and get_misf() from Misfit, so no need to redefine those
-    //     .def("__repr__",
-    //          [](const FiniteFault::Finder_Azimuth &azimuth) {
-    //              std::ostringstream os;
-    //              os << std::fixed << std::setprecision(3) << "<FinderAzimuth azimuth=" << azimuth.get_value() << ", misf=" << azimuth.get_misf() << ">";
-    //              return os.str();
-    //          });
-
-    // // Bind Finder_Azimuth_List
-    // py::bind_vector<FiniteFault::Finder_Azimuth_List>(ff, "FinderAzimuthList")
-    //     .def(py::init<>());
-
+    // Bind Finder_Azimuth_List
+    bind_TemplateCollection<FiniteFault::Finder_Azimuth>(ff, "Finder_Azimuth_List");
     
     // // Bind Finder_Length, inheriting from Misfit
     // py::class_<FiniteFault::Finder_Length, FiniteFault::Misfit>(ff, "FinderLength")
