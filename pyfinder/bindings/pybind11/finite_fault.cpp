@@ -17,6 +17,8 @@ void bind_TemplateCollection(py::module &m, const std::string &typeName) {
         .def("pop_back", [](Collection &c) { c.pop_back(); },
              "Removes the last element of the container.")
         .def("size", &Collection::size)
+        .def("begin", [](Collection &c) { return c.begin(); })
+        .def("end", [](Collection &c) { return c.end(); })
         .def("__len__", [](const Collection &v) { return v.size(); })
         
         .def("__iter__", [](Collection &v) {
@@ -144,38 +146,35 @@ PYBIND11_MODULE(pylibfinder, m) {
     // Bind Finder_Azimuth_List
     bind_TemplateCollection<FiniteFault::Finder_Azimuth>(ff, "Finder_Azimuth_List");
     
-    // // Bind Finder_Length, inheriting from Misfit
-    // py::class_<FiniteFault::Finder_Length, FiniteFault::Misfit>(ff, "FinderLength")
-    //     .def(py::init<double, double>(),
-    //          py::arg("length") = NAN, py::arg("misf") = NAN)
-    //     // Inherits get_value() and get_misf() from Misfit, so no need to redefine those
-    //     .def("__repr__",
-    //          [](const FiniteFault::Finder_Length &fl) {
-    //              std::ostringstream os;
-    //              os << std::fixed << std::setprecision(3) << "<FinderLength length=" << fl.get_value() << ", misf=" << fl.get_misf() << ">";
-    //              return os.str();
-    //          });
+    // Bind Finder_Length, inheriting from Misfit
+    py::class_<FiniteFault::Finder_Length, FiniteFault::Misfit>(ff, "Finder_Length")
+        .def(py::init<double, double>(),
+             py::arg("length") = NAN, py::arg("misf") = NAN)
+        // Inherits get_value() and get_misf() from Misfit, so no need to redefine those
+        .def("__repr__",
+             [](const FiniteFault::Finder_Length &fl) {
+                 std::ostringstream os;
+                 os << std::fixed << std::setprecision(3) << "<Finder_Length length=" << fl.get_value() << ", misf=" << fl.get_misf() << ">";
+                 return os.str();
+             });
 
-    // // Bind Finder_Length_List
-    // py::bind_vector<FiniteFault::Finder_Length_List>(ff, "FinderLengthList")
-    //     .def(py::init<>());
+    // Bind Finder_Length_List
+    bind_TemplateCollection<FiniteFault::Finder_Length>(ff, "Finder_Length_List");
 
+    
+    // Bind LogLikelihood class within FiniteFault
+    py::class_<FiniteFault::LogLikelihood>(ff, "LogLikelihood")
+        .def(py::init<double, double>(),
+             py::arg("value") = NAN, py::arg("llk") = NAN)
+        .def("get_value", &FiniteFault::LogLikelihood::get_value)
+        .def("get_llk", &FiniteFault::LogLikelihood::get_llk)
+        .def("__repr__",
+             [](const FiniteFault::LogLikelihood &ll) {
+                 return "<LogLikelihood value=" + std::to_string(ll.get_value()) + ", llk=" + std::to_string(ll.get_llk()) + ">";
+             });
 
-    // // Bind LogLikelihood class within FiniteFault
-    // py::class_<FiniteFault::LogLikelihood>(ff, "LogLikelihood")
-    //     .def(py::init<double, double>(),
-    //          py::arg("value") = NAN, py::arg("llk") = NAN)
-    //     .def("get_value", &FiniteFault::LogLikelihood::get_value)
-    //     .def("get_llk", &FiniteFault::LogLikelihood::get_llk)
-    //     .def("__repr__",
-    //          [](const FiniteFault::LogLikelihood &ll) {
-    //              return "<LogLikelihood value=" + std::to_string(ll.get_value()) + ", llk=" + std::to_string(ll.get_llk()) + ">";
-    //          });
-
-
-    // // LogLikelihood_List as a vector of LogLikelihood pointers
-    // py::bind_vector<FiniteFault::LogLikelihood_List>(ff, "LogLikelihoodList")
-    //     .def(py::init<>());
+    // Bind LogLikelihood_List as a vector of LogLikelihood pointers
+    bind_TemplateCollection<FiniteFault::LogLikelihood>(ff, "LogLikelihood_List");
 
     // // Bind Finder_Azimuth_LLK, inheriting from LogLikelihood
     // py::class_<FiniteFault::Finder_Azimuth_LLK, FiniteFault::LogLikelihood>(ff, "FinderAzimuthLLK")

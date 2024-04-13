@@ -1,12 +1,63 @@
 import unittest
-import pylibfinder as finder
 from pylibfinder.FiniteFault import (Coordinate, CoordinateCollection, 
                                      CoordinateList, PGA_Data, Finder_Centroid,
                                      Finder_Rupture, Finder_Rupture_List,
                                      Misfit, Misfit_List,
-                                     Finder_Azimuth, Finder_Azimuth_List,)
+                                     Finder_Azimuth, Finder_Azimuth_List,
+                                     Finder_Length, Finder_Length_List,
+                                     LogLikelihood, LogLikelihood_List,)
 
 class TestFinderBindings(unittest.TestCase):
+    def test_LogLikelihood(self):
+        # Test the LogLikelihood class.
+        loglike = LogLikelihood(llk=0.1, value=1)
+        self.assertEqual(loglike.get_llk(), 0.1)
+        self.assertEqual(loglike.get_value(), 1)
+
+        # Test the destructor
+        del loglike
+
+        # Test the loglikelihood list as well.
+        loglike_list = LogLikelihood_List()
+        loglike_list.push_back(LogLikelihood(llk=0.1, value=1))
+        loglike_list.push_back(LogLikelihood(llk=0.1, value=1))
+
+        # Check size of the collection
+        self.assertEqual(loglike_list.size(), 2)
+
+        # Test iteration over the collection
+        for _loglike in loglike_list:
+            self.assertEqual(_loglike.get_llk(), 0.1)
+            self.assertEqual(_loglike.get_value(), 1)
+
+        # Call destructor
+        del loglike_list
+
+    def test_FinderLength(self):
+        # Test the Finder_Length class.
+        length = Finder_Length(length=10, misf=0.1)
+        self.assertEqual(length.get_value(), 10)
+        self.assertEqual(length.get_misf(), 0.1)
+
+        # Test the destructor
+        del length
+
+        # Test the length list as well.
+        length_list = Finder_Length_List()
+        length_list.push_back(Finder_Length(length=10, misf=0.1))
+        length_list.push_back(Finder_Length(length=10, misf=0.1))
+
+        # Check size of the collection
+        self.assertEqual(length_list.size(), 2)
+
+        # Test iteration over the collection
+        for _length in length_list:
+            self.assertEqual(_length.get_value(), 10)
+            self.assertEqual(_length.get_misf(), 0.1)
+
+        # Call destructor
+        del length_list
+
     def test_FinderAzimuth(self):
         # Test the Finder_Azimuth class.
         azimuth = Finder_Azimuth(azimuth=10, misf=0.1)
