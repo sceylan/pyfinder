@@ -7,11 +7,8 @@ class RRSMPeakMotionClient(BaseClient):
     This class encapsulates the worker class for the RRSM peak motion 
     web service and its data structure(s). 
     
-    The RRSM peak motion web service is the same as ESM peak motion web service, 
-    but there are fewer options: The event information is queried with 
-    `type=event` instead of `format=event` as was the case for ESM web 
-    services. 
-    e.g. http://orfeus-eu.org/odcws/rrsm/1/peakmotion?eventid=20240118_0000062&type=event
+    The RRSM peak motion web service works with an event id:
+    http://orfeus-eu.org/odcws/rrsm/1/peak-motion?eventid=20170524_0000045
     """
     def __init__(self):
         super().__init__()
@@ -32,7 +29,7 @@ class RRSMPeakMotionClient(BaseClient):
         self.amplitude_options = {'eventid': None}
 
         # Options for querying the event data.
-        self.event_options = {'eventid': None, 'type': 'event'}
+        self.event_options = {'eventid': None}
         
         # Initialize the web service client.
         if self.get_web_service() is None:
@@ -75,11 +72,6 @@ class RRSMPeakMotionClient(BaseClient):
             raise MissingRequiredOption(
                 "Missing required option: event_id")
         
-        # Override the default `type` option with the 
-        # other_options['type'] option if it is provided.
-        if 'type' in other_options:
-            self.event_options['type'] = other_options['type']
-
         # Query the web service for the event information.
         _url = self.ws_client.build_url(**self.event_options)
         _code, _data = self.ws_client.query(url=_url)
