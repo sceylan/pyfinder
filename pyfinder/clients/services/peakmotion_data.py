@@ -142,7 +142,7 @@ class PeakMotionData(BaseDataStructure):
     """ 
     Data structure for peak motion data from the RRSM peak-motion
     web service. This service returns a json file with event and 
-    amplitude info. Therefore, it is enough to diectly assign the 
+    amplitude info. Therefore, it is enough to directly assign the 
     internal dict to the json content. This class is provided for
     consistency with other data structures for data interface.
 

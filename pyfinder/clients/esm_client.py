@@ -118,14 +118,14 @@ class ESMShakeMapClient(BaseClient):
 
         # Query the web service for the event information.
         _url = self.ws_client.build_url(**self.event_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_event_data(_data)
+        _code, _event_data = self.ws_client.query(url=_url)
+        self.set_event_data(_event_data)
 
         # Now query the web service for the amplitude data.
         _url = self.ws_client.build_url(**self.amplitude_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_amplitudes(_data)
+        _code, _amplitude_data = self.ws_client.query(url=_url)
+        self.set_station_amplitudes(_amplitude_data)
 
         # Return the code and data from the last query.
-        return _code, _data
+        return _code, _event_data, _amplitude_data
     

@@ -33,11 +33,11 @@ class TestESMClient(unittest.TestCase):
         # Test the query method and returned data. 
         client = ESMShakeMapClient()
         client.query(event_id="20170524_0000045")
-        self.assertIsNotNone(client.get_event())   
+        self.assertIsNotNone(client.get_event_data())   
         self.assertIsNotNone(client.get_station_amplitudes())
 
         # Assert some values from the event data.
-        event_data = client.get_event()
+        event_data = client.get_event_data()
         self.assertEqual(event_data.get_event_id(), '20170524_0000045')
         self.assertEqual(event_data.get_catalog(), 'EMSC')
         self.assertEqual(event_data.get_network_desc(), 'ESM database')

@@ -74,16 +74,16 @@ class RRSMPeakMotionClient(BaseClient):
         
         # Query the web service for the event information.
         _url = self.ws_client.build_url(**self.event_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_event_data(_data)
+        _code, _event_data = self.ws_client.query(url=_url)
+        self.set_event_data(_event_data)
 
         # Query the web service for the amplitude data.
         _url = self.ws_client.build_url(**self.amplitude_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_amplitudes(_data)
+        _code, _amplitude_data = self.ws_client.query(url=_url)
+        self.set_station_amplitudes(_amplitude_data)
 
         # Return the response code and the data.
-        return _code, _data
+        return _code, _event_data, _amplitude_data
               
 
 class RRSMShakeMapClient(BaseClient):
@@ -166,14 +166,14 @@ class RRSMShakeMapClient(BaseClient):
 
         # Query the web service for the event information.
         _url = self.ws_client.build_url(**self.event_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_event_data(_data)
+        _code, _event_data = self.ws_client.query(url=_url)
+        self.set_event_data(_event_data)
 
         # Query the web service for the amplitude data.
         _url = self.ws_client.build_url(**self.amplitude_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_amplitudes(_data)
+        _code, _amplitude_data = self.ws_client.query(url=_url)
+        self.set_station_amplitudes(_amplitude_data)
 
         # Return the response code and the data.
-        return _code, _data
-    
+        return _code, _event_data, _amplitude_data
+

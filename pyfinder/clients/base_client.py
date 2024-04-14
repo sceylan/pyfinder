@@ -60,7 +60,7 @@ class BaseClient(ABC):
         """ Set the event information. """
         self.event_data = event_data
 
-    def set_amplitudes(self, amplitude_data):
+    def set_station_amplitudes(self, amplitude_data):
         """ 
         Set the amplitudes or intensities. Same as 
         set_feltreports(), but included for clarity.
@@ -100,7 +100,7 @@ class BaseClient(ABC):
         """ Get the base url for the web service. """
         return self.ws_client.get_base_url()
         
-    def get_event(self):
+    def get_event_data(self):
         """ Return the event information. """
         return self.event_data
     

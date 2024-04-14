@@ -85,13 +85,13 @@ class EMSCFeltReportClient(BaseClient):
 
         # Query the web service for the felt reports.
         _url = self.ws_client.build_url(**self.felt_report_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_feltreports(_data)
+        _code, _feltreport_data = self.ws_client.query(url=_url)
+        self.set_feltreports(_feltreport_data)
 
         # Query the web service for the event parameters.
         _url = self.ws_client.build_url(**self.event_data_options)
-        _code, _data = self.ws_client.query(url=_url)
-        self.set_event_data(_data)
+        _code, _event_data = self.ws_client.query(url=_url)
+        self.set_event_data(_event_data)
 
-        return _code, _data
+        return _code, _event_data, _feltreport_data
     
