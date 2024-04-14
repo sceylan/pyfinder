@@ -72,18 +72,16 @@ class RRSMPeakMotionClient(BaseClient):
             raise MissingRequiredOption(
                 "Missing required option: event_id")
         
-        # Query the web service for the event information.
+        # Query the web service for the event information. No need to
+        # query twice for amplitudes. RRSM peak motion already returns 
+        # a json with the station amplitudes and event parameters. 
         _url = self.ws_client.build_url(**self.event_options)
-        _code, _event_data = self.ws_client.query(url=_url)
-        self.set_event_data(_event_data)
-
-        # Query the web service for the amplitude data.
-        _url = self.ws_client.build_url(**self.amplitude_options)
-        _code, _amplitude_data = self.ws_client.query(url=_url)
-        self.set_station_amplitudes(_amplitude_data)
-
+        _code, _peakmotion_data = self.ws_client.query(url=_url)
+        self.set_event_data(_peakmotion_data)
+        self.set_station_amplitudes(_peakmotion_data)
+        
         # Return the response code and the data.
-        return _code, _event_data, _amplitude_data
+        return _code, _peakmotion_data, None
               
 
 class RRSMShakeMapClient(BaseClient):
