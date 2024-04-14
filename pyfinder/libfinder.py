@@ -15,7 +15,11 @@ class FinderLibrary(object):
 
     def execute(self, data_object):
         """ Call the FinDer library methods for the data passed in"""
-        pass
+        import pylibfinder
+        print(dir(pylibfinder))
+        
+        print(dir(libfinder))
+        _finder = libfinder.Finder("/usr/local/src/FinDer/config/finder.config", [])
         # if isinstance(data_object, PeakMotionData):
         #     # Call the FinDer library
         #     libfinder.FinDer(data_object)

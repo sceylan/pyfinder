@@ -5,23 +5,20 @@ Setup file for the Pybind11 module for libfinder
 To compile the module, run the following command:
 python setup.py build_ext --inplace
 """
-from setuptools import setup, Extension
-import pybind11
+from setuptools import setup
+from pybind11.setup_helpers import Pybind11Extension, build_ext
 
-# Define the extension module
+# Define the extension module with Pybind11Extension
 ext_modules = [
-    Extension(
+    Pybind11Extension(
         # Module name in Python
-        'pylibfinder',
+        'pylibfinder',  
 
-        # Source files that contain your Pybind11 bindings
-        ['bindings/pybind11/finite_fault.cpp', 
-         ],  
-# 'bindings/pybind11/finder.cpp'
-        # Includes Pybind11 headers
-        include_dirs=[pybind11.get_include()],  
-        language='c++',
-        extra_compile_args=['-std=c++11'],  # Replace with your C++ version
+        # Source files
+        ['bindings/pybind11/finite_fault.cpp', 'bindings/pybind11/finder.cpp'],  
+
+        # Mention specifically the C++
+        language='c++'
     ),
 ]
 
@@ -32,5 +29,7 @@ setup(
     author='Savas Ceylan',
     description='FinDer Pybind11 module',
     ext_modules=ext_modules,
+    cmdclass={"build_ext": build_ext},  # Important for proper building
+    zip_safe=False,
 )
 

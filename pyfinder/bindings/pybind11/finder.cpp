@@ -5,10 +5,8 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(finite_fault, m) {
-    // Previous bindings...
-
-    auto ff = m.def_submodule("FiniteFault", "Submodule for FiniteFault namespace");
+// PYBIND11_MODULE(finite_fault, m) {
+//     auto ff = m.def_submodule("FiniteFault", "Submodule for FiniteFault namespace");
 
     // Binding Finder_List as a vector of Finder pointers
     py::bind_vector<FiniteFault::TemplateCollection<FiniteFault::Finder*>>(ff, "FinderList");
