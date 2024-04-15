@@ -34,18 +34,20 @@ class FinDerManager:
         if not event_id:
             raise ValueError("An event_id must be provided intead of None")
         
-        # Create the RRSM peak motion client
-        client = RRSMPeakMotionClient()
+        # # Create the RRSM peak motion client
+        # client = RRSMPeakMotionClient()
 
-        # Query returns a PeakMotionData object, which is the same
-        # for amplitude and event data for the RRSM peak motion service.
-        _code, _peak_motion_data, _ = client.query(event_id=event_id)
+        # print(client.get_url())
+        # # Query returns a PeakMotionData object, which is the same
+        # # for amplitude and event data for the RRSM peak motion service.
+        # _code, _peak_motion_data, _ = client.query(event_id=event_id)
         
-        print(_peak_motion_data.get_event_data())
-        for _station in _peak_motion_data.get_stations():
-            print(_station)
+        # print(_peak_motion_data.get_event_data())
+        # for _station in _peak_motion_data.get_stations():
+        #     print(_station)
 
         # Call the FinDer library
+        _peak_motion_data = None
         FinderLibrary().execute(_peak_motion_data)
 
     

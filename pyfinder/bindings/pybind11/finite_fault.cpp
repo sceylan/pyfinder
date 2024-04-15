@@ -1,8 +1,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "finder_headers/finite_fault.h"
+#include "finder_headers/finder.h"
 
 namespace py = pybind11;
+
+// // This needs to be defined to bind the static variable Debug_Level in Finder 
+// int FiniteFault::Finder::Debug_Level = 0;
 
 // Bind TemplateCollection class explicity to avoid issues with py::bind_vector
 template <typename T>
@@ -59,10 +63,11 @@ PYBIND11_MODULE(pylibfinder, m) {
 
     // Bind CoordinateCollection as a vector of Coordinate pointers 
     // within FiniteFault namespace. Pybind11 bind_vector did not work.
-    bind_TemplateCollection<FiniteFault::Coordinate>(ff, "CoordinateCollection");
+    // bind_TemplateCollection<FiniteFault::Coordinate>(ff, "CoordinateCollection");
 
-     // Use an alias for CoordinateList since it is a specialization of TemplateCollection
-    ff.attr("CoordinateList") = ff.attr("CoordinateCollection");
+    // Use an alias for CoordinateList since it is a specialization of TemplateCollection
+    // ff.attr("Coordinate_List") = ff.attr("CoordinateCollection");
+    bind_TemplateCollection<FiniteFault::Coordinate>(ff, "Coordinate_List");
 
     // Bind PGA_Data class within FiniteFault
     py::class_<FiniteFault::PGA_Data>(ff, "PGA_Data")
@@ -189,4 +194,40 @@ PYBIND11_MODULE(pylibfinder, m) {
     // // Bind Finder_Azimuth_LLK_List
     // py::bind_vector<FiniteFault::Finder_Azimuth_LLK_List>(ff, "FinderAzimuthLLKList")
     //     .def(py::init<>());
+
+    // Binding the Finder class. All other classes should be already bound.
+    py::class_<FiniteFault::Finder>(ff, "Finder")
+        .def(py::init<const FiniteFault::Coordinate&, const FiniteFault::PGA_Data_List&, long, long>())
+        .def_static("Set_Debug_Level", &FiniteFault::Finder::Set_Debug_Level)
+        .def_static("Get_Debug_Level", &FiniteFault::Finder::Get_Debug_Level)
+        .def_static("Init", &FiniteFault::Finder::Init,
+            py::arg("config_file"), py::arg("station_coord_list"),
+            "Initializes the Finder with a configuration file and a list of station coordinates.")
+
+        // Accessor methods to retrieve calculated values
+        .def("get_event_id", &FiniteFault::Finder::get_event_id)
+        .def("get_mag", &FiniteFault::Finder::get_mag)
+        .def("get_mag_FD", &FiniteFault::Finder::get_mag_FD)
+        .def("get_mag_reg", &FiniteFault::Finder::get_mag_reg)
+        .def("get_mag_uncer", &FiniteFault::Finder::get_mag_uncer)
+        .def("get_epicenter", &FiniteFault::Finder::get_epicenter)
+        .def("get_epicenter_uncer", &FiniteFault::Finder::get_epicenter_uncer)
+        .def("get_origin_time", &FiniteFault::Finder::get_origin_time)
+        .def("get_origin_time_uncer", &FiniteFault::Finder::get_origin_time_uncer)
+        .def("get_depth", &FiniteFault::Finder::get_depth)
+        .def("get_depth_uncer", &FiniteFault::Finder::get_depth_uncer)
+        .def("get_likelihood_estimate", &FiniteFault::Finder::get_likelihood_estimate)
+        .def("get_rupture_length", &FiniteFault::Finder::get_rupture_length)
+        .def("get_rupture_azimuth", &FiniteFault::Finder::get_rupture_azimuth)
+        .def("get_azimuth_uncer", &FiniteFault::Finder::get_azimuth_uncer)
+        
+        // Setter functions for controlling the behavior of Finder 
+        .def("set_last_message_time", &FiniteFault::Finder::set_last_message_time)
+        .def("set_start_time", &FiniteFault::Finder::set_start_time)
+        .def("set_finder_flags", &FiniteFault::Finder::set_finder_flags)
+        .def("set_hold_time", &FiniteFault::Finder::set_hold_time)
+        .def("set_rejected_stations", &FiniteFault::Finder::set_rejected_stations)
+        .def("set_pga_data_list", &FiniteFault::Finder::set_pga_data_list)
+        .def("set_pga_above_min_thresh", &FiniteFault::Finder::set_pga_above_min_thresh)
+        ;
 }
