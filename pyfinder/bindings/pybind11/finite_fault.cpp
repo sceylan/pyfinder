@@ -5,8 +5,23 @@
 
 namespace py = pybind11;
 
-// // This needs to be defined to bind the static variable Debug_Level in Finder 
-// int FiniteFault::Finder::Debug_Level = 0;
+template <typename T> void bind_TemplateCollection(py::module &m, const std::string &typeName);
+void init_finite_fault_bindings(py::module &ff);
+void init_finder_bindings(py::module &ff);
+
+// Main bindings entry function for the FiniteFault namespace
+PYBIND11_MODULE(pylibfinder, m) {
+    m.doc() = "Python bindings for the FinDer library";
+
+    // Create a submodule for FiniteFault. ff represents the FiniteFault namespace 
+    auto ff = m.def_submodule("FiniteFault", "Submodule for FiniteFault namespace");
+    
+    // Bind classes within FiniteFault namespace
+    init_finite_fault_bindings(ff);
+
+    // Bind Finder class within FiniteFault
+    init_finder_bindings(ff);
+}
 
 // Bind TemplateCollection class explicity to avoid issues with py::bind_vector
 template <typename T>
@@ -41,14 +56,13 @@ void bind_TemplateCollection(py::module &m, const std::string &typeName) {
         // Add other std::vector methods and custom methods of TemplateCollection as needed
 }
 
-// Bindings for the FiniteFault namespace
-PYBIND11_MODULE(pylibfinder, m) {
-    m.doc() = "Python bindings for the FinDer library FiniteFault module";
 
-    // Create a submodule for FiniteFault. ff represents the FiniteFault namespace 
-    auto ff = m.def_submodule("FiniteFault", "Submodule for FiniteFault namespace");
-
-    // Bind Coordinate class within FiniteFault
+/**
+ * Bindings for classes inside the finite_fault.h header file. All these classes 
+ * are within the FiniteFault namespace.
+ */
+void init_finite_fault_bindings(py::module &ff){
+    // Bind Coordinate class 
     py::class_<FiniteFault::Coordinate>(ff, "Coordinate")
         .def(py::init<double, double>(),
              py::arg("lat") = NAN, py::arg("lon") = NAN)
@@ -194,7 +208,13 @@ PYBIND11_MODULE(pylibfinder, m) {
     // // Bind Finder_Azimuth_LLK_List
     // py::bind_vector<FiniteFault::Finder_Azimuth_LLK_List>(ff, "FinderAzimuthLLKList")
     //     .def(py::init<>());
+}
 
+
+/**
+ * Bindings for the Finder class from the finder.h header file. 
+ */
+void init_finder_bindings(py::module &ff) {
     // Binding the Finder class. All other classes should be already bound.
     py::class_<FiniteFault::Finder>(ff, "Finder")
         .def(py::init<const FiniteFault::Coordinate&, const FiniteFault::PGA_Data_List&, long, long>())
