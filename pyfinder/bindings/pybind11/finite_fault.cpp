@@ -5,6 +5,7 @@
 
 namespace py = pybind11;
 
+// Forward declarations
 template <typename T> void bind_TemplateCollection(py::module &m, const std::string &typeName);
 void init_finite_fault_bindings(py::module &ff);
 void init_finder_bindings(py::module &ff);
@@ -30,7 +31,8 @@ void bind_TemplateCollection(py::module &m, const std::string &typeName) {
 
     py::class_<Collection>(m, typeName.c_str())
         .def(py::init<>())
-        .def("clear", &Collection::clear)
+        //.def("clear", &Collection::clear)
+        .def("clear", [](Collection &c) { c.std::vector<T>::clear(); })
         .def("push_back", [](Collection &c, const T &value) { c.push_back(value); },
              "Appends the given element to the end of the container.")
         .def("pop_back", [](Collection &c) { c.pop_back(); },
@@ -106,6 +108,9 @@ void init_finite_fault_bindings(py::module &ff){
         .def("resize_event_id_list", &FiniteFault::PGA_Data::resize_event_id_list)
         .def("size_event_id_list", &FiniteFault::PGA_Data::size_event_id_list);
 
+    // Bind PGA_Data_List as a vector of PGA_Data pointers within FiniteFault namespace
+    bind_TemplateCollection<FiniteFault::PGA_Data>(ff, "PGA_Data_List");
+    
     // Bind Finder_Centroid, inheriting from Coordinate.
     // Finder_Centroid is the mid-point of the line source.
     py::class_<FiniteFault::Finder_Centroid, FiniteFault::Coordinate>(ff, "Finder_Centroid")

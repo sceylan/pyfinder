@@ -1,6 +1,6 @@
 import unittest
-from pylibfinder.FiniteFault import (Coordinate, CoordinateCollection, 
-                                     CoordinateList, PGA_Data, Finder_Centroid,
+from pylibfinder.FiniteFault import (Coordinate, Coordinate_List, 
+                                     PGA_Data, PGA_Data_List, Finder_Centroid,
                                      Finder_Rupture, Finder_Rupture_List,
                                      Misfit, Misfit_List,
                                      Finder_Azimuth, Finder_Azimuth_List,
@@ -113,51 +113,38 @@ class TestFinderBindings(unittest.TestCase):
         self.assertEqual(coord.get_lat(), 10)
         self.assertEqual(coord.get_lon(), 20)
 
-        # test the CoordinateCollection class with two simple coordinates.
+        # test the Coordinate_List class with two simple coordinates.
         # The CoordinateCollection class is a wrapper around a std::vector
         # Use the same coordinate twice to check the push_back method.
         coord1 = Coordinate(10, 20)
         coord2 = Coordinate(10, 20)
-        collection = CoordinateCollection()
-        collection.push_back(coord1)
-        collection.push_back(coord2)
-
-        # Check size of the collection
-        self.assertEqual(collection.size(), 2)
-
-        # Test iteration over the collection
-        for _coord in collection:
-            self.assertEqual(_coord.get_lat(), 10)
-            self.assertEqual(_coord.get_lon(), 20)
-
-        # Test access by index
-        self.assertEqual(collection[0].get_lat(), 10)
-        self.assertEqual(collection[0].get_lon(), 20)
-        self.assertEqual(collection[1].get_lat(), 10)
-        self.assertEqual(collection[1].get_lon(), 20)
-
-        # Test the clear method
-        collection.clear()
-        self.assertEqual(collection.size(), 0)
-        
-        # Test the CoordinateList class. This class is a wrapper around 
-        # the CoordinateCollection
-        coord_list = CoordinateList()
+                
+        # Test the Coordinate_List class. 
+        coord_list = Coordinate_List()
         coord_list.push_back(coord1)
         coord_list.push_back(coord2)
 
-        # Check size of the collection
+        # Check the size of the collection
         self.assertEqual(coord_list.size(), 2)
 
         for _coord in coord_list:
             self.assertEqual(_coord.get_lat(), 10)
             self.assertEqual(_coord.get_lon(), 20)
 
+        # Test access by index
+        self.assertEqual(coord_list[0].get_lat(), 10)
+        self.assertEqual(coord_list[0].get_lon(), 20)
+        self.assertEqual(coord_list[1].get_lat(), 10)
+        self.assertEqual(coord_list[1].get_lon(), 20)
+
+        # Test clear method
+        coord_list.clear()
+        self.assertEqual(coord_list.size(), 0)
+        
         # Test the destructors
         del coord
         del coord1
         del coord2
-        del collection
         del coord_list
 
     def test_PGAData(self):
@@ -176,6 +163,34 @@ class TestFinderBindings(unittest.TestCase):
 
         # Test the destructor
         del pga
+
+    def test_PGADataList(self):
+        # Test the PGA_Data_List class
+        pga_list = PGA_Data_List()
+        pga_list.push_back(PGA_Data(name="PGA", network="netw", channel="chn",
+                                    location_code="01", location=Coordinate(10, 20), 
+                                    value=0.1))
+        pga_list.push_back(PGA_Data(name="PGA", network="netw", channel="chn",
+                                    location_code="01", location=Coordinate(10, 20), 
+                                    value=0.1))
+        
+        # Check the size of the collection
+        self.assertEqual(pga_list.size(), 2)
+
+        # Test iteration over the collection
+        for _pga in pga_list:
+            self.assertEqual(_pga.get_name(), "PGA")
+            self.assertEqual(_pga.get_network(), "netw")
+            self.assertEqual(_pga.get_channel(), "chn")
+            self.assertEqual(_pga.get_location_code(), "01")
+            self.assertEqual(_pga.get_location().get_lat(), 10)
+            self.assertEqual(_pga.get_location().get_lon(), 20)
+            self.assertEqual(_pga.get_value(), 0.1)
+
+        # Test clear method
+        pga_list.clear()
+        self.assertEqual(pga_list.size(), 0)
+        
 
     def test_FinderCentroid(self):
         # Test the Finder_Centroid class. This class is inherits from the
@@ -210,3 +225,7 @@ class TestFinderBindings(unittest.TestCase):
             self.assertEqual(_rupture.get_lat(), 10)
             self.assertEqual(_rupture.get_lon(), 20)
             self.assertEqual(_rupture.get_depth(), 30)
+
+        # Check clear method
+        rupture_list.clear()
+        self.assertEqual(rupture_list.size(), 0)

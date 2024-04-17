@@ -3,7 +3,7 @@
 Setup file for the Pybind11 module for libfinder
 
 To compile the module, run the following command for a clean and verbose build:
-python setup.py build_ext --inplace --force -v
+python3 setup.py build_ext --inplace --force -v
 """
 from setuptools import setup
 import pybind11
