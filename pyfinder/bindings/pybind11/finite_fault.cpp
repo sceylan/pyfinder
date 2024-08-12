@@ -1,14 +1,42 @@
+#define PYBIND11_DETAILED_ERROR_MESSAGES
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 #include "finder_headers/finite_fault.h"
 #include "finder_headers/finder.h"
 
 namespace py = pybind11;
 
+PYBIND11_MAKE_OPAQUE(std::vector<FiniteFault::Coordinate_List>);
+
 // Forward declarations
 template <typename T> void bind_TemplateCollection(py::module &m, const std::string &typeName);
 void init_finite_fault_bindings(py::module &ff);
 void init_finder_bindings(py::module &ff);
+
+void SafeInit(const char* config_file, const FiniteFault::Coordinate_List &coordinates) {
+    // try {
+        std::cout << "Config file: " << config_file << std::endl;
+        std::cout << "Coordinates size: " << coordinates.size() << std::endl;
+        // Loop through the coordinates and print them
+        for (const auto &coord : coordinates) {
+            std::cout << "Coordinate: " << coord.get_lat() << ", " << coord.get_lon() << std::endl;
+        }
+        // Print the types of the coordinates
+        std::cout << "Type of coordinates: " << typeid(coordinates).name() << std::endl;
+        std::cout << "Type of coordinates[0]: " << typeid(coordinates[0]).name() << std::endl;
+        std::cout << "Type of coordinates[0].get_lat(): " << typeid(coordinates[0].get_lat()).name() << std::endl;
+        std::cout << "Type of coordinates[0].get_lon(): " << typeid(coordinates[0].get_lon()).name() << std::endl;
+        // config_file type
+        std::cout << "Type of config_file: " << typeid(config_file).name() << std::endl;
+
+        FiniteFault::Finder::Init(config_file, coordinates);
+    // } catch (const std::exception &e) {
+    //     throw std::runtime_error(std::string("Initialization failed: ") + e.what());
+    // } catch (...) {
+    //     throw std::runtime_error("Caught an unknown exception during initialization");
+    // }
+}
 
 // Main bindings entry function for the FiniteFault namespace
 PYBIND11_MODULE(pylibfinder, m) {
@@ -31,8 +59,12 @@ void bind_TemplateCollection(py::module &m, const std::string &typeName) {
 
     py::class_<Collection>(m, typeName.c_str())
         .def(py::init<>())
+
+        /* Invoke the clear method explicitly from the std::vector class 
+        instead of the FiniteFault::TemplateCollection */
         //.def("clear", &Collection::clear)
         .def("clear", [](Collection &c) { c.std::vector<T>::clear(); })
+
         .def("push_back", [](Collection &c, const T &value) { c.push_back(value); },
              "Appends the given element to the end of the container.")
         .def("pop_back", [](Collection &c) { c.pop_back(); },
@@ -54,8 +86,6 @@ void bind_TemplateCollection(py::module &m, const std::string &typeName) {
             if (i >= v.size()) throw py::index_error();
             v[i] = value;
         });
-        
-        // Add other std::vector methods and custom methods of TemplateCollection as needed
 }
 
 
@@ -81,9 +111,38 @@ void init_finite_fault_bindings(py::module &ff){
     // within FiniteFault namespace. Pybind11 bind_vector did not work.
     // bind_TemplateCollection<FiniteFault::Coordinate>(ff, "CoordinateCollection");
 
-    // Use an alias for CoordinateList since it is a specialization of TemplateCollection
+    // Use an alias for Coordinate_List since it is a specialization of TemplateCollection
     // ff.attr("Coordinate_List") = ff.attr("CoordinateCollection");
-    bind_TemplateCollection<FiniteFault::Coordinate>(ff, "Coordinate_List");
+    // bind_TemplateCollection<FiniteFault::Coordinate>(ff, "Coordinate_List");
+    
+    // Explicit binding for Coordinate_List
+    py::class_<FiniteFault::Coordinate_List>(ff, "Coordinate_List")
+        .def(py::init<>())
+        .def("push_back", static_cast<void (FiniteFault::Coordinate_List::*)(const FiniteFault::Coordinate&)>(&FiniteFault::Coordinate_List::push_back))
+        .def("__len__", &FiniteFault::Coordinate_List::size)
+        .def("__getitem__", [](const FiniteFault::Coordinate_List &v, size_t i) {
+            if (i >= v.size()) throw py::index_error();
+            return v.at(i);
+        })
+        .def("__setitem__", [](FiniteFault::Coordinate_List &v, size_t i, const FiniteFault::Coordinate &coord) {
+            if (i >= v.size()) throw py::index_error();
+            v[i] = coord;
+        });
+    // py::class_<FiniteFault::Coordinate_List>(ff, "Coordinate_List")
+    //     .def(py::init<>())
+    //     .def("push_back", [](FiniteFault::Coordinate_List &self, const FiniteFault::Coordinate &coord) {
+    //         self.push_back(coord); // Explicitly specify use of push_back
+    //     }, "Adds a Coordinate to the list")
+    //     .def("__len__", &FiniteFault::Coordinate_List::size)
+    //     .def("__getitem__", [](const FiniteFault::Coordinate_List &list, size_t i) {
+    //         if (i >= list.size()) throw py::index_error();
+    //         return list.at(i); // Use at for bounds checking
+    //     })
+    //     .def("__setitem__", [](FiniteFault::Coordinate_List &list, size_t i, const FiniteFault::Coordinate &coord) {
+    //         if (i >= list.size()) throw py::index_error();
+    //         list[i] = coord; // Direct assignment
+    //     });
+
 
     // Bind PGA_Data class within FiniteFault
     py::class_<FiniteFault::PGA_Data>(ff, "PGA_Data")
@@ -110,7 +169,7 @@ void init_finite_fault_bindings(py::module &ff){
 
     // Bind PGA_Data_List as a vector of PGA_Data pointers within FiniteFault namespace
     bind_TemplateCollection<FiniteFault::PGA_Data>(ff, "PGA_Data_List");
-    
+
     // Bind Finder_Centroid, inheriting from Coordinate.
     // Finder_Centroid is the mid-point of the line source.
     py::class_<FiniteFault::Finder_Centroid, FiniteFault::Coordinate>(ff, "Finder_Centroid")
@@ -225,9 +284,10 @@ void init_finder_bindings(py::module &ff) {
         .def(py::init<const FiniteFault::Coordinate&, const FiniteFault::PGA_Data_List&, long, long>())
         .def_static("Set_Debug_Level", &FiniteFault::Finder::Set_Debug_Level)
         .def_static("Get_Debug_Level", &FiniteFault::Finder::Get_Debug_Level)
-        .def_static("Init", &FiniteFault::Finder::Init,
-            py::arg("config_file"), py::arg("station_coord_list"),
-            "Initializes the Finder with a configuration file and a list of station coordinates.")
+        .def_static("Init", &SafeInit)
+        // .def_static("Init", &FiniteFault::Finder::Init,
+        //     py::arg("config_file"), py::arg("station_coord_list"),
+        //     "Initializes the Finder with a configuration file and a list of station coordinates.")
 
         // Accessor methods to retrieve calculated values
         .def("get_event_id", &FiniteFault::Finder::get_event_id)

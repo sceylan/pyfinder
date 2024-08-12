@@ -24,7 +24,8 @@ ext_modules = [
 
         # Libraries to link: Provide the path to the Finder, opencv, SeisComp and GMT libraries
         # The Library name should be without the 'lib' prefix and the '.so' suffix
-        library_dirs=['/usr/local/lib', '/opt/seiscomp/lib/', '/usr/lib/x86_64-linux-gnu/'],
+        # library_dirs=['/usr/local/lib', '/opt/seiscomp/lib/', '/usr/lib/x86_64-linux-gnu/'],
+        library_dirs=['/usr/local/src/app/FinDer/libsrc', '/opt/seiscomp/lib/', '/usr/lib/x86_64-linux-gnu/'],
         libraries=['Finder', 
                    'seiscomp_core', 'seiscomp_config', 'seiscomp_daplugin', 
                    'opencv_core', 'opencv_imgproc', 'opencv_highgui', 'gmt'],
@@ -42,6 +43,8 @@ setup(
     description='FinDer Pybind11 bindings module',
     ext_modules=ext_modules,
     cmdclass={"build_ext": build_ext},  
+    # Debugging options
+    extra_compile_args=['-g', '-O0'],
     zip_safe=False,
 )
 
