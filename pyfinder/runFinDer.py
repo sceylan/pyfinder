@@ -7,14 +7,19 @@ library via the bindings. The bindings are in test phase and not yet
 fully implemented.
 """
 import os
+import sys
 from clients import RRSMPeakMotionClient, RRSMShakeMapClient
-import configuration
+from pyfinderconfig import pyfinderconfig
+from utils import customlogger
 
 class FinDerManager:
     """ Class for managing the FinDer library and executable wrappers"""
-    def __init__(self, use_library=False):
-        # Use the FinDer library or the executable
-        self.use_library = use_library
+    def __init__(self, options, configuration):
+        # Options from the command line arguments
+        self.options = options
+
+        # User-defined configuration
+        self.configuration = configuration
 
     def run(self, event_id=None, file_path=None):
         """ 
@@ -52,14 +57,14 @@ class FinDerManager:
         if _code != 200:
             raise ConnectionError("Connection to the RRSM web service failed")
         
-        if self.use_library:
+        if self.options["use_library"]:
             # Call the FinDer library wrapper
             from finderlib import FinderLibrary
-            FinderLibrary().execute(_peak_motion_data)
+            FinderLibrary(options=self.options, configuration=self.configuration).execute(_peak_motion_data)
         else:
             # Call the FinDer executable
             from finderexec import FinDerExecutable
-            FinDerExecutable().execute(_peak_motion_data)
+            FinDerExecutable(options=self.options, configuration=self.configuration).execute(_peak_motion_data)
 
     
 def build_args():
@@ -71,8 +76,9 @@ def build_args():
         if value.upper() in levels:
             return value.upper()
         else:
-            raise argparse.ArgumentTypeError(f"{value} is not a valid verbosity level. Choose from {', '.join(levels)}.")
-    
+            raise argparse.ArgumentTypeError(
+                f"{value} is not a valid verbosity level. Choose from {', '.join(levels)}.")
+            
     parser = argparse.ArgumentParser(description="Run the FinDer wrapper")
 
     # Add the arguments
@@ -80,11 +86,6 @@ def build_args():
                         "If not provided, FinDer executable will be used", default=False,
                         action='store_true')
     
-    # Configuration file; required for pyfinder options. If not provided, the default
-    # path will be used as ./pyfinder.config
-    parser.add_argument("--config", help="Configuration file for pyfinder. Default is ./pyfinder.config", 
-                        type=str, required=False)
-
     # Event id is optional. Defaults to the Kahramanmaras, Turkey event in 2023 for testing
     parser.add_argument("--event-id", help="[Optional] Event ID for processing.", type=str, default=None)
     
@@ -105,18 +106,38 @@ def build_args():
     # Parse the arguments
     _args = parser.parse_args()
 
-    # Set the default configuration file, if not provided
-    if _args.config is None:
-        _args.config = "./pyfinder.config"
-
     return _args
 
 if __name__ == '__main__':    
+    # Get the command line arguments
     args = build_args()
 
-    print(args)
-    # Example usage. Run with the Kahramanmaras event in 2023: 20230206_0000008
-    manager = FinDerManager(use_library=args.use_lib)
-    manager.run(event_id='20230206_0000008')
+    # Set the options from the command line arguments
+    options = {
+        "verbosity": args.verbosity,
+        "log_file": args.log_file,
+        "with_seiscomp": args.with_seiscomp,
+        "event_id": args.event_id,
+        "test": args.test,
+        "use_library": args.use_lib
+    }
+
+    # Override with the command line log file, if provided
+    log_file = pyfinderconfig["finder-executable"]["log-file-name"]
+    if options["log_file"] is not None:
+        pyfinderconfig["finder-executable"]["log-file-name"] = options["log_file"]
+
+    # Store the whole command line in the options as one string
+    options["command_line_args"] = f"{sys.argv[0]} " + \
+        " ".join([f"--{key} {value}" for key, value in options.items()])
+    
+    # If the test mode is enabled, set the event_id to the test event
+    if options["test"]:
+        options["event_id"] = "20230206_0000008"
+    
+    # Execute the FinDer manager, which will call either the FinDer library 
+    # or executable based on the options
+    manager = FinDerManager(options=options, configuration=pyfinderconfig)
+    manager.run(event_id=options["event_id"])
 
 
