@@ -2,7 +2,10 @@
 import io
 import json
 from ..baseparser import BaseParser
-from ..peakmotion_data import PeakMotionData, PeakMotionStationData, PeakMotionChannelData, PeakMotionEventData
+from ..peakmotion_data import (PeakMotionData, 
+                               PeakMotionStationData, 
+                               PeakMotionChannelData, 
+                               PeakMotionEventData)
 
 class RRSMPeakMotionParser(BaseParser):
     """ Parses the peak motion data from RRSM. The peak motion

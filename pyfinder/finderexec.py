@@ -7,6 +7,9 @@ import sys
 import json
 from utils import customlogger
 import pyfinderconfig
+from utils.dataformatter import PeakMotionDataFormatter
+from clients.services.peakmotion_data import PeakMotionData
+
 
 class FinDerExecutable(object):
     """ Class for executing the FinDer executable. """
@@ -33,16 +36,6 @@ class FinDerExecutable(object):
         """ Get the root output folder from the configuration. """
         output_root_folder = self.configuration["finder-executable"]["output-root-folder"]
         return output_root_folder
-    
-    def merge_path_for_working_directory(self, event_id):
-        """ Combine the root output folder with the event id. """
-        output_root_folder = self.get_root_output_folder()
-        event_output_folder = os.path.join(output_root_folder, str(event_id))
-
-        # Set the working directory for the current event 
-        self.working_directory = event_output_folder
-
-        return event_output_folder
     
     def get_working_directory(self):
         """ Get the working directory. Once set, it is the same 
@@ -92,8 +85,8 @@ class FinDerExecutable(object):
             previous_output_root_folder = output_root_folder
             output_root_folder = os.path.join(os.getcwd(), "output")
 
-            self.logger.warning(f"No write access to the output root folder: {previous_output_root_folder}")
-            self.logger.warning(f"Overriding the root working directory: {output_root_folder}")
+            print(f"No write access to the output root folder: {previous_output_root_folder}")
+            print(f"Overriding the root working directory: {output_root_folder}")
 
         # Check if the output root folder exists
         if not os.path.exists(output_root_folder):
@@ -105,6 +98,9 @@ class FinDerExecutable(object):
             os.makedirs(event_output_folder)
         self.working_directory = event_output_folder
 
+        # Initialize the logger
+        self.initialize_logger()
+        self.logger.info("START... Initiated with '{}'".format(self.options['command_line_args']))
         self.logger.info("Event ID: {}".format(event_id))
         self.logger.info("FinDer executable path: {}".format(self.executable_path))
         self.logger.info("Output root folder: {}".format(output_root_folder))
@@ -139,7 +135,7 @@ class FinDerExecutable(object):
 
             with open(config_file_path, "w") as config_file:
                 for key, value in finder_file_config.items():
-                    config_file.write("{} = {}\n".format(key, value))
+                    config_file.write("{} {}\n".format(key, value))
 
             self.finder_file_config_path = config_file_path
 
@@ -169,6 +165,19 @@ class FinDerExecutable(object):
         if not os.access(self.executable_path, os.X_OK):
             raise PermissionError("The FinDer executable is not executable: {}".format(self.executable_path))
         
+    def write_data_for_finder(self, data_object):
+        """ Write the data to the working directory. """
+        if isinstance(data_object, PeakMotionData):
+            out_str = PeakMotionDataFormatter().format_data(data_object)
+            
+            # Write the data to the working directory
+            data_file_path = os.path.join(self.working_directory, "data_0")
+            with open(data_file_path, "w") as data_file:
+                data_file.write(out_str)
+            
+            self.logger.info("Data file written: {}".format(data_file_path))
+            return data_file_path
+
     def execute(self, data_object):
         """ Runs the FinDer executable. """
         # Check if the executable exists
@@ -178,30 +187,43 @@ class FinDerExecutable(object):
         event_data = data_object.get_event_data()
         event_id = event_data.get_event_id()
         
-        # Combine the root output folder with the event id
-        self.merge_path_for_working_directory(event_id)
-        
-        # Create the logger instance. The log file will be created in the working directory
-        self.initialize_logger()
-        self.logger.info("START... Initiated with '{}'".format(self.options['command_line_args']))
-
         # Prepare the workspace for the FinDer executable output
         self.prepare_workspace(event_id)
 
+        # Write the data to the working directory
+        self.write_data_for_finder(data_object)
+
         try:
             # Execute the FinDer executable
-            process = subprocess.Popen([self.executable_path], 
-                                       stdout=subprocess.PIPE, 
-                                       stderr=subprocess.PIPE)
+            self.logger.info("Executing the FinDer executable...")
+
+            # Command line options for FinDer 
+            cmd_line_opt = [self.finder_file_config_path, 
+                            self.working_directory, '0', '0', 'no']
+            
+            process = subprocess.Popen(
+                [self.executable_path] + cmd_line_opt, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE)
+            
             stdout, stderr = process.communicate()
-            print("FinDer stdout: ", stdout)
-            print("FinDer stderr: ", stderr)
-        
+            
+            # Dump the stdout and stderr to the log file
+            self.logger.info("FinDer STDOUT :")
+            for line in stdout.decode().splitlines():
+                self.logger.finder(line)
+            
+            if stderr:
+                self.logger.info("FinDer STDERR:")
+                for line in stderr.decode().splitlines():
+                    self.logger.error(line)
+            else:
+                self.logger.info("FinDer STDERR: Empty")
+                
         except Exception as e:
             self.logger.error(f"Error executing the FinDer executable: {e}")
             sys.exit(1)
 
         finally:
             self.logger.info("FINISHED...")
-            
             

@@ -89,8 +89,8 @@ def build_args():
     # Event id is optional. Defaults to the Kahramanmaras, Turkey event in 2023 for testing
     parser.add_argument("--event-id", help="[Optional] Event ID for processing.", type=str, default=None)
     
-    # Test mode; optional. If provided, the test mode will be used with the event-id 20230206_0000008
-    parser.add_argument("--test", help="[Optional] Runs in testing mode with event-id 20230206_0000008 (Kahramanmaras, Turkey 2023).", 
+    # Test mode; optional. If provided, the test mode will be used with the test event
+    parser.add_argument("--test", help="[Optional] Runs in testing mode with the test event as defined in configuration.", 
                         default=False, action='store_true')
     
     # SeisComp support; optional. If provided, the results will be dumped in the SeisComp database.
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     
     # If the test mode is enabled, set the event_id to the test event
     if options["test"]:
-        options["event_id"] = "20230206_0000008"
+        options["event_id"] = pyfinderconfig["general"]["test-event-id"]
     
     # Execute the FinDer manager, which will call either the FinDer library 
     # or executable based on the options

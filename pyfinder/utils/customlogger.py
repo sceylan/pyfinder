@@ -15,6 +15,9 @@ reset = "\x1b[0m"
 # but lower than WARNING.
 OK_LOG_LEVEL = logging.INFO + 5 
 
+# This is not log level. I use this for the finder logs
+FINDER_LOG_LEVEL = logging.INFO + 6
+
 class LoggingFormatter(logging.Formatter):
     """ Formatter for the console logging with colors."""
     log_time = "%(asctime)-s "
@@ -27,7 +30,8 @@ class LoggingFormatter(logging.Formatter):
         logging.WARNING: log_time + yellow + log_level + reset + log_message,
         logging.ERROR: log_time + red + log_level + reset + log_message,
         logging.CRITICAL: log_time + bold_red + log_level + reset + log_message,
-        OK_LOG_LEVEL: log_time + green + log_level + reset + log_message
+        OK_LOG_LEVEL: log_time + green + log_level + reset + log_message,
+        FINDER_LOG_LEVEL: log_time + green + log_level + reset + log_message
         }
         
     def format(self, record):
@@ -47,7 +51,8 @@ class FileLoggingFormatter(logging.Formatter):
         logging.WARNING: log_time + log_level + log_message,
         logging.ERROR: log_time + log_level + log_message,
         logging.CRITICAL: log_time + log_level + log_message,
-        OK_LOG_LEVEL: log_time + log_level + log_message
+        OK_LOG_LEVEL: log_time + log_level + log_message,
+        FINDER_LOG_LEVEL: log_time + log_level + log_message
         }
         
     def format(self, record):
@@ -57,6 +62,7 @@ class FileLoggingFormatter(logging.Formatter):
 
 # Define a new log level name and value in the logging module
 logging.addLevelName(OK_LOG_LEVEL, "OK")
+logging.addLevelName(FINDER_LOG_LEVEL, "FinDer")
 
 def console_logger():
     # Define a new log level method in the logger object
@@ -72,11 +78,24 @@ def console_logger():
         if logger.isEnabledFor(OK_LOG_LEVEL):
             logger._log(OK_LOG_LEVEL, message, args, **kwargs)
 
+    def finder(message, *args, **kwargs):
+        if logger.isEnabledFor(FINDER_LOG_LEVEL):
+            logger._log(FINDER_LOG_LEVEL, message, args, **kwargs)
+
+    def FINDER(message, *args, **kwargs):
+        if logger.isEnabledFor(FINDER_LOG_LEVEL):
+            logger._log(FINDER_LOG_LEVEL, message, args, **kwargs)
+
     # Attach the custom method to the logger
     logger.ok = ok
     logger.OK = OK
+    logger.finder = finder
+    logger.FINDER = FINDER
+    
     logging.ok = ok
     logging.OK = OK
+    logging.finder = finder
+    logging.FINDER = FINDER
 
     # Create console handler and set level to debug
     ch = logging.StreamHandler()
@@ -104,11 +123,24 @@ def file_logger(log_file, overwrite=False, rotate=False):
         if logger.isEnabledFor(OK_LOG_LEVEL):
             logger._log(OK_LOG_LEVEL, message, args, **kwargs)
 
+    def finder(message, *args, **kwargs):
+        if logger.isEnabledFor(FINDER_LOG_LEVEL):
+            logger._log(FINDER_LOG_LEVEL, message, args, **kwargs)
+
+    def FINDER(message, *args, **kwargs):
+        if logger.isEnabledFor(FINDER_LOG_LEVEL):
+            logger._log(FINDER_LOG_LEVEL, message, args, **kwargs)
+
     # Attach the custom method to the logger
     logger.ok = ok
     logger.OK = OK
+    logger.finder = finder
+    logger.FINDER = FINDER
+    
     logging.ok = ok
     logging.OK = OK
+    logging.finder = finder
+    logging.FINDER = FINDER
 
     # Create file handler and set level to debug
     mode = "w+" if overwrite else "a"

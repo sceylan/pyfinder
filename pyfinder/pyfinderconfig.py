@@ -5,7 +5,27 @@ import os
 def get_path_of_configuration():
     return os.path.dirname(os.path.abspath(__file__))
 
+# Kahramanmaras, Turkey earthquake, 2023, Mw 7.8
+KAHRAMANMARAS_TURKEY_EVENT_ID = "20230206_0000008"
+
+# Norcia, Italy earthquake, 2016-10-30 06:40:18 UTC, Mw 6.5
+NORCIA_ITALY_EVENT_ID = "20161030_0000029"
+
+ESM_SHAKEMAP_SERVICE = "EMSC_ShakeMap"
+RRSM_PEAK_MOTION_SERVICE = "RRSM_PeakMotion"
+RRSM_SHAKEMAP_SERVICE = "RRSM_ShakeMap"
+EMSC_FEELT_REPORT_SERVICE = "ESM_FeltReport"
+
+
 pyfinderconfig = {
+    "general": {
+        # Web services ordered by priority
+        "services": [ESM_SHAKEMAP_SERVICE, RRSM_PEAK_MOTION_SERVICE, EMSC_FEELT_REPORT_SERVICE],
+        
+        # The default test event id for the FinDer executable
+        "test-event-id": NORCIA_ITALY_EVENT_ID,
+    },
+
     # Logging configuration
     "logging": {
         # The default log level for the console logging
@@ -158,11 +178,23 @@ finder_file_comfig_template = {
     # <string> [foldername] place to put temp and temp_dir folders
     "DATA_FOLDER": "<PATH>",
     
+    # <double> distance in km between epicenter and fault, 
+    # if exceeded new event id is created
+    "EPI_FAULT_DIST_THRESH": "100.",  
+    
     # <double> value below which regression may be carried out, above the threshold 
     # the original rupture-based FinDer magnitude will always be used. Set to a small 
     # value (e.g. -1.) to disable regression, or a high value (e.g. 10) to always use 
     # regression. Setting this value to ~5.5-6.0 should be appropriate, preferring an 
     # amplitude-based magnitude for smaller events and a rupture length based magnitude 
     # for finite fault events.
-    "MAG_REGRESSION_THRESH": 5.5
+    "MAG_REGRESSION_THRESH": 5.5,
+
+    "STOP_LENGTH_DECREASE_PC": "0.2",
+    
+    "RESTART_LENGTH_INCREASE_PC": "0.0001",
+    
+    "UNCERTAINTY_METHOD": "0",
+    
+    
 }
