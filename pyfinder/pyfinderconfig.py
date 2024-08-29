@@ -24,6 +24,10 @@ pyfinderconfig = {
         
         # The default test event id for the FinDer executable
         "test-event-id": NORCIA_ITALY_EVENT_ID,
+
+        # Blacklist of stations, channels etc. The format is NET.STA.LOC.CHA
+        "channel-blacklist": "",
+
     },
 
     # Logging configuration
@@ -56,6 +60,12 @@ pyfinderconfig = {
 
         # Path for GMT resources
         "path-for-gmt-resources": "/usr/local/src/FinDer/config/gmt_input",
+
+        # The mode of finder run. If live mode is False, the data_ file will
+        # contain three columns: station lat/lon and log10(PGA). If True, the
+        # data_ file will contain the lat/lon, station code, a time stamp, 
+        # and the PGA (not log10).
+        "finder-live-mode": False,
     }
 }
 
@@ -110,7 +120,7 @@ finder_file_comfig_template = {
     "RUN_SPEED": "fast",
     
     # <string> [filename], "calculate" to generate a mask, "no_mask" if no mask
-    "REGIONAL_MASK": os.path.join(gmt_resources, "gmt_input", "Switzerland_mask_20161012.nc"),
+    "REGIONAL_MASK": "calculate", # os.path.join(gmt_resources, "gmt_input", "Switzerland_mask_20161012.nc"),
     
     # <double> [m] When calculating the mask, what is the max distance between stations
     "MASK_STATION_DISTANCE": "75.0",
@@ -158,10 +168,10 @@ finder_file_comfig_template = {
     "GMT_API_OPTION": "yes",
     
     # <string> "gmt" for GMT 5.0, "---" for blank in front of gmt commands
-    "GMT_PREFIX": "---",
+    "GMT_PREFIX": "gmt",
     
     # <string> "yes" or "no" for creating gmt_plots for offline testing
-    "GMT_PLOT": "no",
+    "GMT_PLOT": "yes",
     
     # <string> [filename]
     "COLOR_SCALE": os.path.join(gmt_resources, "gmt_input", "log_pga_wald.cpt"),
@@ -195,6 +205,5 @@ finder_file_comfig_template = {
     "RESTART_LENGTH_INCREASE_PC": "0.0001",
     
     "UNCERTAINTY_METHOD": "0",
-    
-    
+
 }

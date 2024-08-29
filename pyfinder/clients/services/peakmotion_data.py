@@ -88,13 +88,13 @@ class PeakMotionStationData(BaseDataStructure):
     def get_location_code(self):
         return self._get('location-code')
     
-    def get_station_latitude(self):
+    def get_latitude(self):
         return self._get('station-latitude')
     
-    def get_station_longitude(self):
+    def get_longitude(self):
         return self._get('station-longitude')
     
-    def get_station_elevation(self):
+    def get_elevation(self):
         return self._get('station-elevation')
     
     def get_network_code(self):
@@ -111,13 +111,13 @@ class PeakMotionEventData(BaseDataStructure):
     def get_event_id(self):
         return self._get('event-id')
     
-    def get_event_latitude(self):
+    def get_latitude(self):
         return self._get('event-latitude')
     
-    def get_event_longitude(self):
+    def get_longitude(self):
         return self._get('event-longitude')
     
-    def get_event_depth(self):
+    def get_depth(self):
         return self._get('event-depth')
     
     def get_event_location_reference(self):
@@ -126,7 +126,7 @@ class PeakMotionEventData(BaseDataStructure):
     def get_event_magnitude_reference(self):
         return self._get('event-magnitude-reference')
 
-    def get_event_magnitude(self):
+    def get_magnitude(self):
         return self._get('event-magnitude')
     
     def get_magnitude_type(self):

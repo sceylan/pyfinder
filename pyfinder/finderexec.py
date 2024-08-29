@@ -7,7 +7,7 @@ import sys
 import json
 from utils import customlogger
 import pyfinderconfig
-from utils.dataformatter import PeakMotionDataFormatter
+from utils.dataformatter import RRSMPeakMotionDataFormatter
 from clients.services.peakmotion_data import PeakMotionData
 
 
@@ -167,39 +167,59 @@ class FinDerExecutable(object):
         
     def write_data_for_finder(self, data_object):
         """ Write the data to the working directory. """
-        if isinstance(data_object, PeakMotionData):
-            out_str = PeakMotionDataFormatter().format_data(data_object)
-            
-            # Write the data to the working directory
-            data_file_path = os.path.join(self.working_directory, "data_0")
-            with open(data_file_path, "w") as data_file:
-                data_file.write(out_str)
-            
-            self.logger.info("Data file written: {}".format(data_file_path))
-            return data_file_path
+        data_file_path = os.path.join(self.working_directory, "data_0")
 
-    def execute(self, data_object):
+        if isinstance(data_object, PeakMotionData):
+            out_str = RRSMPeakMotionDataFormatter().format_data(data_object)
+
+        # Write the data to the working directory
+        with open(data_file_path, "wb") as data_file:
+            data_file.write(out_str)
+            
+        self.logger.info("Data file written: {}".format(data_file_path))
+        return data_file_path
+
+    def execute(self, amplitudes, event_data=None):
         """ Runs the FinDer executable. """
         # Check if the executable exists
         self.check_finder_executable()
 
-        # Prepare for the execution. Get the event id to create the working directory
-        event_data = data_object.get_event_data()
+        if isinstance(amplitudes, PeakMotionData):
+            # RRSM peak motion data contains the event data as well.
+            event_data = amplitudes.get_event_data()
+        
+        # Get the event id to create the working directory
         event_id = event_data.get_event_id()
         
         # Prepare the workspace for the FinDer executable output
         self.prepare_workspace(event_id)
 
         # Write the data to the working directory
-        self.write_data_for_finder(data_object)
+        self.write_data_for_finder(amplitudes)
 
         try:
             # Execute the FinDer executable
             self.logger.info("Executing the FinDer executable...")
 
+            # Check if the live mode is enabled
+            is_live_mode = self.configuration["finder-executable"]["finder-live-mode"]
+            if isinstance(is_live_mode, str): 
+                if is_live_mode.lower() == "yes":
+                    is_live_mode = True
+                elif is_live_mode.lower() == "no":
+                    is_live_mode = False
+                else:
+                    is_live_mode = bool(is_live_mode)
+            
+            if is_live_mode:
+                self.logger.info("FinDer live mode is enabled.")
+            else:
+                self.logger.info("FinDer live mode is disabled.")
+
             # Command line options for FinDer 
             cmd_line_opt = [self.finder_file_config_path, 
-                            self.working_directory, '0', '0', 'no']
+                            self.working_directory, '0', '0', 
+                            'yes' if is_live_mode else 'no']
             
             process = subprocess.Popen(
                 [self.executable_path] + cmd_line_opt, 
@@ -214,11 +234,12 @@ class FinDerExecutable(object):
                 self.logger.finder(line)
             
             if stderr:
-                self.logger.info("FinDer STDERR:")
+                self.logger.warning(">>>> FinDer produced STDERR. See below:")
                 for line in stderr.decode().splitlines():
                     self.logger.error(line)
+                self.logger.info("<<<< FinDer STDERR: End")
             else:
-                self.logger.info("FinDer STDERR: Empty")
+                self.logger.info(">>>> FinDer STDERR: Empty")
                 
         except Exception as e:
             self.logger.error(f"Error executing the FinDer executable: {e}")

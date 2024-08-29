@@ -28,11 +28,11 @@ class FeltReportEventData(BaseDataStructure):
         """ Return the event delta time. """
         return self._get('ev_deltatime')
     
-    def get_event_longitude(self):
+    def get_longitude(self):
         """ Return the event longitude. """
         return self._get('ev_longitude')
     
-    def get_event_latitude(self):
+    def get_latitude(self):
         """ Return the event latitude. """
         return self._get('ev_latitude')
     
@@ -40,15 +40,15 @@ class FeltReportEventData(BaseDataStructure):
         """ Return the event time. """
         return self._get('ev_event_time')
     
-    def get_event_magnitude(self):
+    def get_magnitude(self):
         """ Return the event magnitude value. """
         return self._get('ev_mag_value')
     
-    def get_event_magnitude_type(self):
+    def get_magnitude_type(self):
         """ Return the event magnitude type. """
         return self._get('ev_mag_type')
     
-    def get_event_depth(self):
+    def get_depth(self):
         """ Return the event depth. """
         return self._get('ev_depth')
     

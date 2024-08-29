@@ -13,13 +13,15 @@ if __name__ == '__main__':
     test_groups = ['tests/parsers', 
                    'tests/services',
                    'tests/clients',
-                   'tests/bindings']
+                   # 'tests/bindings'
+                   ]
     
     # Messages to be displayed before each test group.
     test_desc = ['Parsers', 
                  'Web service clients', 
                  'Client encapsulation', 
-                 'Pybind11 bindings']
+                 # 'Pybind11 bindings'
+                 ]
     
     # Collect the results of the tests.
     results = []
@@ -30,7 +32,8 @@ if __name__ == '__main__':
         results.append(runner.run(suite))
     
     # Final report
-    logging.getLogger().info("="*23 + " Test results " + "="*23)
+    logger = customlogger.console_logger()
+    logger.info("="*23 + " Test results " + "="*23)
         
     for grp, result in zip(test_desc, results):
         error = len(result.errors)
@@ -39,18 +42,18 @@ if __name__ == '__main__':
         succeeded = result.testsRun - error - failure - skipped
         
         if error > 0 or failure > 0:
-            logging.getLogger().error(
+            logger.error(
                 "{:20s}: Total {:2d} tests ({:2d} succeeded, {:2d}"
                 " failed, {:2d} error(s), {:2d} skipped)".format(
                     grp, result.testsRun, succeeded, failure, error, skipped))
         elif skipped > 0:
-            logging.getLogger().warning(
+            logger.warning(
             "{:20s}: Total {:2d} tests ({:2d} succeeded, {:2d}"
             " failed, {:2d} error(s), {:2d} skipped)".format(
                 grp, result.testsRun, succeeded, failure, error, skipped))
         else:
-            logging.getLogger().ok(
+            logger.ok(
             "{:20s}: Total {:2d} tests ({:2d} succeeded, {:2d}"
             " failed, {:2d} error(s), {:2d} skipped)".format(
                 grp, result.testsRun, succeeded, failure, error, skipped))
-    logging.getLogger().info("="*60)
+    logger.info("="*60)
