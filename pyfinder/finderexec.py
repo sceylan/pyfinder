@@ -7,8 +7,10 @@ import sys
 import json
 from utils import customlogger
 import pyfinderconfig
-from utils.dataformatter import RRSMPeakMotionDataFormatter
 from clients.services.peakmotion_data import PeakMotionData
+from clients.services.shakemap_data import ShakeMapStationAmplitudes
+from utils.dataformatter import (RRSMPeakMotionDataFormatter,
+                                 ESMShakeMapDataFormatter)
 
 
 class FinDerExecutable(object):
@@ -165,12 +167,19 @@ class FinDerExecutable(object):
         if not os.access(self.executable_path, os.X_OK):
             raise PermissionError("The FinDer executable is not executable: {}".format(self.executable_path))
         
-    def write_data_for_finder(self, data_object):
+    def write_data_for_finder(self, amplitudes, event_data):
         """ Write the data to the working directory. """
         data_file_path = os.path.join(self.working_directory, "data_0")
 
-        if isinstance(data_object, PeakMotionData):
-            out_str = RRSMPeakMotionDataFormatter().format_data(data_object)
+        if isinstance(amplitudes, PeakMotionData):
+            # RRSM peak motion data contains the event data as well.
+            # Amplitudes and event data are the same for the RRSM peak motion service.
+            out_str = RRSMPeakMotionDataFormatter().format_data(
+                amplitudes=amplitudes, event_data=amplitudes)
+            
+        elif isinstance(amplitudes, ShakeMapStationAmplitudes):
+            out_str = ESMShakeMapDataFormatter().format_data(
+                amplitudes=amplitudes, event_data=event_data)
 
         # Write the data to the working directory
         with open(data_file_path, "wb") as data_file:
@@ -195,7 +204,7 @@ class FinDerExecutable(object):
         self.prepare_workspace(event_id)
 
         # Write the data to the working directory
-        self.write_data_for_finder(amplitudes)
+        self.write_data_for_finder(amplitudes, event_data)
 
         try:
             # Execute the FinDer executable

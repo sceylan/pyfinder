@@ -119,17 +119,13 @@ class ShakeMapStationAmplitudes(BaseDataStructure):
         return self._get('created')
     
     def get_stations(self):
-        """ 
-        Return the list of stations. Each item in the list is a
-        dictionary.
-        """
+        """ Return the list of stations. Each item in 
+        the list is a dictionary. """
         return self._get('stations')
 
     def get_station_codes(self):
-        """ 
-        Return the list of station codes. Each item in the list is a
-        string.
-        """
+        """ Return the list of station codes. Each item in 
+        the list is a string. """
         return [_sta.get_station_code() for _sta in self.get_stations()]
     
 class ShakeMapEventData(BaseDataStructure):

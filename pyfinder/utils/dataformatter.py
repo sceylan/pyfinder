@@ -8,6 +8,7 @@ import logging
 import fnmatch
 from .calculator import Calculator
 from pyfinderconfig import pyfinderconfig
+from clients.services.shakemap_data import ShakeMapEventData, ShakeMapStationAmplitudes
 
 # Thresholds for the RRSM peak motion data that are used to filter out
 # the stations with PGA/PGV values that are not in the range.
@@ -33,7 +34,7 @@ class DataFormatter(object):
     def __init__(self):
         pass
 
-    def format_data(self, data_object):
+    def format_data(self, event_data, amplitudes):
         """ Format the data for the FinDer executable. """
         pass
 
@@ -43,12 +44,9 @@ class ESMShakeMapDataFormatter(DataFormatter):
     def __init__(self):
         pass
 
-    def format_data(self, data_object):
+    def format_data(self, event_data: ShakeMapEventData, amplitudes: ShakeMapStationAmplitudes):
         """ Format the data for the FinDer executable. """
-        logging.info("Formatting the ShakeMapData.......")
-
-        station_codes = data_object.get_station_codes()
-        event_data = data_object.get_event_data()
+        logging.info(f"Formatting the ESM ShakeMap: {type(amplitudes)}.......")
         is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
 
         # Print the event information
@@ -57,35 +55,82 @@ class ESMShakeMapDataFormatter(DataFormatter):
         logging.info(f"|- Latitude: {event_data.get_latitude()}")
         logging.info(f"|- Longitude: {event_data.get_longitude()}")
         logging.info(f"|- Depth: {event_data.get_depth()}")
-        logging.info(f"|- Magnitude: {event_data.get_event_magnitude()}, {event_data.get_magnitude_type()}")
+        logging.info(f"|- Magnitude: {event_data.get_magnitude()}")
 
         # Collect the station, channel and PGA information
-        logging.info(f"There are {len(station_codes)} stations. Looking for the maximum PGA for each.")
-        # all_stations = []
-        # all_pga = []
-        # for station_code in station_codes:
-        #     station_data = data_object.get_station(station_code)
-        #     all_stations.append(station_data)
+        stations = amplitudes.get_stations()
+        logging.info(f"There are {len(stations)} stations. Looking for the maximum PGA for each.")
+        
+        selected_channels = []
+        pga_strings = []
 
-        #     # Find the component with the maximum PGA
-        #     pga = -np.inf
-        #     selected_channel = None
+        for station in stations:
+            # Find the component with the maximum PGA
+            pga = -np.inf
+            selected_channel = None
 
-        #     for channel in station_data.get_channels():
-        #         if channel.get_channel_pga() > pga:
-        #             pga = channel.get_channel_pga()
-        #             selected_channel = channel
-        #     all_pga.append(pga)
+            for channel in station.get_components():
+                if channel.get_acceleration() > pga:
+                    pga = channel.get_acceleration()
+                    selected_channel = channel
 
-        # # Sort the stations by the maximum PGA just for logging in order
-        # sorted_stations = [station for _, station in sorted(zip(all_pga, all_stations), reverse=True)]
+            if selected_channel is not None:
+                selected_channels.append(selected_channel)
 
-        # # Valid stations have PGAs within the range. Invalid stations are either
-        # # missing the PGA value or the value is not in the range.
-        # valid_stations = []
-        # valid_pgas = []
-        # valid_channels = []
-        # invalid_stations = []
+                latitude = station.get_latitude()
+                longitude = station.get_longitude()
+                network_code = station.get_network_code()
+                station_code = station.get_station_code()
+                channel_code = selected_channel.get_component_name()
+
+                # Convert the percent PGA to cm/s/s
+                pga = Calculator.percent_g_to_cm_s2(pga)
+
+                if is_live_mode == False:
+                    pga = np.log10(pga)
+
+                if is_live_mode:
+                    sncl = f"{network_code}.{station_code}.{channel_code}.00"
+                    pga_strings.append(f"{latitude} {longitude} 0 {round(pga, 3)}")
+
+                    logging.ok(f"{network_code}.{station_code}.{channel_code}"
+                           f" PGA: {round(pga, 3)} m/s/s at "
+                           f" Latitude: {latitude}, Longitude: {longitude}")
+                    
+                else:
+                    pga_strings.append(f"{latitude} {longitude} {round(pga, 3)}")
+
+                    logging.ok(f"{network_code}.{station_code}.{channel_code}"
+                           f" logPGA: {round(pga, 3)} m/s/s at "
+                           f" Latitude: {latitude}, Longitude: {longitude}")
+
+        # Create an artificial maximum PGA at the epicenter to make FinDer 
+        # stick to the actual location. 
+        fake_max_pga = np.max([channel.get_acceleration() for channel in selected_channels]) * 1.01
+        fake_latitude = event_data.get_latitude()
+        fake_longitude = event_data.get_longitude()
+        fake_station = f"XX.EPIC.HNZ.00"
+        logging.info(f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
+
+        data = []
+        
+        # Origin time epoch goes first as the header. The header is
+        # timestamp and time step increment, which is zero in our case.
+        time_epoch = int(get_epoch_time(event_data.get_origin_time()))
+        data.append(f"# {time_epoch} 0")
+
+        # Append the epicenter
+        if is_live_mode:
+            data.append(f"{fake_latitude} {fake_longitude} {fake_station} {time_epoch} {fake_max_pga}")
+        else:
+            data.append(f"{fake_latitude} {fake_longitude} {np.round(fake_max_pga, 3)}")
+
+        # Append the stations
+        for pga_string in pga_strings:
+            data.append(pga_string)
+
+        return "\n".join(data).encode("ascii")
+    
 
         
 class RRSMPeakMotionDataFormatter(DataFormatter):
@@ -93,12 +138,12 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
     def __init__(self):
         pass
 
-    def format_data(self, data_object):
+    def format_data(self, event_data, amplitudes):
         """ Format the data for the FinDer executable. """
-        logging.info("Formatting the PeakMotionData.......")
+        logging.info("Formatting the RRSM PeakMotionData.......")
 
-        station_codes = data_object.get_station_codes()
-        event_data = data_object.get_event_data()
+        station_codes = event_data.get_station_codes()
+        event_data = event_data.get_event_data()
         is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
         
         # Print the event information
@@ -114,7 +159,7 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
         all_stations = []
         all_pga = []
         for station_code in station_codes:
-            station_data = data_object.get_station(station_code)
+            station_data = event_data.get_station(station_code)
             all_stations.append(station_data)
 
             # Find the component with the maximum PGA

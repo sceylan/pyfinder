@@ -52,10 +52,10 @@ class FinDerManager:
         
         # Query returns a PeakMotionData object, which is the same
         # for amplitude and event data for the RRSM peak motion service.
-        _code, _peak_motion_data, _ = client.query(event_id=event_id)
+        # _code, _event_data, _ = client.query(event_id=event_id)
         
-        # client = ESMShakeMapClient()
-        # _code, _event_data, _amplitude_data = client.query(event_id=event_id)
+        client = ESMShakeMapClient()
+        _code, _event_data, _amplitude_data = client.query(event_id=event_id)
         # print(_amplitude_data)
 
         # Is the connection successful?
@@ -65,11 +65,14 @@ class FinDerManager:
         if self.options["use_library"]:
             # Call the FinDer library wrapper
             from finderlib import FinderLibrary
-            FinderLibrary(options=self.options, configuration=self.configuration).execute(_peak_motion_data)
+            FinderLibrary(options=self.options, configuration=self.configuration).execute(
+                event_data=_event_data, amplitudes=_amplitude_data)
         else:
             # Call the FinDer executable
             from finderexec import FinDerExecutable
-            FinDerExecutable(options=self.options, configuration=self.configuration).execute(_peak_motion_data)
+            FinDerExecutable(options=self.options, configuration=self.configuration).execute(
+                event_data=_event_data, amplitudes=_amplitude_data)
+            
 
     
 def build_args():
@@ -116,6 +119,11 @@ def build_args():
 if __name__ == '__main__':    
     # Get the command line arguments
     args = build_args()
+
+    # If no arguments are provided, print the help message
+    if len(sys.argv) == 1:
+        print("No arguments provided. Use the -h option for help.")
+        sys.exit(1)
 
     # Set the options from the command line arguments
     options = {
