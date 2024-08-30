@@ -48,16 +48,12 @@ class FinDerManager:
             raise ValueError("An event_id must be provided intead of None")
         
         # Create the RRSM peak motion client
-        client = RRSMPeakMotionClient()
-        
-        # Query returns a PeakMotionData object, which is the same
-        # for amplitude and event data for the RRSM peak motion service.
-        # _code, _event_data, _ = client.query(event_id=event_id)
+        # client = RRSMPeakMotionClient()
+        # _code, _event_data, _amplitude_data = client.query(event_id=event_id)
         
         client = ESMShakeMapClient()
         _code, _event_data, _amplitude_data = client.query(event_id=event_id)
-        # print(_amplitude_data)
-
+        
         # Is the connection successful?
         if _code != 200:
             raise ConnectionError("Connection to the RRSM web service failed")

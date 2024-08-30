@@ -67,6 +67,21 @@ class Calculator(object):
                     / c2)) ** 2 - RM ** 2)
 
         return I_sim, max_dist
-
     
+    @staticmethod
+    def predict_PGA_from_magnitude(magnitude, event_depth, log_scale=False):
+        """Predict the peak ground acceleration (PGA) from the magnitude and depth"""
+        conv_fact_s = 1.1
+        r1 = event_depth
+        CM = 1.72 * np.exp(0.96*(magnitude-5)) * (np.arctan(magnitude-5)+np.pi/2)
+
+        pga_pred = conv_fact_s \
+            * pow(10,0.71*magnitude \
+                  - 2.38e-3 * (r1 + CM) \
+                    - 1.44*np.log10(r1+CM) - 2.45e-2)
+
+        if log_scale:
+            pga_pred = np.log10(pga_pred)
+
+        return pga_pred
 

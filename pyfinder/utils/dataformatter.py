@@ -106,12 +106,24 @@ class ESMShakeMapDataFormatter(DataFormatter):
 
         # Create an artificial maximum PGA at the epicenter to make FinDer 
         # stick to the actual location. 
-        fake_max_pga = np.max([channel.get_acceleration() for channel in selected_channels]) * 1.01
         fake_latitude = event_data.get_latitude()
         fake_longitude = event_data.get_longitude()
         fake_station = f"XX.EPIC.HNZ.00"
-        logging.info(f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
 
+        # Magnitude-dependent artificial PGA 
+        magnitude = event_data.get_magnitude()
+        depth = event_data.get_depth() or 10
+
+        # Find the maximum observed PGA
+        max_oberserved_pga = np.max([channel.get_acceleration() for channel in selected_channels])
+        logging.info(f"Maximum observed PGA: {round(max_oberserved_pga, 3)} cm/s/s at the stations.")
+        fake_max_pga = np.max([Calculator.predict_PGA_from_magnitude(
+                magnitude=magnitude, event_depth=depth, log_scale=(is_live_mode == False)), 
+                max_oberserved_pga * 1.2]) 
+        logging.info(f"Use log10(PGA) in the FinDer input: {is_live_mode == False}")
+        logging.info(f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
+        
+        # List to store merged the coordinates and PGAs 
         data = []
         
         # Origin time epoch goes first as the header. The header is
@@ -141,9 +153,12 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
     def format_data(self, event_data, amplitudes):
         """ Format the data for the FinDer executable. """
         logging.info("Formatting the RRSM PeakMotionData.......")
-
+        
         station_codes = event_data.get_station_codes()
-        event_data = event_data.get_event_data()
+
+        # Swap variables
+        peak_motions = event_data
+        event_data = peak_motions.get_event_data()
         is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
         
         # Print the event information
@@ -159,7 +174,7 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
         all_stations = []
         all_pga = []
         for station_code in station_codes:
-            station_data = event_data.get_station(station_code)
+            station_data = peak_motions.get_station(station_code=station_code)
             all_stations.append(station_data)
 
             # Find the component with the maximum PGA
@@ -243,12 +258,23 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
         # We insert a fake maximum PGA at the epicenter to make FinDer 
         # stick to the actual location. This fake PGA is 1% more than the
         # maximum PGA of the stations. 
-        fake_max_pga = np.max(valid_pgas) * 1.01
         fake_latitude = event_data.get_latitude()
         fake_longitude = event_data.get_longitude()
         fake_station = f"XX.EPIC.HNZ.00"
-        logging.info(f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
+        
+        # Magnitude-dependent artificial PGA 
+        magnitude = event_data.get_magnitude()
+        depth = event_data.get_depth() or 10
 
+        # Find the maximum observed PGA
+        max_oberserved_pga = np.max(valid_pgas)
+        logging.info(f"Maximum observed PGA: {round(max_oberserved_pga, 3)} cm/s/s at the stations.")
+        fake_max_pga = np.max([Calculator.predict_PGA_from_magnitude(
+                magnitude=magnitude, event_depth=depth, log_scale=(is_live_mode == False)), 
+                max_oberserved_pga * 1.2]) 
+        logging.info(f"Use log10(PGA) in the FinDer input: {is_live_mode == False}")
+        logging.info(f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
+        
         # Merge the coordinates and PGAs into a string
         data = []
 

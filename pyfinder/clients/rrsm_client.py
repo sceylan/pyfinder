@@ -81,7 +81,8 @@ class RRSMPeakMotionClient(BaseClient):
         self.set_station_amplitudes(_peakmotion_data)
         
         # Return the response code and the data.
-        return _code, _peakmotion_data, None
+        # The amplitude data is the same as the event data for this client.
+        return _code, _peakmotion_data, _peakmotion_data
               
 
 class RRSMShakeMapClient(BaseClient):

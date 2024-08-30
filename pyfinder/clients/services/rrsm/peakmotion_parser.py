@@ -17,7 +17,7 @@ class RRSMPeakMotionParser(BaseParser):
         """Check the content of the data."""
         return True
     
-    def parse(self, data):
+    def parse(self, data)->PeakMotionData:
         """
         Parse the data. For the peak-motion end point, the data is
         already in json format (a list of jsons). So, this parser 
