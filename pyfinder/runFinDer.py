@@ -8,10 +8,13 @@ fully implemented.
 """
 import os
 import sys
-from clients import (RRSMPeakMotionClient, RRSMShakeMapClient,
-                     ESMShakeMapClient)
+import logging
 from pyfinderconfig import pyfinderconfig
 from utils import customlogger
+from clients import (RRSMPeakMotionClient, 
+                     RRSMShakeMapClient,
+                     EMSCFeltReportClient,
+                     ESMShakeMapClient)
 
 class FinDerManager:
     """ Class for managing the FinDer library and executable wrappers"""
@@ -21,6 +24,27 @@ class FinDerManager:
 
         # User-defined configuration
         self.configuration = configuration
+
+        # FinDer data directories
+        self.finder_temp_data_dir = configuration["finder-executable"]["finder-temp-data-dir"]
+        self.finder_temp_dir = configuration["finder-executable"]["finder-temp-dir"]
+
+
+    def set_finder_data_dirs(self, working_dir, finder_event_id):
+        """ Set the FinDer data directories using the event id from FinDer run """
+
+        self.finder_temp_data_dir = self.finder_temp_data_dir.replace(
+            "{FINDER_RUN_DIR}", working_dir)
+        self.finder_temp_dir = self.finder_temp_dir.replace(
+            "{FINDER_RUN_DIR}", working_dir)
+        
+        # Combine the event id with the working directory
+        self.finder_temp_data_dir = os.path.join(
+            self.finder_temp_data_dir, finder_event_id)
+        
+        
+        logging.info(f"FinDer temp data directory: {self.finder_temp_data_dir}")
+        logging.info(f"FinDer temp directory: {self.finder_temp_dir}")
 
     def run(self, event_id=None, file_path=None):
         """ 
@@ -66,8 +90,13 @@ class FinDerManager:
         else:
             # Call the FinDer executable
             from finderexec import FinDerExecutable
-            FinDerExecutable(options=self.options, configuration=self.configuration).execute(
-                event_data=_event_data, amplitudes=_amplitude_data)
+            executable = FinDerExecutable(
+                options=self.options, configuration=self.configuration).execute(
+                    event_data=_event_data, amplitudes=_amplitude_data)
+            
+            # Set the FinDer data directories
+            self.set_finder_data_dirs(working_dir=executable.get_working_directory(), 
+                                      finder_event_id=executable.get_finder_event_id())
             
 
     

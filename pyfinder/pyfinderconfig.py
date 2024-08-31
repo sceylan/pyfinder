@@ -52,6 +52,11 @@ pyfinderconfig = {
         # each run will be created under this path to store all the output.
         "output-root-folder": os.path.join(get_path_of_configuration(), "output"),
 
+        # Paths for FinDer outputs (temp_data and temp), in case they are updated in the future.
+        # {FINDER_RUN_DIR} will be replaced with the run directory of the FinDer executable.
+        "finder-temp-data-dir": "{FINDER_RUN_DIR}/temp_data",
+        "finder-temp-dir": "{FINDER_RUN_DIR}/temp",
+
         # Path for logging the output of the FinDer executable
         "log-file-name": "pyfinder.log",
 
