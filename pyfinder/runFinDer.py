@@ -29,6 +29,8 @@ class FinDerManager:
         self.finder_temp_data_dir = configuration["finder-executable"]["finder-temp-data-dir"]
         self.finder_temp_dir = configuration["finder-executable"]["finder-temp-dir"]
 
+        # Working directory
+        self.working_dir = None
 
     def set_finder_data_dirs(self, working_dir, finder_event_id):
         """ Set the FinDer data directories using the event id from FinDer run """
@@ -65,6 +67,40 @@ class FinDerManager:
         raise NotImplementedError(
             "FinDerManager.process_file() method is not implemented yet")
 
+    def _rename_channel_codes(self):
+        """ Rename the channel codes with the real ones in the FinDer 
+        output by matching the coordinates. This is performed when live_mode 
+        is False, where FinDer assigns channel/station codes itself. """
+        finder_data_0 = os.path.join(self.finder_temp_data_dir, "data_0")
+        my_data_0 = os.path.join(self.working_dir, "data_0")
+
+        logging.info("Renaming the channel codes in the FinDer output.")
+
+        # Check if the data_0 file exists
+        if not os.path.exists(finder_data_0):
+            logging.error(f"File {finder_data_0} does not exist.")
+
+        # Load my data_0 file
+        my_stations = {'sncl': [], 'lat': [], 'lon': [], 'pga': []}
+
+        with open(my_data_0, 'r') as f:
+            # Skip the header
+            my_lines = f.readlines()[1:]
+    
+            lines = my_lines[1:]
+        # Read the data_0 file
+        with open(finder_data_0, 'r') as f:
+            lines = f.readlines()
+
+            # Header
+            header = lines[0].strip()
+            
+            # Stations
+            stations = lines[1:]
+
+            # Get the station codes
+
+
     def process_event(self, event_id):
         """ Process data associated with an event_id """
         # Check if the event_id is not None
@@ -95,8 +131,13 @@ class FinDerManager:
                     event_data=_event_data, amplitudes=_amplitude_data)
             
             # Set the FinDer data directories
+            self.working_dir = executable.get_working_directory()
             self.set_finder_data_dirs(working_dir=executable.get_working_directory(), 
                                       finder_event_id=executable.get_finder_event_id())
+            
+            # Rename the channel codes if live mode is False
+            if not self.configuration["finder-executable"]["finder-live-mode"]:
+                self._rename_channel_codes()
             
 
     

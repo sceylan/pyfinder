@@ -38,6 +38,9 @@ class FinDerExecutable(object):
         # Event ID used by the FinDer executable
         self.finder_event_id = None
 
+        # Channels used by the FinDer executable
+        self.finder_used_channels = None
+
     def get_finder_event_id(self):
         """ Get the event id used by the FinDer executable. """
         return self.finder_event_id
@@ -180,11 +183,11 @@ class FinDerExecutable(object):
         if isinstance(amplitudes, PeakMotionData):
             # RRSM peak motion data contains the event data as well.
             # Amplitudes and event data are the same for the RRSM peak motion service.
-            out_str = RRSMPeakMotionDataFormatter().format_data(
+            out_str, finder_stations = RRSMPeakMotionDataFormatter().format_data(
                 amplitudes=amplitudes, event_data=amplitudes)
             
         elif isinstance(amplitudes, ShakeMapStationAmplitudes):
-            out_str = ESMShakeMapDataFormatter().format_data(
+            out_str, finder_stations = ESMShakeMapDataFormatter().format_data(
                 amplitudes=amplitudes, event_data=event_data)
 
         # Write the data to the working directory
@@ -192,8 +195,91 @@ class FinDerExecutable(object):
             data_file.write(out_str)
             
         self.logger.info("Data file written: {}".format(data_file_path))
-        return data_file_path
+        return data_file_path, finder_stations
 
+
+    def _is_live_mode_on(self):
+        """ Checks if the live mode is enabled. """
+        is_live_mode = self.configuration["finder-executable"]["finder-live-mode"]
+        if isinstance(is_live_mode, str): 
+            if is_live_mode.lower() == "yes":
+                is_live_mode = True
+            elif is_live_mode.lower() == "no":
+                is_live_mode = False
+            else:
+                is_live_mode = bool(is_live_mode)
+            
+        if is_live_mode:
+            self.logger.info("FinDer live mode is enabled.")
+        else:
+            self.logger.info("FinDer live mode is disabled.")
+    
+    
+    def _process_finder_output(self, stdout, stderr):
+        """ Process the FinDer output for the Event_ID and log everything. """
+        self.logger.info(">>>> Start of FinDer::STDOUT")
+        
+        for line in stdout.decode().splitlines():
+            self.logger.finder(line)
+
+            # Get the Event ID from the FinDer output. FinDer used 
+            # a time stamp as the event ID in the output.
+            if "Event_ID" in line:
+                event_id = line.split("=")[-1].strip()
+                self.finder_event_id = event_id
+
+        self.logger.info("<<<< End of FinDer::STDOUT")
+
+        # Log the event ID used by the FinDer executable
+        self.logger.debug(f"-"*80)
+        self.logger.debug(f"FinDer Event ID used for output: {self.finder_event_id}")
+        if self.finder_event_id is None:
+            self.logger.ERROR("FinDer did not return an event ID. Check the output for errors.")
+        self.logger.debug(f"-"*80)
+
+        # Log the stderr if there are any
+        if stderr:
+            self.logger.warning(">>>> FinDer produced errors/warnings! See FinDer::STDERR below.")
+            for line in stderr.decode().splitlines():
+                self.logger.error(line)
+            self.logger.info("<<<< End of FinDer::STDERR")
+        else:
+            self.logger.info(">>>> FinDer::STDERR: Empty")
+        
+
+    def _run_finder(self):
+        """ Run the FinDer executable. """
+        self.logger.info("Executing the FinDer executable...")
+
+        # Check if the live mode is enabled
+        is_live_mode = self._is_live_mode_on()
+
+        # Command line options for FinDer 
+        cmd_line_opt = [self.finder_file_config_path, 
+                        self.working_directory, '0', '0', 
+                        'yes' if is_live_mode else 'no']
+            
+        process = subprocess.Popen(
+            [self.executable_path] + cmd_line_opt, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE)
+            
+        stdout, stderr = process.communicate()
+
+        # Handle the output to log and learn the event ID
+        # that FinDer assinged for the output. This event ID
+        # will be used to combine a path to the event folder.
+        self._process_finder_output(stdout, stderr)
+
+        # Check if the process is successful
+        if process.returncode != 0:
+            self.logger.error(f"FinDer execution failed with return code: {process.returncode}")
+            self.logger.error(f"Check the log file for more details: {self.logger.log_file}")
+            sys.exit(1)
+
+        # Return the stdout, stderr, and the return code, although we don't need them
+        return stdout, stderr, process.returncode
+        
     def execute(self, amplitudes, event_data):
         """ Runs the FinDer executable. Entry point for the class. """
         # The start time of the execution
@@ -203,7 +289,7 @@ class FinDerExecutable(object):
         self._check_finder_executable()
 
         if isinstance(amplitudes, PeakMotionData):
-            # RRSM peak motion data contains the event data as well.
+            # RRSM peak motion data contains the event information as well.
             event_data = amplitudes.get_event_data()
         
         # Get the event id to create the working directory
@@ -213,69 +299,15 @@ class FinDerExecutable(object):
         self._prepare_workspace(event_id)
 
         # Write the data to the working directory
-        self._write_data_for_finder(amplitudes, event_data)
-
+        my_data0_path, self.finder_used_channels = \
+            self._write_data_for_finder(amplitudes, event_data)
+        
         try:
             # Execute the FinDer executable
-            self.logger.info("Executing the FinDer executable...")
-
-            # Check if the live mode is enabled
-            is_live_mode = self.configuration["finder-executable"]["finder-live-mode"]
-            if isinstance(is_live_mode, str): 
-                if is_live_mode.lower() == "yes":
-                    is_live_mode = True
-                elif is_live_mode.lower() == "no":
-                    is_live_mode = False
-                else:
-                    is_live_mode = bool(is_live_mode)
+            self._run_finder()
             
-            if is_live_mode:
-                self.logger.info("FinDer live mode is enabled.")
-            else:
-                self.logger.info("FinDer live mode is disabled.")
-
-            # Command line options for FinDer 
-            cmd_line_opt = [self.finder_file_config_path, 
-                            self.working_directory, '0', '0', 
-                            'yes' if is_live_mode else 'no']
-            
-            process = subprocess.Popen(
-                [self.executable_path] + cmd_line_opt, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE)
-            
-            stdout, stderr = process.communicate()
-            
-            # Dump the stdout and stderr to the log file
-            self.logger.info(">>>> Start of FinDer::STDOUT")
-            for line in stdout.decode().splitlines():
-                self.logger.finder(line)
-
-                # Get the Event ID from the FinDer output. FinDer used this ID for its output
-                if "Event_ID" in line:
-                    event_id = line.split("=")[-1].strip()
-                    self.finder_event_id = event_id
-
-            self.logger.info("<<<< End of FinDer::STDOUT")
-
-            # Log the event ID used by the FinDer executable
-            self.logger.debug(f"-"*80)
-            self.logger.debug(f"FinDer Event ID used for output: {self.finder_event_id}")
-            if self.finder_event_id is None:
-                self.logger.ERROR("FinDer did not return an event ID. Check the output for errors.")
-            self.logger.debug(f"-"*80)
-
-            # Log the stderr if there are any
-            if stderr:
-                self.logger.warning(">>>> FinDer produced errors/warnings! See FinDer::STDERR below.")
-                for line in stderr.decode().splitlines():
-                    self.logger.error(line)
-                self.logger.info("<<<< End of FinDer::STDERR")
-            else:
-                self.logger.info(">>>> FinDer::STDERR: Empty")
-                
         except Exception as e:
-            self.logger.error(f"Error executing the FinDer executable: {e}")
+            self.logger.error(f"Error executing FinDer: {e}")
             sys.exit(1)
 
         finally:

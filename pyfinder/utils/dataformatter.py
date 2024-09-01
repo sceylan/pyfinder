@@ -6,9 +6,11 @@ import numpy as np
 import datetime
 import logging
 import fnmatch
+from typing import Union
 from .calculator import Calculator
 from pyfinderconfig import pyfinderconfig
 from clients.services.shakemap_data import ShakeMapEventData, ShakeMapStationAmplitudes
+from finderutils import FinderChannelList
 
 # Thresholds for the RRSM peak motion data that are used to filter out
 # the stations with PGA/PGV values that are not in the range.
@@ -30,21 +32,22 @@ def get_epoch_time(time_str):
         except ValueError:
             pass
     
-class DataFormatter(object):
+class BaseDataFormatter(object):
     def __init__(self):
         pass
 
-    def format_data(self, event_data, amplitudes):
+    def format_data(self, event_data, amplitudes) -> Union[str, FinderChannelList]:
         """ Format the data for the FinDer executable. """
         pass
 
 
-class ESMShakeMapDataFormatter(DataFormatter):
+class ESMShakeMapDataFormatter(BaseDataFormatter):
     """ Class for formatting the ESM ShakeMap data for the FinDer executable. """
     def __init__(self):
         pass
 
-    def format_data(self, event_data: ShakeMapEventData, amplitudes: ShakeMapStationAmplitudes):
+    def format_data(self, event_data: ShakeMapEventData, 
+                    amplitudes: ShakeMapStationAmplitudes) -> Union[str, FinderChannelList]:
         """ Format the data for the FinDer executable. """
         logging.info(f"Formatting the ESM ShakeMap: {type(amplitudes)}.......")
         is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
@@ -63,6 +66,9 @@ class ESMShakeMapDataFormatter(DataFormatter):
         
         selected_channels = []
         pga_strings = []
+        
+        # Create a FinderChannelList object to store the channel data
+        finder_channels = FinderChannelList()
 
         for station in stations:
             # Find the component with the maximum PGA
@@ -90,7 +96,6 @@ class ESMShakeMapDataFormatter(DataFormatter):
                     pga = np.log10(pga)
 
                 if is_live_mode:
-                    sncl = f"{network_code}.{station_code}.{channel_code}.00"
                     pga_strings.append(f"{latitude} {longitude} 0 {round(pga, 3)}")
 
                     logging.ok(f"{network_code}.{station_code}.{channel_code}"
@@ -103,6 +108,10 @@ class ESMShakeMapDataFormatter(DataFormatter):
                     logging.ok(f"{network_code}.{station_code}.{channel_code}"
                            f" logPGA: {round(pga, 3)} m/s/s at "
                            f" Latitude: {latitude}, Longitude: {longitude}")
+                    
+                sncl = f"{network_code}.{station_code}.{channel_code}.00"
+                finder_channels.add_finder_channel(latitude=latitude, longitude=longitude,
+                                                   pga=pga, sncl=sncl, is_artificial=False)
 
         # Create an artificial maximum PGA at the epicenter to make FinDer 
         # stick to the actual location. 
@@ -136,21 +145,23 @@ class ESMShakeMapDataFormatter(DataFormatter):
             data.append(f"{fake_latitude} {fake_longitude} {fake_station} {time_epoch} {fake_max_pga}")
         else:
             data.append(f"{fake_latitude} {fake_longitude} {np.round(fake_max_pga, 3)}")
+        finder_channels.add_finder_channel(latitude=fake_latitude, longitude=fake_longitude,
+                                           pga=fake_max_pga, sncl=fake_station, is_artificial=True)
 
         # Append the stations
         for pga_string in pga_strings:
             data.append(pga_string)
 
-        return "\n".join(data).encode("ascii")
+        return "\n".join(data).encode("ascii"), finder_channels
     
 
         
-class RRSMPeakMotionDataFormatter(DataFormatter):
+class RRSMPeakMotionDataFormatter(BaseDataFormatter):
     """ Class for formatting the RRSM peak motion data for the FinDer executable. """
     def __init__(self):
         pass
 
-    def format_data(self, event_data, amplitudes):
+    def format_data(self, event_data, amplitudes) -> Union[str, FinderChannelList]:
         """ Format the data for the FinDer executable. """
         logging.info("Formatting the RRSM PeakMotionData.......")
         
@@ -173,6 +184,10 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
         logging.info(f"There are {len(station_codes)} stations. Looking for the maximum PGA for each.")
         all_stations = []
         all_pga = []
+
+        # Create a FinderChannelList object to store the channel data passed to the FinDer
+        finder_channels = FinderChannelList()
+
         for station_code in station_codes:
             station_data = peak_motions.get_station(station_code=station_code)
             all_stations.append(station_data)
@@ -243,8 +258,11 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
                 sncl = f"{network_code}.{station_code}.{selected_channel.get_channel_code()}.00"
                 valid_channels.append(sncl)
 
+                finder_channels.add_finder_channel(latitude=latitude, longitude=longitude,
+                                                   pga=pga, sncl=sncl, is_artificial=False)
+
                 if is_live_mode:
-                    logging.ok(f"{sncl}, PGA: {round(pga, 3)} m/s/s at {round(distance, 2)} km,"
+                    logging.ok(f"{sncl}, PGA: {round(pga, 3)} cm/s/s at {round(distance, 2)} km,"
                                f" Latitude: {latitude}, Longitude: {longitude}")
                 else:
                     logging.ok(f"{sncl}, log10(PGA): {round(pga, 3)} cm/s/s at {round(distance, 2)} km,"
@@ -288,6 +306,9 @@ class RRSMPeakMotionDataFormatter(DataFormatter):
             data.append(f"{fake_latitude} {fake_longitude} {fake_station} {time_epoch} {fake_max_pga}")
         else:
             data.append(f"{fake_latitude} {fake_longitude} {np.round(fake_max_pga, 3)}")
+
+        finder_channels.add_finder_channel(latitude=fake_latitude, longitude=fake_longitude,
+                                           pga=fake_max_pga, sncl=fake_station, is_artificial=True)
 
         # Sort all arrays by the PGA values
         valid_stations = [station for _, station in sorted(zip(valid_pgas, valid_stations), reverse=True)]
