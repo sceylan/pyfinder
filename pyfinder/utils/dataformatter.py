@@ -52,6 +52,8 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
         logging.info(f"Formatting the ESM ShakeMap: {type(amplitudes)}.......")
         is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
 
+        time_epoch = int(get_epoch_time(event_data.get_origin_time()))
+
         # Print the event information
         logging.info(f"Event ID: {event_data.get_event_id()}")
         logging.info(f"|- Time: {event_data.get_origin_time()}")
@@ -89,6 +91,18 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
                 station_code = station.get_station_code()
                 channel_code = selected_channel.get_component_name()
 
+                # Remove any leading dots from all codes
+                network_code = network_code.lstrip(".")
+                station_code = station_code.lstrip(".")
+                channel_code = channel_code.lstrip(".")
+                location_code = ""    
+
+                if len(channel_code.split(".")) > 1:
+                    location_code, channel_code = channel_code.split(".")
+
+                # Create the SNCL code
+                sncl = f"{network_code}.{station_code}.{location_code}.{channel_code}"
+
                 # Convert the percent PGA to cm/s/s
                 pga = Calculator.percent_g_to_cm_s2(pga)
 
@@ -96,20 +110,17 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
                     pga = np.log10(pga)
 
                 if is_live_mode:
-                    pga_strings.append(f"{latitude} {longitude} 0 {round(pga, 3)}")
+                    pga_strings.append(f"{latitude} {longitude} {sncl} {time_epoch} {round(pga, 3)}")
 
-                    logging.ok(f"{network_code}.{station_code}.{channel_code}"
-                           f" PGA: {round(pga, 3)} m/s/s at "
-                           f" Latitude: {latitude}, Longitude: {longitude}")
+                    logging.ok(f"{sncl} PGA: {round(pga, 3)} m/s/s at " + \
+                               f" Latitude: {latitude}, Longitude: {longitude}")
                     
                 else:
                     pga_strings.append(f"{latitude} {longitude} {round(pga, 3)}")
 
-                    logging.ok(f"{network_code}.{station_code}.{channel_code}"
-                           f" logPGA: {round(pga, 3)} m/s/s at "
-                           f" Latitude: {latitude}, Longitude: {longitude}")
+                    logging.ok(f"{sncl} logPGA: {round(pga, 3)} m/s/s at " + \
+                               f" Latitude: {latitude}, Longitude: {longitude}")
                     
-                sncl = f"{network_code}.{station_code}.{channel_code}.00"
                 finder_channels.add_finder_channel(latitude=latitude, longitude=longitude,
                                                    pga=pga, sncl=sncl, is_artificial=False)
 
@@ -117,7 +128,7 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
         # stick to the actual location. 
         fake_latitude = event_data.get_latitude()
         fake_longitude = event_data.get_longitude()
-        fake_station = f"XX.EPIC.HNZ.00"
+        fake_station = f"XX.NONE.00.HNZ"
 
         # Magnitude-dependent artificial PGA 
         magnitude = event_data.get_magnitude()
@@ -137,14 +148,14 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
         
         # Origin time epoch goes first as the header. The header is
         # timestamp and time step increment, which is zero in our case.
-        time_epoch = int(get_epoch_time(event_data.get_origin_time()))
         data.append(f"# {time_epoch} 0")
 
         # Append the epicenter
         if is_live_mode:
-            data.append(f"{fake_latitude} {fake_longitude} {fake_station} {time_epoch} {fake_max_pga}")
+            data.append(f"{fake_latitude} {fake_longitude} {fake_station} {time_epoch} {round(fake_max_pga, 3)}")
         else:
             data.append(f"{fake_latitude} {fake_longitude} {np.round(fake_max_pga, 3)}")
+
         finder_channels.add_finder_channel(latitude=fake_latitude, longitude=fake_longitude,
                                            pga=fake_max_pga, sncl=fake_station, is_artificial=True)
 
@@ -255,7 +266,17 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
                     pga = np.log10(pga)
                 valid_pgas.append(pga)
 
-                sncl = f"{network_code}.{station_code}.{selected_channel.get_channel_code()}.00"
+                # Remove any leading dots from all codes
+                network_code = network_code.lstrip(".")
+                station_code = station_code.lstrip(".")
+                channel_code = selected_channel.get_channel_code().lstrip(".")
+
+                # Check if the channel code has a location code
+                location_code = ""
+                if len(channel_code.split(".")) > 1:
+                    location_code, channel_code = channel_code.split(".")
+            
+                sncl = f"{network_code}.{station_code}.{location_code}.{channel_code}"
                 valid_channels.append(sncl)
 
                 finder_channels.add_finder_channel(latitude=latitude, longitude=longitude,
@@ -278,7 +299,7 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
         # maximum PGA of the stations. 
         fake_latitude = event_data.get_latitude()
         fake_longitude = event_data.get_longitude()
-        fake_station = f"XX.EPIC.HNZ.00"
+        fake_station = f"XX.NONE.00.HNZ"
         
         # Magnitude-dependent artificial PGA 
         magnitude = event_data.get_magnitude()
@@ -326,5 +347,5 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
                 data.append(f"{latitude} {longitude} {np.round(pga, 3)}")
             
         # Return the formatted data
-        return "\n".join(data).encode("ascii")
+        return "\n".join(data).encode("ascii"), finder_channels
     

@@ -10,50 +10,54 @@ from utils import customlogger
 import pyfinderconfig
 from clients.services.peakmotion_data import PeakMotionData
 from clients.services.shakemap_data import ShakeMapStationAmplitudes
+from finderutils import FinderChannelList
 from utils.dataformatter import (RRSMPeakMotionDataFormatter,
                                  ESMShakeMapDataFormatter)
 
 
 class FinDerExecutable(object):
     """ Class for executing the FinDer executable. """
-    def __init__(self, options, configuration):
+    def __init__(self, options: dict, configuration: dict):
         # Options from the command line arguments
-        self.options = options
+        self.options: dict = options
 
         # User-defined configuration
-        self.configuration = configuration
+        self.configuration: dict = configuration
 
         # Path to the FinDer executable
-        self.executable_path = self.configuration["finder-executable"]["path"]
+        self.executable_path: str = self.configuration["finder-executable"]["path"]
 
         # The logger
         self.logger = None
 
         # Working directory. It will be created for each event id
-        self.working_directory = None
+        self.working_directory: str = None
 
         # Path to the FinDer configuration file
-        self.finder_file_config_path = None
+        self.finder_file_config_path: str = None
 
         # Event ID used by the FinDer executable
-        self.finder_event_id = None
+        self.finder_event_id: str = None
 
         # Channels used by the FinDer executable
-        self.finder_used_channels = None
+        self.finder_used_channels: FinderChannelList = None
 
     def get_finder_event_id(self):
         """ Get the event id used by the FinDer executable. """
         return self.finder_event_id
     
-    def get_root_output_folder(self):
+    def get_configured_root_folder(self):
         """ Get the root output folder from the configuration. """
-        output_root_folder = self.configuration["finder-executable"]["output-root-folder"]
-        return output_root_folder
-    
+        return self.configuration["finder-executable"]["output-root-folder"]
+            
     def get_working_directory(self):
         """ Get the working directory. Once set, it is the same 
         as combine_event_output_folder() method. """
         return self.working_directory
+    
+    def get_finder_used_channels(self):
+        """ Get the channels used by the FinDer executable. """
+        return self.finder_used_channels
     
     def _initialize_logger(self):
         """ Initialize the logger. """
@@ -79,9 +83,11 @@ class FinDerExecutable(object):
 
     def _prepare_workspace(self, event_id):
         """ 
-        Parepares the working directory and files for running the FinDer executable.
+        Parepares the working environment for running the FinDer executable.
+        FinDer needs a working directory to write its output and a specific
+        config file configured for this event.
         """
-        output_root_folder = self.get_root_output_folder()
+        output_root_folder = self.get_configured_root_folder()
         has_write_access = os.access(output_root_folder, os.W_OK)
         
         # Check if the output root folder is a directory and not a file
@@ -90,37 +96,41 @@ class FinDerExecutable(object):
            raise NotADirectoryError("The output root folder is not a directory: {}".format(output_root_folder))
         
         # Check if we have write access to the output root folder
+        is_workdir_overriden = False
         if not has_write_access:
-            # Use the current working directory as the output root folder
-            previous_output_root_folder = output_root_folder
+            # Use ~/pyfinder-output as the default output folder
             output_root_folder = os.path.join(os.path.expanduser("~"), "pyfinder-output")
-
-            print(f"No write access to the output root folder: {previous_output_root_folder}")
-            print(f"Overriding the root working directory: {output_root_folder}")
+            is_workdir_overriden = True
 
         # Check if the output root folder exists
         if not os.path.exists(output_root_folder):
             os.makedirs(output_root_folder)
 
         # Create a working directory with the event id that is currently being processed
-        event_output_folder = os.path.join(output_root_folder, str(event_id))
-        if not os.path.exists(event_output_folder):
-            os.makedirs(event_output_folder)
-        self.working_directory = event_output_folder
-
+        self.working_directory = os.path.join(output_root_folder, str(event_id))
+        if not os.path.exists(self.working_directory):
+            os.makedirs(self.working_directory)
+        
         # Initialize the logger with a log file inside the working directory
         self._initialize_logger()
         self.logger.info("START... Initiated with '{}'".format(self.options['command_line_args']))
         self.logger.info("Event ID: {}".format(event_id))
         self.logger.info("FinDer executable path: {}".format(self.executable_path))
         self.logger.info("Output root folder: {}".format(output_root_folder))
-        
+
+        if is_workdir_overriden:
+            # Log a warning if the output root folder is overriden due 
+            # to write permission issues
+            self.logger.warning(f"No write access to the configured output root folder: " + \
+                                f"{self.get_configured_root_folder()}")
+            self.logger.warning(f"Your path is overriden!")
+            
         # Check if we have write access to the event output folder again.
         # We should be OK at this point.
-        has_write_access = os.access(event_output_folder, os.W_OK)
+        has_write_access = os.access(self.working_directory, os.W_OK)
         self.logger.debug("Write permission check: {}".format
                           ("Access granted" if has_write_access else "Access denied"))
-        self.logger.info("Event output folder: {}".format(event_output_folder))
+        self.logger.info("Event output folder: {}".format(self.working_directory))
         
         # Dump the configuration to the log file
         self.logger.debug("Self configuration: {}".format(json.dumps(self.configuration, indent=4)))

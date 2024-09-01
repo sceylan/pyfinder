@@ -64,7 +64,7 @@ class FinderChannelData:
         self.pga = pga
     
     def get_sncl(self):
-        return f"{self.network}.{self.station}.{self.channel}.{self.location}"
+        return f"{self.network}.{self.station}.{self.location}.{self.channel}"
     
     def set_sncl(self, sncl):
         """ Set the SNCL string and parse it """
@@ -79,8 +79,8 @@ class FinderChannelData:
         
         self.network = _sncl[0]
         self.station = _sncl[1]
-        self.channel = _sncl[2]
-        self.location = _sncl[3]
+        self.location = _sncl[2]
+        self.channel = _sncl[3]
 
     def is_artificial(self):
         """ Return whether the channel is artificial or not """

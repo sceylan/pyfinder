@@ -15,6 +15,7 @@ from clients import (RRSMPeakMotionClient,
                      RRSMShakeMapClient,
                      EMSCFeltReportClient,
                      ESMShakeMapClient)
+from finderutils import FinderChannelList
 
 class FinDerManager:
     """ Class for managing the FinDer library and executable wrappers"""
@@ -67,39 +68,70 @@ class FinDerManager:
         raise NotImplementedError(
             "FinDerManager.process_file() method is not implemented yet")
 
-    def _rename_channel_codes(self):
-        """ Rename the channel codes with the real ones in the FinDer 
-        output by matching the coordinates. This is performed when live_mode 
-        is False, where FinDer assigns channel/station codes itself. """
-        finder_data_0 = os.path.join(self.finder_temp_data_dir, "data_0")
-        my_data_0 = os.path.join(self.working_dir, "data_0")
-
-        logging.info("Renaming the channel codes in the FinDer output.")
-
-        # Check if the data_0 file exists
-        if not os.path.exists(finder_data_0):
-            logging.error(f"File {finder_data_0} does not exist.")
-
-        # Load my data_0 file
-        my_stations = {'sncl': [], 'lat': [], 'lon': [], 'pga': []}
-
-        with open(my_data_0, 'r') as f:
-            # Skip the header
-            my_lines = f.readlines()[1:]
     
-            lines = my_lines[1:]
-        # Read the data_0 file
+    def _rename_channel_codes(self, finder_used_channels: FinderChannelList):
+        """ 
+        Rename the channel codes with the real ones in the FinDer output 
+        by matching the coordinates. This is performed when live_mode is
+        False, where FinDer assigns channel/station codes itself. 
+        """
+        if not finder_used_channels or len(finder_used_channels) == 0:
+            logging.error("No FinDer channel codes to rename. List is empty.")
+            return
+        
+        logging.info("Renaming the channel codes in the FinDer output.")        
+        
+        # Get FinDer's version of data_0 file
+        finder_data_0 = os.path.join(self.finder_temp_data_dir, "data_0")
+        
+        # Check if the file exists
+        if not os.path.exists(finder_data_0):
+            logging.error(f"File {finder_data_0} does not exist. Cannot rename the channel codes.")
+
+        # Read the FinDer data_0 file
+        stations = {
+            "lat": [],
+            "lon": [],
+            "sncl": [],
+            "timestamp": [],
+            "pga": []
+        }
+        header = "# "
         with open(finder_data_0, 'r') as f:
             lines = f.readlines()
 
-            # Header
-            header = lines[0].strip()
-            
-            # Stations
-            stations = lines[1:]
+            # Read the header
+            header = lines[0]
 
-            # Get the station codes
+            # And the data
+            lines = lines[1:]
+    
+            for line in lines:
+                _line = line.strip().split()
+                stations['lat'].append(float(_line[0]))
+                stations['lon'].append(float(_line[1]))
+                
+                # Find this station in the used channels
+                for _channel in finder_used_channels:
+                    if _channel.get_latitude() == float(_line[0]) and \
+                        _channel.get_longitude() == float(_line[1]):
+                        # Replace the channel code
+                        _line[2] = _channel.get_sncl()
+                        break
 
+                stations['sncl'].append(_line[2])
+                stations['timestamp'].append(_line[3])
+                stations['pga'].append(float(_line[4]))
+
+        # Write the new data_0 file
+        renamed_data_0 = os.path.join(self.finder_temp_data_dir, "data_0_renamed")
+        with open(renamed_data_0, 'w') as f:
+            f.write(header)
+            for i in range(len(stations['lat'])):
+                f.write(f"{stations['lat'][i]}  {stations['lon'][i]}  {stations['sncl'][i]}  " + \
+                        f"{stations['timestamp'][i]} {stations['pga'][i]}\n")
+
+        logging.info(f"Channel codes have been renamed in the FinDer output. New file: {renamed_data_0}")
 
     def process_event(self, event_id):
         """ Process data associated with an event_id """
@@ -137,7 +169,7 @@ class FinDerManager:
             
             # Rename the channel codes if live mode is False
             if not self.configuration["finder-executable"]["finder-live-mode"]:
-                self._rename_channel_codes()
+                self._rename_channel_codes(executable.get_finder_used_channels())
             
 
     
@@ -218,5 +250,4 @@ if __name__ == '__main__':
     # or executable based on the options
     manager = FinDerManager(options=options, configuration=pyfinderconfig)
     manager.run(event_id=options["event_id"])
-
 
