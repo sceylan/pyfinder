@@ -35,7 +35,6 @@ class FinDerManager:
 
     def set_finder_data_dirs(self, working_dir, finder_event_id):
         """ Set the FinDer data directories using the event id from FinDer run """
-
         self.finder_temp_data_dir = self.finder_temp_data_dir.replace(
             "{FINDER_RUN_DIR}", working_dir)
         self.finder_temp_dir = self.finder_temp_dir.replace(
@@ -44,7 +43,6 @@ class FinDerManager:
         # Combine the event id with the working directory
         self.finder_temp_data_dir = os.path.join(
             self.finder_temp_data_dir, finder_event_id)
-        
         
         logging.info(f"FinDer temp data directory: {self.finder_temp_data_dir}")
         logging.info(f"FinDer temp directory: {self.finder_temp_dir}")

@@ -30,6 +30,21 @@ pyfinderconfig = {
 
     },
 
+    # Configuration for the Seismic Portal WebSocket
+    "seismic-portal-listener": {
+        # WebSocket URI for Seismic Portal
+        "echo-uri": 'wss://www.seismicportal.eu/standing_order/websocket',
+
+        # Interval to ping the server to keep the connection alive
+        "ping-interval": 15,
+
+        # Filter for region
+        "target-regions": ["Switzerland", "Italy", "World"],
+
+        # Filter for magnitude
+        "min-magnitude": 3.0,
+    },
+
     # Logging configuration
     "logging": {
         # The default log level for the console logging
