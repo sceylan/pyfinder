@@ -10,7 +10,11 @@ from utils import customlogger
 import pyfinderconfig
 from clients.services.peakmotion_data import PeakMotionData
 from clients.services.shakemap_data import ShakeMapStationAmplitudes
-from finderutils import FinderChannelList
+from finderutils import (FinderChannelList, FinderChannel, 
+                         FinderSolution, FinderRupture,
+                         FinderEvent)
+from finderutils import (read_event_solution_from_file, 
+                         read_rupture_polygon_from_file)
 from utils.dataformatter import (RRSMPeakMotionDataFormatter,
                                  ESMShakeMapDataFormatter)
 
@@ -42,6 +46,9 @@ class FinDerExecutable(object):
         # Channels used by the FinDer executable
         self.finder_used_channels: FinderChannelList = None
 
+        # FinDer solution (channels used, rupture, event)
+        self.finder_solution: FinderSolution = None
+
     def get_finder_event_id(self):
         """ Get the event id used by the FinDer executable. """
         return self.finder_event_id
@@ -55,7 +62,7 @@ class FinDerExecutable(object):
         as combine_event_output_folder() method. """
         return self.working_directory
     
-    def get_finder_used_channels(self):
+    def get_finder_used_channels(self) -> FinderChannelList:
         """ Get the channels used by the FinDer executable. """
         return self.finder_used_channels
     
@@ -290,6 +297,36 @@ class FinDerExecutable(object):
         # Return the stdout, stderr, and the return code, although we don't need them
         return stdout, stderr, process.returncode
         
+    def _collect_finder_output(self, event_id):
+        """ Collect the FinDer output. """
+        self.logger.info("Collecting the FinDer output...")
+        
+        # Folder where the FinDer output is stored:
+        # <output_root_folder>/<event_id>/temp_data/<finder_event_id>
+        event_output_folder = os.path.join(
+            self.working_directory, "temp_data", self.finder_event_id)
+         
+        # Create a FinderSolution object to store the FinDer output
+        self.finder_solution = FinderSolution()
+        self.finder_solution.set_finder_event_id(self.get_finder_event_id())
+        self.finder_solution.set_event_id(event_id)
+
+        # Read the FinDer output files
+        event_file = os.path.join(event_output_folder, "core_info_0")
+        event_solution = read_event_solution_from_file(event_file)
+
+        rupture_file = os.path.join(event_output_folder, "finder_rupture_list_0")
+        rupture_polygon = read_rupture_polygon_from_file(rupture_file)
+        
+        # Store the FinDer solution
+        self.finder_solution.set_event(event_solution)
+        self.finder_solution.set_rupture(rupture_polygon)
+
+        # Log the FinDer solution
+        self.logger.info("FinDer solution is collected.")
+        self.logger.info(f"{self.finder_solution}")
+        self.logger.info("FinDer solution is stored in the FinderSolution object.")
+
     def execute(self, amplitudes, event_data):
         """ Runs the FinDer executable. Entry point for the class. """
         # The start time of the execution
@@ -317,8 +354,15 @@ class FinDerExecutable(object):
             self._run_finder()
             
         except Exception as e:
-            self.logger.error(f"Error executing FinDer: {e}")
+            # Log the error and exit
+            self.logger.error(f"Error executing FinDer:")
+            self.logger.error(f"{e}")
             sys.exit(1)
+
+        else:
+            # Log the success and collect the output
+            self.logger.info(f"FinDer execution is successful.")
+            self._collect_finder_output(event_id=event_id)
 
         finally:
             # The end of the execution

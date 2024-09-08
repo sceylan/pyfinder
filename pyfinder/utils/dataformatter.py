@@ -1,4 +1,4 @@
-# -*-encoding: utf-8-*-
+# -*- coding: utf-8 -*-
 """ Classes for handling and formatting data from the web services 
 for the FinDer executable. """
 

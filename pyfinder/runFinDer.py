@@ -167,7 +167,9 @@ class FinDerManager:
             self.set_finder_data_dirs(working_dir=executable.get_working_directory(), 
                                       finder_event_id=executable.get_finder_event_id())
             
-            # Rename the channel codes if live mode is False
+            # Rename the channel codes if live mode is False. When live mode is False,
+            # we pass FinDer only the coordinates and it assigns the channel codes itself.
+            # We rename them back to the real ones for debugging purposes.
             if not self.configuration["finder-executable"]["finder-live-mode"]:
                 self._rename_channel_codes(executable.get_finder_used_channels())
             
