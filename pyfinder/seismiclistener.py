@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# !/usr/bin/env python
+""" Listener for the Seismic Portal WebSocket. """
+
 from __future__ import unicode_literals
 from tornado.websocket import websocket_connect
 from tornado.ioloop import IOLoop
@@ -45,6 +49,14 @@ logger = file_logger()
 
 # Filter for region
 def is_event_in_region(event, target_regions):
+    if isinstance(target_regions, str):
+        target_regions = [target_regions]
+    
+    # Check if the target regions include 'all' or 'world'
+    for region in target_regions:
+        if region.lower() in ['all', 'world']:
+            return True
+        
     region = event.get('flynn_region', '')
 
     # Make all case-insensitive
@@ -120,7 +132,7 @@ def launch_client(target_regions=None, min_magnitude=0):
 
 if __name__ == '__main__':
     # Define the regions of interest and minimum magnitude
-    target_regions = ["California", "Italy", "Japan"]  # Regions you care about
+    target_regions = ["California", "Italy", "Japan", "Turkey"]  # Regions you care about
     min_magnitude = 4.0  # Minimum magnitude to process
 
     # Start Tornado IOLoop
