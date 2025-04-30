@@ -68,6 +68,7 @@ def console_logger():
     # Define a new log level method in the logger object
     logger = logging.getLogger()
     logger.setLevel(logging.NOTSET)
+    logger.propagate = False
             
     # Define a custom logging method 'ok' and 'OK'
     def ok(message, *args, **kwargs):
@@ -110,9 +111,10 @@ def console_logger():
 
     return logger
 
-def file_logger(log_file, overwrite=False, rotate=False):
-    logger = logging.getLogger()
+def file_logger(log_file, module_name=None, overwrite=False, rotate=False):
+    logger = logging.getLogger(module_name)
     logger.setLevel(logging.NOTSET)
+    logger.propagate = False
 
         # Define a custom logging method 'ok' and 'OK'
     def ok(message, *args, **kwargs):

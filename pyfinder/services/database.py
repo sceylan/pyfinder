@@ -28,6 +28,8 @@ class ThreadSafeDB:
                 event_id TEXT,
                 service TEXT,
                 status TEXT,
+                origin_time TEXT,
+                last_update_time TEXT,
                 last_query_time TEXT,
                 next_query_time TEXT,
                 retry_count INTEGER DEFAULT 0,
@@ -46,7 +48,7 @@ class ThreadSafeDB:
         """Calculate a hash of the provided data for change detection."""
         return hashlib.sha256(data.encode('utf-8')).hexdigest()
 
-    def add_event(self, event_id, services, expiration_days=5):
+    def add_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
         """Add a new event to the database."""
         now = datetime.now()
         expiration_time = (now + timedelta(days=expiration_days)).isoformat()
@@ -54,9 +56,12 @@ class ThreadSafeDB:
             for service in services:
                 self.cursor.execute('''
                 INSERT OR IGNORE INTO event_tracker (
-                    event_id, service, status, last_query_time, next_query_time, retry_count, update_attempt_count, expiration_time
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (event_id, service, "Pending", None, now.isoformat(), 0, 0, expiration_time))
+                    event_id, service, status, origin_time, last_update_time, 
+                    last_query_time, next_query_time, retry_count, 
+                    update_attempt_count, expiration_time
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (event_id, service, "Pending", origin_time, last_update_time, None, 
+                      now.isoformat(), 0, 0, expiration_time))
             self.conn.commit()
 
     def fetch_due_events(self, service=None, limit=10):
@@ -80,7 +85,9 @@ class ThreadSafeDB:
         if increment_attempt:
             self.cursor.execute('''
             UPDATE event_tracker
-            SET status = ?, last_query_time = ?, next_query_time = ?, update_attempt_count = update_attempt_count + 1, last_modified = ?
+            SET status = ?, last_query_time = ?, next_query_time = ?, 
+                update_attempt_count = update_attempt_count + 1, 
+                last_modified = ?
             WHERE event_id = ? AND service = ?
             ''', (status, now.isoformat(), next_query_time, now.isoformat(), event_id, service))
         else:
@@ -100,33 +107,7 @@ class ThreadSafeDB:
         finally:
             self._lock.release()
 
-    def update_or_skip_event(self, event_id, service, new_data):
-        """Update the event if the data has changed, otherwise skip."""
-        new_hash = self.calculate_hash(new_data)
-        if not self._lock.acquire(timeout=10):  # Timeout to prevent indefinite locking
-            raise TimeoutError("Database lock acquisition timed out.")
-        try:
-            self.cursor.execute('''
-            SELECT last_data_hash FROM event_tracker
-            WHERE event_id = ? AND service = ?
-            ''', (event_id, service))
-            row = self.cursor.fetchone()
-
-            if row and row[0] == new_hash:
-                print(f"Data for event {event_id}, service {service} has not changed. Skipping.")
-                self._update_event_status_locked(event_id, service, "Pending", next_interval_minutes=10, increment_attempt=False)
-            else:
-                print(f"Data for event {event_id}, service {service} has changed. Marking as completed.")
-                self.cursor.execute('''
-                UPDATE event_tracker
-                SET last_data_hash = ?, status = "Completed", last_modified = ?
-                WHERE event_id = ? AND service = ?
-                ''', (new_hash, datetime.now().isoformat(), event_id, service))
-                self.conn.commit()
-        finally:
-            self._lock.release()
-
-
+    
     def mark_event_completed(self, event_id, service):
         """Mark an event as completed."""
         now = datetime.now().isoformat()
@@ -174,6 +155,21 @@ class ThreadSafeDB:
         """Close the database connection."""
         with self._lock:
             self.conn.close()
+
+    def get_event_meta(self, event_id, service):
+        with self._lock:
+            self.cursor.execute('''
+            SELECT event_id, service, origin_time, last_query_time, next_query_time, status, 
+                retry_count, update_attempt_count, expiration_time
+            FROM event_tracker
+            WHERE event_id = ? AND service = ?
+            ''', (event_id, service))
+            row = self.cursor.fetchone()
+            if row:
+                keys = ["event_id", "service", "origin_time", "last_query_time", "next_query_time", "status",
+                        "retry_count", "update_attempt_count", "expiration_time"]
+                return dict(zip(keys, row))
+            return dict(None, None)
 
 # Example Tests
 if __name__ == "__main__":

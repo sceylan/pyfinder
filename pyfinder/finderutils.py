@@ -71,10 +71,13 @@ class FinderChannel:
         self.location = location_code
         self.pga = pga
         self.sncl = sncl
+
+        # A channel is aritificial if it is not a real channel
+        # but a synthetic one to ensure the FinDer solution is stable.
         self.is_artificial = is_artificial
 
-        # Parse the SNCL string to override the individual codes
         if sncl:
+            # Parse the SNCL string to override the individual codes
             self.set_sncl(sncl)
     
     def get_latitude(self):
@@ -151,10 +154,11 @@ class FinderChannel:
             logging.error(f"Invalid SNCL string: {sncl}")
             return
         
-        self.network = _sncl[0]
-        self.station = _sncl[1]
-        self.location = _sncl[2]
-        self.channel = _sncl[3]
+        # Override all the individual codes
+        self.network = _sncl[0].strip()
+        self.station = _sncl[1].strip()
+        self.location = _sncl[2].strip()
+        self.channel = _sncl[3].strip()
 
     def is_artificial(self):
         """ Return whether the channel is artificial or not """

@@ -5,6 +5,9 @@ Main module for running the FinDer library wrapper. The FinDerManager
 class is designed to call either FinDer executable directly or the 
 library via the bindings. The bindings are in test phase and not yet 
 fully implemented.
+
+The FinDerManager class is designed to be used as a command line
+utility as well as a runtime library. 
 """
 import os
 import sys
@@ -15,24 +18,29 @@ from clients import (RRSMPeakMotionClient,
                      RRSMShakeMapClient,
                      EMSCFeltReportClient,
                      ESMShakeMapClient)
-from finderutils import FinderChannelList
+from finderutils import (FinderChannelList, 
+                         FinderSolution)
 
 class FinDerManager:
     """ Class for managing the FinDer library and executable wrappers"""
-    def __init__(self, options, configuration):
+    def __init__(self, options, configuration=None):
         # Options from the command line arguments
         self.options = options
 
-        # User-defined configuration
-        self.configuration = configuration
-
+        if configuration is None:
+            # Use the default configuration
+            self.configuration = pyfinderconfig
+        else:
+            # Use the user-defined configuration
+            self.configuration = configuration
+        
         # FinDer data directories
-        self.finder_temp_data_dir = configuration["finder-executable"]["finder-temp-data-dir"]
-        self.finder_temp_dir = configuration["finder-executable"]["finder-temp-dir"]
+        self.finder_temp_data_dir = self.configuration["finder-executable"]["finder-temp-data-dir"]
+        self.finder_temp_dir = self.configuration["finder-executable"]["finder-temp-dir"]
 
         # Working directory
         self.working_dir = None
-
+        
     def set_finder_data_dirs(self, working_dir, finder_event_id):
         """ Set the FinDer data directories using the event id from FinDer run """
         self.finder_temp_data_dir = self.finder_temp_data_dir.replace(
@@ -47,26 +55,31 @@ class FinDerManager:
         logging.info(f"FinDer temp data directory: {self.finder_temp_data_dir}")
         logging.info(f"FinDer temp directory: {self.finder_temp_dir}")
 
-    def run(self, event_id=None, file_path=None):
+    def run(self, event_id=None, file_path=None) -> FinderSolution:
         """ 
         Run the FinDer library based on an event_id or from a file
         event_id has the priority over file_path. The file_path maybe
         more useful for repeated processing of the same data without
         a need to query webservices.
+
+        Returns a FinderSolution object from one of the process_event or 
+        process_file methods.
         """
         if event_id:
-            self.process_event(event_id)
+            # Query the event_id from the web service
+            return self.process_event(event_id)
         elif file_path:
-            self.process_file(file_path)
+            # Use a pre-existing file to execute FinDer. 
+            # Useful for offline processing; not yet implemented.
+            return self.process_file(file_path)
         else:
             raise ValueError("An event_id or file_path must be provided")
 
-    def process_file(self, file_path):
+    def process_file(self, file_path) -> FinderSolution:
         """ Read data from a file and process it """
         raise NotImplementedError(
             "FinDerManager.process_file() method is not implemented yet")
 
-    
     def _rename_channel_codes(self, finder_used_channels: FinderChannelList):
         """ 
         Rename the channel codes with the real ones in the FinDer output 
@@ -131,7 +144,7 @@ class FinDerManager:
 
         logging.info(f"Channel codes have been renamed in the FinDer output. New file: {renamed_data_0}")
 
-    def process_event(self, event_id):
+    def process_event(self, event_id) -> FinderSolution:
         """ Process data associated with an event_id """
         # Check if the event_id is not None
         if not event_id:
@@ -151,8 +164,15 @@ class FinDerManager:
         if self.options["use_library"]:
             # Call the FinDer library wrapper
             from finderlib import FinderLibrary
-            FinderLibrary(options=self.options, configuration=self.configuration).execute(
-                event_data=_event_data, amplitudes=_amplitude_data)
+            library = FinderLibrary(
+                options=self.options, configuration=self.configuration).execute(
+                    event_data=_event_data, amplitudes=_amplitude_data)
+            
+            # Return None for the library wrapper. Once implemented, it should return 
+            # a FinderSolution object.
+            # return True, FinderLibrary.get_finder_solution()
+            return None
+        
         else:
             # Call the FinDer executable
             from finderexec import FinDerExecutable
@@ -170,8 +190,11 @@ class FinDerManager:
             # We rename them back to the real ones for debugging purposes.
             if not self.configuration["finder-executable"]["finder-live-mode"]:
                 self._rename_channel_codes(executable.get_finder_used_channels())
-            
 
+            # Return the FinderSolution object
+            return executable.get_finder_solution_object()
+            
+        return None
     
 def build_args():
     """ Build the command line arguments """
@@ -249,5 +272,8 @@ if __name__ == '__main__':
     # Execute the FinDer manager, which will call either the FinDer library 
     # or executable based on the options
     manager = FinDerManager(options=options, configuration=pyfinderconfig)
-    manager.run(event_id=options["event_id"])
-
+    solution = manager.run(event_id=options["event_id"])
+    if solution is not None:
+        print(f"FinDer solution: {solution}")
+    else:
+        print("No FinDer solution returned.")

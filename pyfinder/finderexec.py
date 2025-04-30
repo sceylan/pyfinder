@@ -49,6 +49,10 @@ class FinDerExecutable(object):
         # FinDer solution (channels used, rupture, event)
         self.finder_solution: FinderSolution = None
 
+    def get_finder_solution_object(self):
+        """ Get the FinDer solution object. """
+        return self.finder_solution
+
     def get_finder_event_id(self):
         """ Get the event id used by the FinDer executable. """
         return self.finder_event_id

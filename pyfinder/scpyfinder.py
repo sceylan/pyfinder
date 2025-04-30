@@ -51,32 +51,32 @@ class FinderToSeiscomp(sc_client.Application):
         """Main execution logic for the application."""
         sc_logging.info("Running FinderToSeiscomp")
 
-        # Example finder data
-        finder_data = {
-            'location': (34.05, -118.25, 10.0),
-            'origin_time': '2024-08-31T12:00:00.000Z',
-            'polygon_coords': [(34.05, -118.25), (34.10, -118.20), (34.00, -118.30)],
-            'event_id': self.event_id
-        }
+        # # Example finder data
+        # finder_data = {
+        #     'location': (34.05, -118.25, 10.0),
+        #     'origin_time': '2024-08-31T12:00:00.000Z',
+        #     'polygon_coords': [(34.05, -118.25), (34.10, -118.20), (34.00, -118.30)],
+        #     'event_id': self.event_id
+        # }
 
-        pga_data = [
-            {'station_id': 'US.LSCT', 'channel_code': 'HNZ', 'pga_value': 0.2, 'pga_time': '2024-08-31T12:00:05.000Z'},
-            {'station_id': 'US.LSCT', 'channel_code': 'HNN', 'pga_value': 0.3, 'pga_time': '2024-08-31T12:00:05.000Z'},
-            {'station_id': 'US.LSCT', 'channel_code': 'HNE', 'pga_value': 0.25, 'pga_time': '2024-08-31T12:00:05.000Z'},
-        ]
+        # pga_data = [
+        #     {'station_id': 'US.LSCT', 'channel_code': 'HNZ', 'pga_value': 0.2, 'pga_time': '2024-08-31T12:00:05.000Z'},
+        #     {'station_id': 'US.LSCT', 'channel_code': 'HNN', 'pga_value': 0.3, 'pga_time': '2024-08-31T12:00:05.000Z'},
+        #     {'station_id': 'US.LSCT', 'channel_code': 'HNE', 'pga_value': 0.25, 'pga_time': '2024-08-31T12:00:05.000Z'},
+        # ]
 
-        # Create event, origin, magnitude and add amplitudes
-        self.fetch_or_create_event(finder_data['location'], finder_data['origin_time'], "RRSM")
-        self.add_rupture_polygon(finder_data['polygon_coords'])
+        # # Create event, origin, magnitude and add amplitudes
+        # self.fetch_or_create_event(finder_data['location'], finder_data['origin_time'], "RRSM")
+        # self.add_rupture_polygon(finder_data['polygon_coords'])
 
-        for pga in pga_data:
-            self.add_pga_amplitude(pga['station_id'], pga['channel_code'], pga['pga_value'], pga['pga_time'], "RRSM")
+        # for pga in pga_data:
+        #     self.add_pga_amplitude(pga['station_id'], pga['channel_code'], pga['pga_value'], pga['pga_time'], "RRSM")
 
-        # Dump to database
-        # self.dump_to_database()
+        # # Dump to database
+        # # self.dump_to_database()
 
-        # Notify messaging system
-        self.notify_messaging_system()
+        # # Notify messaging system
+        # self.notify_messaging_system()
 
         # Keep the application alive and listen for messages (optional)
         return True  # or return self.exec() if you want to keep it alive
