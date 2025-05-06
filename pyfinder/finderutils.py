@@ -13,6 +13,47 @@ def _to_float(value):
             return None
     return value
 
+
+def read_finder_channels_from_file(file_path: str):
+    """
+    Parses the FinDer input file `data_0` and returns a FinderChannelList.
+    Each line after the first is expected to be formatted as:
+    <latitude> <longitude> <SNCL> <trigger_flag> <pga_cmpss>
+    """
+    channels = []
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for line in lines[1:]:  # skip header
+        parts = line.strip().split()
+        if len(parts) != 5:
+            continue  # skip malformed lines
+
+        try:
+            lat = float(parts[0])
+            lon = float(parts[1])
+            sncl = parts[2]
+            flag = int(parts[3])
+            pga = float(parts[4])
+
+            net, sta, loc, cha = sncl.strip().split('.')
+            channel = FinderChannel(
+                network_code=net,
+                station_code=sta,
+                location_code=loc,
+                channel_code=cha,
+                latitude=lat,
+                longitude=lon,
+                pga=pga,
+                trigger_flag=flag
+            )
+            channels.append(channel)
+        except Exception as e:
+            print(f"Warning: could not parse line: {line.strip()}\nReason: {e}")
+
+    return FinderChannelList(channels)
+
 def read_rupture_polygon_from_file(file_path):
     """ Read the rupture polygon from a file """
     rupture = FinderRupture()
@@ -62,7 +103,7 @@ class FinderChannel:
     """ Channel and PGA data structure avaliable from FinDer """
     def __init__(self, latitude=None, longitude=None, network_code=None, 
                  station_code=None, channel_code=None, location_code=None, 
-                 pga=None, sncl=None, is_artificial=False):
+                 pga=None, sncl=None, is_artificial=False, trigger_flag=None):
         self.latitude = latitude
         self.longitude = longitude
         self.network = network_code
@@ -71,6 +112,7 @@ class FinderChannel:
         self.location = location_code
         self.pga = pga
         self.sncl = sncl
+        self.trigger_flag = trigger_flag
 
         # A channel is aritificial if it is not a real channel
         # but a synthetic one to ensure the FinDer solution is stable.
@@ -167,6 +209,14 @@ class FinderChannel:
     def set_artificial(self, is_artificial):
         """ Mark whether the channel is artificial or not """
         self.is_artificial = is_artificial
+
+    def get_trigger_flag(self):
+        """ Return the trigger flag """
+        return self.trigger_flag
+    
+    def set_trigger_flag(self, trigger_flag):
+        """ Set the trigger flag """
+        self.trigger_flag = trigger_flag
 
     def __str__(self):
         return f"{self.get_latitude()}  {self.get_longitude()}  " + \

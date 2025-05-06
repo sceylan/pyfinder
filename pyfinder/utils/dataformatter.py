@@ -5,12 +5,14 @@ for the FinDer executable. """
 import numpy as np
 import datetime
 import logging
+from typing import List, Tuple
 import fnmatch
 from typing import Union
 from .calculator import Calculator
 from pyfinderconfig import pyfinderconfig
 from clients.services.shakemap_data import ShakeMapEventData, ShakeMapStationAmplitudes
 from finderutils import FinderChannelList
+from pyfinder.utils.station_merger import RawStationMeasurement
 
 # Thresholds for the RRSM peak motion data that are used to filter out
 # the stations with PGA/PGV values that are not in the range.
@@ -32,6 +34,90 @@ def get_epoch_time(time_str):
         except ValueError:
             pass
     
+
+class FinDerFormatterFromRawList:
+
+    @staticmethod
+    def format(event_lat: float,
+               event_lon: float,
+               event_depth_km: float,
+               event_mag: float,
+               event_time_epoch: float,
+               station_list: List[RawStationMeasurement]
+              ) -> Tuple[bytes, FinderChannelList]:
+        """
+        Final FinDer-compatible formatter from merged station data.
+        """
+        is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
+        data_lines = [f"# {int(event_time_epoch)} 0"]
+        finder_channels = FinderChannelList()
+
+        # Select best PGA per unique SNCL
+        seen_keys = set()
+        valid_stations = []
+
+        for sta in station_list:
+            key = f"{sta['network']}.{sta['station']}.{sta['location']}.{sta['channel']}"
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            valid_stations.append(sta)
+
+        # Convert and optionally log10 the PGA
+        pgas = []
+        for sta in valid_stations:
+            pga = sta["pga"]
+            if is_live_mode is False:
+                pga = np.log10(pga)
+            pgas.append(pga)
+
+            # Build the SNCL code
+            sncl = ".".join([
+                (sta.get("network") or "").strip("."),
+                (sta.get("station") or "").strip("."),
+                (sta.get("location") or "").strip("."),
+                (sta.get("channel") or "").strip(".")
+            ])
+
+            line = (f"{sta['latitude']} {sta['longitude']} {sncl} {int(sta['timestamp'])} {round(pga, 3)}"
+                    if is_live_mode else
+                    f"{sta['latitude']} {sta['longitude']} {round(pga, 3)}")
+            data_lines.append(line)
+
+            finder_channels.add_finder_channel(
+                latitude=sta["latitude"],
+                longitude=sta["longitude"],
+                pga=pga,
+                sncl=sncl,
+                is_artificial=False
+            )
+
+        # Add artificial max PGA at the epicenter
+        max_obs_pga = np.max(pgas)
+        fake_pga = np.max([
+            Calculator.predict_PGA_from_magnitude(
+                event_mag, event_depth_km, log_scale=(not is_live_mode)),
+            max_obs_pga * 1.2
+        ])
+        sncl = "XX.NONE.00.HNZ"
+        line = (f"{event_lat} {event_lon} {sncl} {int(event_time_epoch)} {round(fake_pga, 3)}"
+                if is_live_mode else
+                f"{event_lat} {event_lon} {round(fake_pga, 3)}")
+        data_lines.insert(1, line)
+
+        finder_channels.add_finder_channel(
+            latitude=event_lat,
+            longitude=event_lon,
+            pga=fake_pga,
+            sncl=sncl,
+            is_artificial=True
+        )
+
+        return "\n".join(data_lines).encode("ascii"), finder_channels
+
+
+###### Service-specific data formatters ######
+# Base class for data formatters
 class BaseDataFormatter(object):
     def __init__(self):
         pass
@@ -40,11 +126,63 @@ class BaseDataFormatter(object):
         """ Format the data for the FinDer executable. """
         pass
 
-
+    @staticmethod
+    def extract_raw_stations(event_data, amplitudes):
+        """ Method to be used when merging the station data from different services. """
+        pass
+    
 class ESMShakeMapDataFormatter(BaseDataFormatter):
     """ Class for formatting the ESM ShakeMap data for the FinDer executable. """
     def __init__(self):
         pass
+
+    @staticmethod
+    def extract_raw_stations(event_data, amplitudes) -> List[RawStationMeasurement]:
+        """
+        Extract valid ESM station data for merging. 
+        Used for merging the station data from different services.
+        """
+        raw_stations = []
+        time_epoch = get_epoch_time(event_data.get_origin_time())
+
+        stations = amplitudes.get_stations()
+        
+        for station in stations:
+            best_pga = -np.inf
+            selected_channel = None
+
+            for channel in station.get_components():
+                acc = channel.get_acceleration()
+                if acc > best_pga:
+                    best_pga = acc
+                    selected_channel = channel
+
+            if selected_channel is None or best_pga <= 0:
+                continue  # Skip stations with no valid component
+
+            # Strip codes
+            network_code = station.get_network_code().lstrip(".")
+            station_code = station.get_station_code().lstrip(".")
+            channel_code = selected_channel.get_component_name().lstrip(".")
+
+            location_code = ""
+            if "." in channel_code:
+                location_code, channel_code = channel_code.split(".")
+
+            raw_stations.append(RawStationMeasurement(
+                latitude=float(station.get_latitude()),
+                longitude=float(station.get_longitude()),
+                network=network_code,
+                station=station_code,
+                location=location_code,
+                channel=channel_code,
+                pga=Calculator.percent_g_to_cm_s2(best_pga),  # Convert to cm/s²
+                timestamp=time_epoch,
+                source="ESM"
+            ))
+
+        return raw_stations
+
 
     def format_data(self, event_data: ShakeMapEventData, 
                     amplitudes: ShakeMapStationAmplitudes) -> Union[str, FinderChannelList]:
@@ -171,6 +309,58 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
     """ Class for formatting the RRSM peak motion data for the FinDer executable. """
     def __init__(self):
         pass
+
+    @staticmethod
+    def extract_raw_stations(event_data, amplitudes) -> List[RawStationMeasurement]:
+        """
+        Extracts valid RRSM station data before FinDer formatting.
+        Used for merging the station data from different services.
+        """
+        peak_motions = event_data
+        event_data = peak_motions.get_event_data()
+
+        raw_stations = []
+        station_codes = peak_motions.get_station_codes()
+
+        for station_code in station_codes:
+            station_data = peak_motions.get_station(station_code=station_code)
+
+            latitude = float(station_data.get_latitude())
+            longitude = float(station_data.get_longitude())
+            network_code = station_data.get_network_code().lstrip(".")
+            station_code = station_data.get_station_code().lstrip(".")
+
+            best_pga = -float("inf")
+            best_channel = None
+
+            for channel in station_data.get_channels():
+                pga_val = abs(channel.get_channel_pga())
+                if RRSM_PEAKMOTION_PGA_MIN <= pga_val <= RRSM_PEAKMOTION_PGA_MAX and pga_val > best_pga:
+                    best_pga = pga_val
+                    best_channel = channel
+
+            if best_channel is None:
+                continue
+
+            channel_code = best_channel.get_channel_code().lstrip(".")
+            location_code = ""
+            if "." in channel_code:
+                location_code, channel_code = channel_code.split(".")
+            timestamp = get_epoch_time(event_data.get_origin_time())
+
+            raw_stations.append(RawStationMeasurement(
+                latitude=latitude,
+                longitude=longitude,
+                network=network_code,
+                station=station_code,
+                location=location_code,
+                channel=channel_code,
+                pga=best_pga,  # Already in cm/s/s
+                timestamp=timestamp,
+                source="RRSM"
+            ))
+
+        return raw_stations
 
     def format_data(self, event_data, amplitudes) -> Union[str, FinderChannelList]:
         """ Format the data for the FinDer executable. """

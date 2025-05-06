@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import json
+from typing import List
 from datetime import datetime
 from utils import customlogger
 import pyfinderconfig
@@ -14,10 +15,13 @@ from finderutils import (FinderChannelList, FinderChannel,
                          FinderSolution, FinderRupture,
                          FinderEvent)
 from finderutils import (read_event_solution_from_file, 
-                         read_rupture_polygon_from_file)
+                         read_rupture_polygon_from_file,
+                         read_finder_channels_from_file)
 from utils.dataformatter import (RRSMPeakMotionDataFormatter,
-                                 ESMShakeMapDataFormatter)
-
+                                 ESMShakeMapDataFormatter,
+                                 FinDerFormatterFromRawList,
+                                 get_epoch_time)
+from utils.station_merger import RawStationMeasurement
 
 class FinDerExecutable(object):
     """ Class for executing the FinDer executable. """
@@ -156,7 +160,7 @@ class FinDerExecutable(object):
 
         try:
             # The template configuration for the FinDer executable (finder_file)
-            finder_file_config = pyfinderconfig.finder_file_comfig_template
+            finder_file_config = pyfinderconfig.finder_file_config_template
 
             # Change the data folder to the working directory. This is where FinDer
             # will create 'temp' and 'temp_data' directories to dump its output.
@@ -210,6 +214,18 @@ class FinDerExecutable(object):
         elif isinstance(amplitudes, ShakeMapStationAmplitudes):
             out_str, finder_stations = ESMShakeMapDataFormatter().format_data(
                 amplitudes=amplitudes, event_data=event_data)
+            
+        elif isinstance(amplitudes, List) or isinstance(amplitudes, list):   
+            self.logger.info("Merged ESM+RRSM data has been passed to FinDer.")
+            # Format the merged data for FinDer   
+            out_str, finder_stations = FinDerFormatterFromRawList.format(
+                event_lat=event_data.get_latitude(),
+                event_lon=event_data.get_longitude(),
+                event_depth_km=event_data.get_depth(),
+                event_mag=event_data.get_magnitude(),
+                event_time_epoch=get_epoch_time(event_data.get_origin_time()),
+                station_list=amplitudes
+            )
 
         # Write the data to the working directory
         with open(data_file_path, "wb") as data_file:
@@ -322,10 +338,14 @@ class FinDerExecutable(object):
         rupture_file = os.path.join(event_output_folder, "finder_rupture_list_0")
         rupture_polygon = read_rupture_polygon_from_file(rupture_file)
         
+        finder_channels_file = os.path.join(event_output_folder, "data_0")
+        finder_channels = read_finder_channels_from_file(finder_channels_file)
+
         # Store the FinDer solution
         self.finder_solution.set_event(event_solution)
         self.finder_solution.set_rupture(rupture_polygon)
-
+        self.finder_solution.set_channels(finder_channels)
+        
         # Log the FinDer solution
         self.logger.info("FinDer solution is collected.")
         self.logger.info(f"{self.finder_solution}")

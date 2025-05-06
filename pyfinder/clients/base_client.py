@@ -62,17 +62,15 @@ class BaseClient(ABC):
 
     def set_station_amplitudes(self, amplitude_data):
         """ 
-        Set the amplitudes or intensities. Same as 
-        set_feltreports(), but included for clarity.
-        Both use the same attribute for storing the data.
+        Set the amplitudes or intensities. Same as set_feltreports(), but included 
+        for clarity. Both use the same attribute for storing the data.
         """
         self.amplitude_data = amplitude_data
 
     def set_feltreports(self, amplitude_data):
         """ 
-        Set the amplitudes or intensities. Same as 
-        set_amplitudes(), but included for clarity.
-        Both use the same attribute for storing the data.
+        Set the amplitudes or intensities. Same as set_amplitudes(), but included 
+        for clarity. Both use the same attribute for storing the data.
         """
         self.amplitude_data = amplitude_data
 

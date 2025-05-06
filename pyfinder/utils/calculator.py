@@ -6,6 +6,11 @@ class Calculator(object):
     """Utility class for methods to implement calculations."""
 
     @staticmethod
+    def convert_pga_to_cm_s2(pga_in_g, average_g=980.665):
+        """Convert acceleration from g to cm/s^2."""
+        return pga_in_g * average_g
+    
+    @staticmethod
     def percent_g_to_cm_s2(percent_g, average_g=980.665):
         """Convert percent g to cm/s^2. Needed for the accelerations in
         the ESM shakemap web service acceleration output."""

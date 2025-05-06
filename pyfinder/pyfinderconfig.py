@@ -102,7 +102,7 @@ if gmt_resources.endswith("gmt_input"):
     gmt_resources = os.path.dirname(gmt_resources)
 
 # The template configuration for the FinDer executable (finder_file)
-finder_file_comfig_template = {
+finder_file_config_template = {
     # <size_t> number of thresholds, list of their <double> PGA values
     "THRESHOLDS": "9 2.0 4.6 10.5 23.2 48.6 90.7 148.8 221.3 304.5",
     

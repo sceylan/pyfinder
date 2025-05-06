@@ -18,8 +18,13 @@ from clients import (RRSMPeakMotionClient,
                      RRSMShakeMapClient,
                      EMSCFeltReportClient,
                      ESMShakeMapClient)
-from finderutils import (FinderChannelList, 
-                         FinderSolution)
+from utils import customlogger
+from finderutils import (FinderChannelList, FinderSolution)
+from utils.dataformatter import (RRSMPeakMotionDataFormatter,
+                                 ESMShakeMapDataFormatter,
+                                 FinDerFormatterFromRawList,
+                                 get_epoch_time)
+from utils.station_merger import StationMerger
 
 class FinDerManager:
     """ Class for managing the FinDer library and executable wrappers"""
@@ -150,17 +155,43 @@ class FinDerManager:
         if not event_id:
             raise ValueError("An event_id must be provided intead of None")
         
-        # Create the RRSM peak motion client
-        # client = RRSMPeakMotionClient()
-        # _code, _event_data, _amplitude_data = client.query(event_id=event_id)
+        # Create the RRSM and ESM clients
+        rrsm_client = RRSMPeakMotionClient()
+        _rrsm_code, _rrsm_event, _rrsm_amplitude = rrsm_client.query(event_id=event_id)
         
-        client = ESMShakeMapClient()
-        _code, _event_data, _amplitude_data = client.query(event_id=event_id)
+        esm_client = ESMShakeMapClient()
+        _esm_code, _esm_event, _esm_amplitude = esm_client.query(event_id=event_id)
         
         # Is the connection successful?
-        if _code != 200:
+        if _rrsm_code != 200:
             raise ConnectionError("Connection to the RRSM web service failed")
+        if _esm_code != 200:
+            raise ConnectionError("Connection to the ESM web service failed")
         
+        if _esm_event and _esm_amplitude:
+            esm_raw = ESMShakeMapDataFormatter.extract_raw_stations(
+                event_data=_esm_event, amplitudes=_esm_amplitude)
+        else:
+            esm_raw = None
+
+        if _rrsm_event and _rrsm_amplitude:
+            rrsm_raw = RRSMPeakMotionDataFormatter.extract_raw_stations(
+                event_data=_rrsm_event, amplitudes=_rrsm_amplitude)
+        else:
+            rrsm_raw = None
+            
+        # ESM gets the priority over RRSM for event
+        _event_data = _esm_event if _esm_event else _rrsm_event
+        
+        # Merge the raw data if both are available
+        if esm_raw and rrsm_raw:
+            # Merge the data
+            logging.info("Merging the ESM and RRSM data")
+            _amplitude_data = StationMerger().merge(esm_data=esm_raw, rrsm_data=rrsm_raw)
+        else:
+            # Use the raw data from either ESM or RRSM
+            _amplitude_data = _esm_amplitude if _esm_amplitude else _rrsm_amplitude
+
         if self.options["use_library"]:
             # Call the FinDer library wrapper
             from finderlib import FinderLibrary
@@ -185,6 +216,35 @@ class FinDerManager:
             self.set_finder_data_dirs(working_dir=executable.get_working_directory(), 
                                       finder_event_id=executable.get_finder_event_id())
             
+            from utils.shakemap import ShakeMapExporter
+            shakemapexp = ShakeMapExporter(
+                solution=executable.get_finder_solution_object()
+                ).export_all()
+            logging.info(f"ShakeMap files exported to: {shakemapexp['output_dir']}")
+
+            # Trigger ShakeMap using exported files
+            from utils.shakemap import ShakeMapTrigger
+            trigger = ShakeMapTrigger(
+                event_id=event_id,
+                event_xml=shakemapexp["event.xml"],
+                stationlist_path=shakemapexp["stationlist.json"],
+                rupture_path=shakemapexp["rupture.json"]  
+            )
+            trigger.run()
+
+            from services.alert import send_email_with_attachment
+            to_list = ["savasceylan@gmail.com"]
+            subject = f"FinDer with parametric dataset: {event_id}"
+            body = f"FinDer with parametric dataset: {event_id} has been executed. ShakeMap files are attached."
+            attachment = f"{shakemapexp['output_dir']}/current/intensity.jpg"
+            send_email_with_attachment(
+                to_list=to_list,
+                subject=subject,
+                body=body,
+                attachment=attachment
+            )
+            
+            # Check if the executable was successful            
             # Rename the channel codes if live mode is False. When live mode is False,
             # we pass FinDer only the coordinates and it assigns the channel codes itself.
             # We rename them back to the real ones for debugging purposes.
