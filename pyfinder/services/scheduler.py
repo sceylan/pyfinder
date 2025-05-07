@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+""" 
+Main module for the automated FinDer execution via the FollowUpScheduler class, 
+which manages the scheduling of follow-up queries. This class manages if another
+data update is expected, executes the FinDerManager to process the event, and
+handles the results.
+"""
 from datetime import datetime, timedelta, timezone
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -7,7 +13,6 @@ from pyfinder.findermanager import FinDerManager
 from pyfinder.services.eventtracker import EventTracker
 from pyfinder.services.querypolicy import SERVICE_POLICIES
 from pyfinder.utils.customlogger import file_logger
-
 
 
 class FollowUpScheduler:
@@ -62,7 +67,7 @@ class FollowUpScheduler:
                 # Event is no longer valid, mark it as completed, and let it run
                 # one last time for the final query interval.
                 self.tracker.mark_completed(event_id, service)
-                self.logger.info(f"Event {event_id}: Completed. End of life cycle for {service}, no future queries.")
+                self.logger.info(f"Event {event_id}: End of life cycle for {service}, no future queries planned.")
 
             # Run FinDerManager to process the event
             self.logger.info(f"Running FinDerManager for event {event_id}.")
@@ -75,29 +80,41 @@ class FollowUpScheduler:
                 "test": False,
                 "use_library": False
             }
-            # Join all fields as command line arguments
+            # Join all fields as command line arguments. The command line args are valid 
+            # when findermanager is run from the command line. We combine a command line 
+            # here anyways for logging purposes only inside the FinDerManager.
             finder_options['command_line_args'] = " ".join(
                 [f"--{k}={v}" for k, v in finder_options.items() if k != "command_line_args"]
             )
+
+            # Create FinDerManager instance and run it
             finder_manager = FinDerManager(options=finder_options)
             finder_solution = finder_manager.run(event_id=event_id)
             
+            # Check if FinDerManager run was successful
             success = True if finder_solution is not None else False
             self.logger.info(f"FinDerManager run completed for event {event_id} with this outcome: {success}.")
             
             if success:
+                # If FinDerManager run was successful, check if the event is still valid
                 if policy.is_terminal(event_meta):
+                    # If the event is terminal, mark it as completed
                     self.tracker.mark_completed(event_id, service)
                     self.logger.info(f"Event {event_id} completed for service {service}.")
                 else:
+                    # Event is not terminal, keep the pending status and schedule the next query
                     self.tracker.update_status(event_id, service, "Pending", next_minutes=delay)
                     due_time = datetime.now(timezone.utc) + timedelta(minutes=delay)
                     self.logger.info(f"Event {event_id} scheduled for next query in {delay} minutes at {due_time}.")
+            
             else:
+                # If FinDerManager run failed, check if the event is still valid
                 if policy.should_retry_on_failure(event_meta):
+                    # If we should retry, log the failure and update the status
                     self.tracker.log_failure(event_id, service, "FinDer run failed")
                     self.logger.error(f"FinDer run failed for event {event_id} and service {service}.")
                 else:
+                    # If we shouldn't retry, mark the event as completed. No further queries are needed.
                     self.tracker.mark_completed(event_id, service)
                     self.logger.error(f"Event {event_id} marked as completed after retry failure for service {service}.")
 

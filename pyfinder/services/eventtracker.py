@@ -1,5 +1,13 @@
+# -*- coding: utf-8 -*-
+""" 
+Module for the EventTracker class for encapsulating the database operations for 
+event update status tracking and management. This class serves as a wrapper around
+the ThreadSafeDB class to provide a relatively higher-level interface for managing 
+events, including registering, updating, and querying.
+"""
 from pyfinder.services.database import ThreadSafeDB
 from datetime import datetime
+
 
 class EventTracker:
     def __init__(self, db_path="event_tracker.db"):
@@ -52,7 +60,14 @@ class EventTracker:
         self.db.close()
 
     def register_event_after_update(self, event_id, services, new_last_update_time):
-        """ Register an event after an update with the new last update time. """
+        """ 
+        Register an event after an update with the new last update time. 
+
+        The database supports multiple services ('service' field) for the same event ID 
+        to follow future updates. This provides some level of flexibility for manipulating
+        the update follow-up processing chain. The 'status' field is set to "Pending"
+        by default to force an update, and its value is hard coded.
+        """
         for service in services:
             old_meta = self.db.get_event_meta(event_id, service)
             if old_meta is None:
@@ -72,11 +87,11 @@ class EventTracker:
                     priority, last_error, last_data_hash, last_modified
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
-                    event_id,
-                    service,
-                    "Pending",                          # Force reset status
-                    old_meta['origin_time'],             # Preserve origin time
-                    new_last_update_time,                # Set new EMSC lastupdate
+                    event_id,                             # Event ID
+                    service,                              # Service name (e.g., RRSM, ESM)
+                    "Pending",                            # Force reset status
+                    old_meta['origin_time'],              # Preserve origin time
+                    new_last_update_time,                 # Set new EMSC lastupdate
                     old_meta['last_query_time'],          # Preserve query history
                     old_meta['next_query_time'],          # Preserve next scheduled time
                     old_meta['retry_count'],              # Preserve retries
@@ -88,17 +103,3 @@ class EventTracker:
                     datetime.now().isoformat()            # New last modified
                 ))
                 self.db.conn.commit()
-
-if __name__ == "__main__":
-    tracker = EventTracker()
-    tracker.register_event("test_event_001", ["RRSM", "ESM"])
-    due = tracker.get_due_events("RRSM")
-    print("Due events for RRSM:", due)
-    
-    sample_data = '{"mag": 5.2, "region": "TEST"}'
-    tracker.mark_completed("test_event_001", "RRSM", sample_data)
-    
-    tracker.log_failure("test_event_001", "ESM", "Simulated error")
-    tracker.retry_failures()
-    tracker.cleanup_expired()
-    tracker.close()

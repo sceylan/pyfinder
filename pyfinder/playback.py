@@ -160,12 +160,12 @@ if __name__ == "__main__":
             os.remove(file)
     tracker = EventTracker("test_playback.db")
 
+    
     # Initialize the scheduler with the database instance
-    import threading
+    scheduler = FollowUpScheduler(tracker=tracker)
 
-    # Initialize the scheduler
-    scheduler = FollowUpScheduler(EventTracker("test_playback.db"))
-    # Start the scheduler in a separate thread
+    # Start the scheduler in a separate thread. This is how the implementation
+    # is done in the real-time system.
     def scheduler_loop():
         scheduler.run_forever()
     scheduler_thread = threading.Thread(target=scheduler_loop, daemon=True)

@@ -38,9 +38,12 @@ class RRSMQueryPolicy(AbstractPolicy):
     Query RRSM at the following relative times from origin:
     0, 5, 15, 60, 180, 360, 1440, 2880 minutes
     """
+    # RRSM query schedule in minutes
     QUERY_SCHEDULE_MINUTES = [0, 5, 15, 60, 180, 360, 1440, 2880]
-    QUERY_SCHEDULE_MINUTES = [0, 1, 2, 3]
-    ALLOWED_DRIFT_MINUTES = 1  # allow query within some minutes window
+    QUERY_SCHEDULE_MINUTES = [0, 1, 2, 3] # This is only for testing: TODO: remove
+    
+    # allow query within some minutes window
+    ALLOWED_DRIFT_MINUTES = 1  
 
     def should_query(self, event_meta):
         """Return True if current time is within an allowed window."""
@@ -64,6 +67,7 @@ class RRSMQueryPolicy(AbstractPolicy):
         return False, "Not within allowed drift"
 
     def get_next_query_delay_minutes(self, event_meta):
+        """Return the delay in minutes until the next query."""
         origin = datetime.fromisoformat(event_meta["origin_time"])
         now = datetime.now(timezone.utc)
         elapsed = (now - origin).total_seconds() / 60.0
@@ -72,7 +76,10 @@ class RRSMQueryPolicy(AbstractPolicy):
             if elapsed < scheduled:
                 delay = math.ceil(scheduled - elapsed)
                 return max(1, delay)  # Ensure at least 1 minute
-        return None  # fallback
+        
+        # No more queries are scheduled. Return None
+        # so that any further queries are skipped
+        return None  
 
     def is_terminal(self, response):
         """RRSM is considered terminal if more than 2 days + 15 min have passed."""
@@ -89,13 +96,9 @@ class RRSMQueryPolicy(AbstractPolicy):
 
 
 ########
-# ESM: Dummy Policy for ESM
+# ESM: Dummy Policy for ESM. Coded for possible future use.
 ########
 class ESMQueryPolicy(AbstractPolicy):
-    """
-    Query ESM at the following relative times from origin:
-    0, 5, 15, 60, 180, 360, 1440, 2880 minutes
-    """
     QUERY_SCHEDULE_MINUTES = []
     ALLOWED_DRIFT_MINUTES = 2
 
@@ -113,13 +116,9 @@ class ESMQueryPolicy(AbstractPolicy):
 
 
 ########
-# EMSC: Dummy Policy for now
+# EMSC: Dummy Policy for now. Coded for possible future use
 ########
 class EMSCQueryPolicy(AbstractPolicy):
-    """
-    Query ESMC at the following relative times from origin:
-    0, 5, 15, 60, 180, 360, 1440, 2880 minutes
-    """
     QUERY_SCHEDULE_MINUTES = []
     ALLOWED_DRIFT_MINUTES = 2
 
