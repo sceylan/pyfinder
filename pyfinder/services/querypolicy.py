@@ -40,7 +40,7 @@ class RRSMQueryPolicy(AbstractPolicy):
     """
     QUERY_SCHEDULE_MINUTES = [0, 5, 15, 60, 180, 360, 1440, 2880]
     QUERY_SCHEDULE_MINUTES = [0, 1, 2, 3]
-    ALLOWED_DRIFT_MINUTES = 2  # allow query within 2 minutes window
+    ALLOWED_DRIFT_MINUTES = 1  # allow query within some minutes window
 
     def should_query(self, event_meta):
         """Return True if current time is within an allowed window."""

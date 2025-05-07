@@ -217,6 +217,12 @@ class FinDerManager:
                                       finder_event_id=executable.get_finder_event_id())
             
             from utils.shakemap import ShakeMapExporter
+            # from datetime import datetime
+            # suffix = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # solution = executable.get_finder_solution_object()
+            # solution.set_finder_event_id(f"{executable.get_finder_event_id()}_{suffix}")
+
             shakemapexp = ShakeMapExporter(
                 solution=executable.get_finder_solution_object()
                 ).export_all()
@@ -224,6 +230,10 @@ class FinDerManager:
 
             # Trigger ShakeMap using exported files
             from utils.shakemap import ShakeMapTrigger
+            # Create the products directory
+            products_dir = os.path.join(shakemapexp["output_dir"], "products")
+            os.makedirs(products_dir, exist_ok=True)
+            # Copy the ShakeMap files to the products directory
             trigger = ShakeMapTrigger(
                 event_id=event_id,
                 event_xml=shakemapexp["event.xml"],
@@ -233,17 +243,18 @@ class FinDerManager:
             trigger.run()
 
             from services.alert import send_email_with_attachment
-            to_list = ["savasceylan@gmail.com"]
-            subject = f"FinDer with parametric dataset: {event_id}"
-            body = f"FinDer with parametric dataset: {event_id} has been executed. ShakeMap files are attached."
+            
             attachment = f"{shakemapexp['output_dir']}/current/intensity.jpg"
+            subject = f"Alert from pyfinder - new ShakeMap for {executable.get_finder_event_id()}"
+            body = f"A new ShakeMap has been produced for event {executable.get_finder_event_id()}.\n"
             send_email_with_attachment(
-                to_list=to_list,
                 subject=subject,
                 body=body,
-                attachment=attachment
+                attachments=[attachment],
+                event_id=event_id,
+                finder_solution=executable.get_finder_solution_object()
             )
-            
+
             # Check if the executable was successful            
             # Rename the channel codes if live mode is False. When live mode is False,
             # we pass FinDer only the coordinates and it assigns the channel codes itself.

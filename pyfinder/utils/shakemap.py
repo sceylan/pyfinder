@@ -47,6 +47,10 @@ class ShakeMapExporter:
         station_path = self._write_stationlist_json()
         rupture_path = self._write_rupture_json()
         
+        # Ensure products dir exists
+        products_dir = os.path.join(self.output_dir, "products")
+        os.makedirs(products_dir, exist_ok=True)
+
         logging.info(f"ShakeMap files written to {self.output_dir}")
 
         return {
@@ -212,8 +216,9 @@ class ShakeMapTrigger:
             self.shake_cmd,
             "--force",  # force overwrite of existing files
             "-d", self.event_id,  # positional argument for event ID
-            "-c", "Triggered by pyfinder using parametric dataset"
-            "assemble", "model", "contour", "mapping", "gridxml", "stations"
+            "select", "assemble",
+            "-c", "pyFinder",
+            "model", "contour", "mapping", "stations",  "gridxml"
         ]
 
         self.logger.info(f"Running ShakeMap: {' '.join(cmd)}")

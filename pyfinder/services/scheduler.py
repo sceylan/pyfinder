@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pyfinder.findermanager import FinDerManager
 from pyfinder.services.eventtracker import EventTracker
 from pyfinder.services.querypolicy import SERVICE_POLICIES
-from pyfinder.utils.customlogger import FileLoggingFormatter
+from pyfinder.utils.customlogger import file_logger
 
 
 
@@ -18,51 +18,51 @@ class FollowUpScheduler:
     policies via dedicated policy instances in the SERVICE_POLICIES.
     """
     def __init__(self, tracker: EventTracker):
-        self.tracker = tracker
+        # Create a logger for the FollowUpScheduler and its sub-tasks
         self.logger = self._setup_file_logger()
+        self._welcome_message(self.logger)
+
+        self.tracker = tracker
         self.tracker.set_logger(self.logger)
-        self.logger.info("FollowUpScheduler initialized.")
+        self.logger.info("EventTracker initialized for the scheduler.")
 
         # Thread pool with up to 10 workers
         self.executor = ThreadPoolExecutor(max_workers=10)
+        self.logger.info("ThreadPoolExecutor initialized for the scheduler.")
+
+        self.logger.info("FollowUpScheduler initialization completed.")
+        
+    @staticmethod
+    def _welcome_message(logger):
+        """ Print a welcome message to the console and log it. """
+        
+        logger.info("=========================================================")
+        logger.info(" A new scheduler for event updates is being initialized. ")
+        logger.info("---------------------------------------------------------")
+        logger.info("BEGIN: Init FollowUpScheduler")
 
     @staticmethod
-    def _setup_file_logger(rotate=True):
+    def _setup_file_logger():
         """ Set up a file logger for the FollowUpScheduler."""
-        logger = logging.getLogger("FollowUpScheduler")
-        logger.setLevel(logging.NOTSET)
-        logger.propagate = False
-
-        if logger.handlers:
-            return logger
-
-        formatter = FileLoggingFormatter()
-        mode = "a"
-
-        if rotate:
-            try:
-                fh = logging.handlers.RotatingFileHandler(
-                    "followupscheduler.log", maxBytes=1000000, backupCount=7, encoding='utf-8', mode=mode
-                )
-            except Exception:
-                fh = logging.FileHandler(__name__, mode=mode, encoding='utf-8')
-        else:
-            fh = logging.FileHandler(__name__, mode=mode, encoding='utf-8')
-
-        fh.setLevel(logging.NOTSET)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-        return logger
+        return file_logger(
+            module_name="FollowUpScheduler",
+            log_file="followupscheduler.log",
+            rotate=True,
+            overwrite=False
+            )
 
     def _handle_event(self, event_id, service, event_meta, policy):
         """ Method to handle the event alert. Triggered by the ThreadPoolExecutor."""
         try:
+            # Check if the event is still valid by asking for the next delay time
+            # from the policy object.
             delay = policy.get_next_query_delay_minutes(event_meta)
+            
             if delay is None:
+                # Event is no longer valid, mark it as completed, and let it run
+                # one last time for the final query interval.
                 self.tracker.mark_completed(event_id, service)
-                self.logger.info(f"Event {event_id}: Completed. End of life cycle for {service}, no further queries.")
-                return
+                self.logger.info(f"Event {event_id}: Completed. End of life cycle for {service}, no future queries.")
 
             # Run FinDerManager to process the event
             self.logger.info(f"Running FinDerManager for event {event_id}.")

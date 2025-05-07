@@ -18,6 +18,11 @@ OK_LOG_LEVEL = logging.INFO + 5
 # This is not log level. I use this for the finder logs
 FINDER_LOG_LEVEL = logging.INFO + 6
 
+# Define new log levels in the logging module
+logging.addLevelName(OK_LOG_LEVEL, "OK")
+logging.addLevelName(FINDER_LOG_LEVEL, "FinDer")
+
+
 class LoggingFormatter(logging.Formatter):
     """ Formatter for the console logging with colors."""
     log_time = "%(asctime)-s "
@@ -38,6 +43,7 @@ class LoggingFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt, "%Y-%m-%d %H:%M:%S")
         return formatter.format(record)
+
 
 class FileLoggingFormatter(logging.Formatter):
     """ Formatter for the file logging without colors."""
@@ -60,15 +66,11 @@ class FileLoggingFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt, "%Y-%m-%d %H:%M:%S")
         return formatter.format(record)
 
-# Define a new log level name and value in the logging module
-logging.addLevelName(OK_LOG_LEVEL, "OK")
-logging.addLevelName(FINDER_LOG_LEVEL, "FinDer")
 
 def console_logger():
     # Define a new log level method in the logger object
     logger = logging.getLogger()
-    logger.setLevel(logging.NOTSET)
-    logger.propagate = False
+    logger.setLevel(logging.DEBUG)
             
     # Define a custom logging method 'ok' and 'OK'
     def ok(message, *args, **kwargs):
@@ -113,9 +115,8 @@ def console_logger():
 
 def file_logger(log_file, module_name=None, overwrite=False, rotate=False):
     logger = logging.getLogger(module_name)
-    logger.setLevel(logging.NOTSET)
-    logger.propagate = False
-
+    logger.setLevel(logging.DEBUG)
+    
         # Define a custom logging method 'ok' and 'OK'
     def ok(message, *args, **kwargs):
         if logger.isEnabledFor(OK_LOG_LEVEL):
@@ -161,8 +162,10 @@ def file_logger(log_file, module_name=None, overwrite=False, rotate=False):
     formatter = FileLoggingFormatter()
     fh.setFormatter(formatter)
     
-    # Add fh to logger
-    logger.addHandler(fh)
+    # Add fh to logger, but prevent duplicate handlers
+    if not any(isinstance(h, logging.FileHandler) and h.baseFilename == fh.baseFilename
+           for h in logger.handlers):
+        logger.addHandler(fh)
 
     return logger
 
