@@ -16,11 +16,9 @@ class EventTracker:
         logger = logger or logging.getLogger("pyfinder")
         self.set_logger(logger)
 
-    def set_logger(self, logger):
+    def set_logger(self, logger=None):
         """Set a logger for the EventTracker."""
-        self.logger = logger
-
-        if self.logger is None:
+        if logger is None:
             self.logger = file_logger(
                 module_name="EventTracker",
                 log_file="eventtracker.log",
@@ -28,6 +26,8 @@ class EventTracker:
                 overwrite=False,
                 level=logging.DEBUG
             )
+        else:
+            self.logger = logger
 
     def register_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
         """Register a new event for one or more services."""
