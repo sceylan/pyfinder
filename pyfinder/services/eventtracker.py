@@ -57,14 +57,14 @@ class EventTracker:
 
         # Ensure logger fallback if not already set
         if self.logger is None:
-            self.logger = logging.getLogger("pyfinder.eventtracker")
-            if not self.logger.hasHandlers():
-                handler = logging.StreamHandler()
-                handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s %(message)s'))
-                self.logger.addHandler(handler)
-                self.logger.setLevel(logging.DEBUG)
-                self.logger.propagate = False
-
+            import utils.customlogger as customlogger
+            self.logger = customlogger.file_logger(
+                module_name="EventTracker",
+                log_file="eventtracker.log",
+                rotate=True,
+                overwrite=False,
+                level=logging.DEBUG
+            )
         self.logger.error(f"Event {event_id} failed for service {service}: {error}")
 
     def retry_failures(self, max_retries=5):
