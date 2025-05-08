@@ -8,6 +8,7 @@ events, including registering, updating, and querying.
 from pyfinder.services.database import ThreadSafeDB
 from datetime import datetime
 import logging
+from utils.customlogger import file_logger
 
 class EventTracker:
     def __init__(self, db_path="event_tracker.db", logger=None):
@@ -18,6 +19,15 @@ class EventTracker:
     def set_logger(self, logger):
         """Set a logger for the EventTracker."""
         self.logger = logger
+
+        if self.logger is None:
+            self.logger = file_logger(
+                module_name="EventTracker",
+                log_file="eventtracker.log",
+                rotate=True,
+                overwrite=False,
+                level=logging.DEBUG
+            )
 
     def register_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
         """Register a new event for one or more services."""
