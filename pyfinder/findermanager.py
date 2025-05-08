@@ -18,7 +18,6 @@ from clients import (RRSMPeakMotionClient,
                      RRSMShakeMapClient,
                      EMSCFeltReportClient,
                      ESMShakeMapClient)
-from utils import customlogger
 from finderutils import (FinderChannelList, FinderSolution)
 from utils.dataformatter import (RRSMPeakMotionDataFormatter,
                                  ESMShakeMapDataFormatter,
@@ -28,7 +27,7 @@ from utils.station_merger import StationMerger
 
 class FinDerManager:
     """ Class for managing the FinDer library and executable wrappers"""
-    def __init__(self, options, configuration=None):
+    def __init__(self, options, configuration=None, metadata=None):
         # Options from the command line arguments
         self.options = options
 
@@ -39,12 +38,22 @@ class FinDerManager:
             # Use the user-defined configuration
             self.configuration = configuration
         
+        # Solution metadata mainly for information purposes
+        self.metadata = metadata or {}
+
         # FinDer data directories
         self.finder_temp_data_dir = self.configuration["finder-executable"]["finder-temp-data-dir"]
         self.finder_temp_dir = self.configuration["finder-executable"]["finder-temp-dir"]
 
         # Working directory
         self.working_dir = None
+
+        self.logger = customlogger.file_logger(
+            module_name="pyfinder",
+            log_file=self.configuration["finder-executable"]["log-file-name"],
+            rotate=self.configuration["logging"]["rotate-log-file"],
+            overwrite=self.configuration["logging"]["overwrite-log-file"]
+        )
         
     def set_finder_data_dirs(self, working_dir, finder_event_id):
         """ Set the FinDer data directories using the event id from FinDer run """
@@ -164,9 +173,16 @@ class FinDerManager:
         
         # Is the connection successful?
         if _rrsm_code != 200:
+            self.metadata['RRSM_status'] = "Failed: " + str(_rrsm_code)
             raise ConnectionError("Connection to the RRSM web service failed")
+        else:
+            self.metadata['RRSM_status'] = "Success"
+
         if _esm_code != 200:
+            self.metadata['ESM_status'] = "Failed: " + str(_esm_code)
             raise ConnectionError("Connection to the ESM web service failed")
+        else:
+            self.metadata['ESM_status'] = "Success"
         
         if _esm_event and _esm_amplitude:
             esm_raw = ESMShakeMapDataFormatter.extract_raw_stations(
@@ -182,7 +198,22 @@ class FinDerManager:
             
         # ESM gets the priority over RRSM for event
         _event_data = _esm_event if _esm_event else _rrsm_event
-        
+
+        # Collect more metadata for the solution. The scheduler already 
+        # should have dumped some field in the dict:
+        # solution_metadata = {
+        #         "last_query_time": str(event_meta['last_query_time']),
+        #         "delay_until_next_query": delay,}
+        self.metadata['origin_time'] = _event_data.get_origin_time()
+        self.metadata['longitude'] = _event_data.get_longitude()
+        self.metadata['latitude'] = _event_data.get_latitude()
+        self.metadata['magnitude'] = _event_data.get_magnitude()
+        self.metadata['depth'] = _event_data.get_depth()
+        if hasattr(_event_data, "get_magnitude_type"):
+            self.metadata['magnitude_type'] = _event_data.get_magnitude_type()
+        else:
+            self.metadata['magnitude_type'] = ""
+
         # Merge the raw data if both are available
         if esm_raw and rrsm_raw:
             # Merge the data
@@ -223,9 +254,8 @@ class FinDerManager:
             # solution = executable.get_finder_solution_object()
             # solution.set_finder_event_id(f"{executable.get_finder_event_id()}_{suffix}")
 
-            shakemapexp = ShakeMapExporter(
-                solution=executable.get_finder_solution_object()
-                ).export_all()
+            smap_exporter = ShakeMapExporter(solution=executable.get_finder_solution_object())
+            shakemapexp = smap_exporter.export_all()
             logging.info(f"ShakeMap files exported to: {shakemapexp['output_dir']}")
 
             # Trigger ShakeMap using exported files
@@ -242,17 +272,21 @@ class FinDerManager:
             )
             trigger.run()
 
+            # Archive the products via ShakeMap exporter under the temp_data directory
+            smap_exporter.archive_products(target_base_dir=self.finder_temp_data_dir)
+
             from services.alert import send_email_with_attachment
-            
-            attachment = f"{shakemapexp['output_dir']}/current/intensity.jpg"
-            subject = f"Alert from pyfinder - new ShakeMap for {executable.get_finder_event_id()}"
-            body = f"A new ShakeMap has been produced for event {executable.get_finder_event_id()}.\n"
+            products_dir = os.path.join(shakemapexp["output_dir"], "products")
+            attachment = f"{products_dir}/intensity.jpg"
+            subject = f"pyFinder Alert - event {event_id}"
+            body = f"A new ShakeMap has been produced for event {event_id}.\n"
             send_email_with_attachment(
                 subject=subject,
                 body=body,
                 attachments=[attachment],
                 event_id=event_id,
-                finder_solution=executable.get_finder_solution_object()
+                finder_solution=executable.get_finder_solution_object(),
+                metadata=self.metadata
             )
 
             # Check if the executable was successful            

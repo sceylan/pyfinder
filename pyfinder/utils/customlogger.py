@@ -113,9 +113,9 @@ def console_logger():
 
     return logger
 
-def file_logger(log_file, module_name=None, overwrite=False, rotate=False):
+def file_logger(log_file, module_name=None, overwrite=False, rotate=False, level=logging.DEBUG):
     logger = logging.getLogger(module_name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(level)
     
         # Define a custom logging method 'ok' and 'OK'
     def ok(message, *args, **kwargs):
@@ -149,8 +149,9 @@ def file_logger(log_file, module_name=None, overwrite=False, rotate=False):
     mode = "w+" if overwrite else "a"
     if rotate:
         try:
-            fh = logging.handlers.RotatingFileHandler(log_file, maxBytes=1000000, backupCount=7, 
-                                                      encoding='utf-8', mode=mode)
+            fh = logging.handlers.RotatingFileHandler(
+                log_file, maxBytes=1000000, backupCount=7, 
+                encoding='utf-8', mode=mode)
         except Exception as e:
             fh = logging.FileHandler(log_file, mode=mode, encoding='utf-8')
     else:

@@ -88,13 +88,10 @@ class FinDerExecutable(object):
             # Default log file name, if something goes wrong with the configuration
             log_file = os.path.join(event_output_folder, "pyfinder.log")
 
-        # If overwrite is permitted, remove the existing log file
-        if overwrite_log_file and os.path.exists(log_file):
-            os.remove(log_file)
-
         # Create the logger
         self.logger = customlogger.file_logger(
-            log_file, overwrite=overwrite_log_file, rotate=rotate_log_file)
+            log_file=log_file, module_name="pyfinder", 
+            overwrite=overwrite_log_file, rotate=rotate_log_file)
 
     def _prepare_workspace(self, event_id):
         """ 
@@ -345,7 +342,7 @@ class FinDerExecutable(object):
         self.finder_solution.set_event(event_solution)
         self.finder_solution.set_rupture(rupture_polygon)
         self.finder_solution.set_channels(finder_channels)
-        
+
         # Log the FinDer solution
         self.logger.info("FinDer solution is collected.")
         self.logger.info(f"{self.finder_solution}")

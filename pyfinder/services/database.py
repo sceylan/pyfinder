@@ -169,7 +169,7 @@ class ThreadSafeDB:
                 keys = ["event_id", "service", "origin_time", "last_query_time", "next_query_time", "status",
                         "retry_count", "update_attempt_count", "expiration_time"]
                 return dict(zip(keys, row))
-            return dict(None, None)
+            return None
 
 # Example Tests
 if __name__ == "__main__":

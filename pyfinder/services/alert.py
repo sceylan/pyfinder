@@ -14,7 +14,8 @@ def footer(html=True):
     else:
         return '\n\n--\nDo not reply to this email. This address is not monitored.\nFor assistance, contact your EEW support group.'
 
-def send_email_with_attachment(subject=None, body=None, attachments=None, finder_solution=None, event_id=None):
+def send_email_with_attachment(subject=None, body=None, attachments=None, finder_solution=None, 
+                               event_id=None, metadata=None):
     # Read SMTP configuration from JSON file
     _path = os.path.dirname(os.path.abspath(__file__))
     _path = os.path.join(_path, ".pyfinder_alert_config.json")
@@ -51,7 +52,7 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
             subject = config.get("subject", None)
 
         if body is None:
-            body = "Event alert from pyFinder."
+            body = "pyFinder event alert."
 
         if not attachments:
             attachments = []
@@ -110,7 +111,35 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
                     f"Magnitude: {mag}\n"
                 )
 
-    
+    # Include metadata if provided
+    if metadata:
+        plain_body += "\n\n--- Processing metadata ---\n"
+        html_body += "<br><p><strong>Processing metadata:</strong><br>"
+
+        key_order = ["origin_time", "latitude", "longitude", "depth", "magnitude", "magnitude_type"]
+        for key in key_order:
+            if key in metadata:
+                label = key.replace('_', ' ').capitalize()
+                plain_body += f"{label}: {metadata[key]}\n"
+                html_body += f"{label}: {metadata[key]}<br>"
+
+        # Add any other keys not in the defined order
+        remaining_keys = sorted(k for k in metadata if k not in key_order)
+        for key in remaining_keys:
+            label = key.replace('_', ' ').capitalize()
+
+            if 'Esm' in label:
+                label = label.replace('Esm', 'ESM')
+            elif 'Rrsm' in label:
+                label = label.replace('Rrsm', 'RRSM')
+            elif 'Emsc' in label:
+                label = label.replace('Emsc', 'EMSC')
+
+            plain_body += f"{label}: {metadata[key]}\n"
+            html_body += f"{label}: {metadata[key]}<br>"
+        html_body += "</p>"
+
+
     html_body += footer(html=True)
     html_body += "</body></html>"
 
@@ -120,6 +149,17 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
     msg.attach(alt_part)
 
     for filepath in attachments:
+        if not os.path.exists(filepath):
+            print(f"Attachment file {filepath} does not exist.")
+            continue
+        if not os.path.isfile(filepath):
+            print(f"Attachment {filepath} is not a file.")
+            continue
+        if not os.access(filepath, os.R_OK):
+            print(f"Attachment {filepath} is not readable.")
+            continue
+
+        # Create a MIMEBase object for the attachment
         part = MIMEBase("application", "octet-stream")
 
         with open(filepath, "rb") as f:
@@ -157,7 +197,21 @@ if __name__ == "__main__":
     event.set_magnitude(7.7)
     finder_solution.set_event(event)
     event_id = "20230206_0000008"
+
+    # Fake metadata for testing
+    metadata = {}
+    metadata['origin_time'] = event.get_origin_time()
+    metadata['longitude'] = event.get_longitude()
+    metadata['latitude'] = event.get_latitude()
+    metadata['magnitude'] = event.get_magnitude()
+    metadata['depth'] = event.get_depth()
+    metadata['magnitude_type'] = "Mw"
     
     # Call the function to send the email
-    send_email_with_attachment(subject, body, attachments, finder_solution, event_id)
+    send_email_with_attachment(subject, 
+                               body, 
+                               attachments, 
+                               finder_solution, 
+                               event_id,
+                               metadata)
     print("Email sent successfully.")

@@ -13,8 +13,8 @@ from tornado import gen
 import logging
 import json
 from pyfinderconfig import pyfinderconfig
-from utils.customlogger import FileLoggingFormatter
 from services.eventtracker import EventTracker
+from utils.customlogger import file_logger
 
 # WebSocket URI for Seismic Portal
 echo_uri = pyfinderconfig["seismic-portal-listener"]["echo-uri"]
@@ -22,38 +22,16 @@ echo_uri = pyfinderconfig["seismic-portal-listener"]["echo-uri"]
 # Interval to ping the server to keep the connection alive
 PING_INTERVAL = pyfinderconfig["seismic-portal-listener"]["ping-interval"]
 
+# Logger
+logger = file_logger(
+    module_name="SeismicListener",
+    log_file="seismiclistener.log",
+    rotate=True,
+    overwrite=False,
+    level=logging.DEBUG
+)
 # Database tracker for event management
-tracker = EventTracker()
-
-# Set up a new file logger
-def file_logger(rotate=True):
-    logger = logging.getLogger("SeismicPortalListener")
-    logger.setLevel(logging.NOTSET)
-    logger.propagate = False
-    
-    # Create formatter
-    formatter = FileLoggingFormatter()
-
-    # Create file handler and set level to debug
-    mode = "a"
-    if rotate:
-        try:
-            fh = logging.handlers.RotatingFileHandler(
-                "seismiclistener.log", maxBytes=1000000, backupCount=7, 
-                encoding='utf-8', mode=mode)
-        except Exception as e:
-            fh = logging.FileHandler(__name__, mode=mode, encoding='utf-8')
-    else:
-        fh = logging.FileHandler(__name__, mode=mode, encoding='utf-8')
-
-    fh.setLevel(logging.NOTSET)
-    fh.setFormatter(formatter)
-
-    logger.addHandler(fh)
-
-    return logger
-
-logger = file_logger()
+tracker = EventTracker("event_tracker.db", logger=logger)
 
 # Filter for region
 def is_event_in_region(event, target_regions):
@@ -103,16 +81,16 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
 
         # Check if event matches the region and magnitude criteria
         if not is_event_in_region(info, target_regions):
-            logger.info(f"Desicion SKIP: Event {info['unid']} is outside the target regions, skipping...")
+            logger.info(f"|- Desicion SKIP: Event {info['unid']} is outside the target regions, skipping...")
             return
         else:
-            logger.info(f"Desicion KEEP: Event {info['unid']} is in the target regions: {target_regions}")
+            logger.info(f"|- Desicion KEEP: Event {info['unid']} is in the target regions: {target_regions}")
 
         if not is_magnitude_above_threshold(info, min_magnitude):
-            logger.info(f"Desicion SKIP: Event {info['unid']} has magnitude {info['mag']} below threshold, skipping...")
+            logger.info(f"|- Desicion SKIP: Event {info['unid']} has magnitude {info['mag']} below threshold, skipping...")
             return
         else:
-            logger.info(f"Desicion KEEP: Event {info['unid']} has magnitude {info['mag']} above threshold: {min_magnitude}")        
+            logger.info(f"|- Desicion KEEP: Event {info['unid']} has magnitude {info['mag']} above threshold: {min_magnitude}")        
         
         logger.info(f"Final decision: PROCESS: Event {info['unid']} with action: {info['action']}")
 
@@ -121,8 +99,10 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
             logger.info(f"New event: {info['unid']} at {info['time']}, Magnitude: {info['mag']}, Region: {info['flynn_region']}")
             tracker.register_event(
                 event_id=info['unid'],
-                services=["RRSM", "ESM", "EMSC"],
-                last_update_time=info['lastupdate']
+                services=["RRSM"],
+                last_update_time=info['lastupdate'],
+                origin_time=info['time'],
+                expiration_days=5
             ) 
 
         # Process event updates
@@ -130,8 +110,10 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
             logger.info(f"Updated event: {info['unid']} at {info['time']}, Magnitude: {info['mag']}, Region: {info['flynn_region']}")
             tracker.register_event_after_update(
                 event_id=info['unid'],
-                services=["RRSM", "ESM", "EMSC"],
-                new_last_update_time=info['lastupdate']
+                services=["RRSM"],
+                new_last_update_time=info['lastupdate'],
+                origin_time=info['time'],
+                expiration_days=5
             )
 
     except Exception:
@@ -185,9 +167,9 @@ def start_emsc_listener():
     # Log the configuration
     logger.info(" ===== Starting Seismic Portal WebSocket listener =====")
     logger.info("Configuration:")
-    logger.info("  Target regions: %s", target_regions)
-    logger.info("  Minimum magnitude: %s", min_magnitude)
-    logger.info("  WebSocket URI: %s", echo_uri)
+    logger.info("|- Target regions: %s", target_regions)
+    logger.info("|- Minimum magnitude: %s", min_magnitude)
+    logger.info("|- WebSocket URI: %s", echo_uri)
     
 
     # Start Tornado IOLoop

@@ -10,9 +10,9 @@ from datetime import datetime
 
 
 class EventTracker:
-    def __init__(self, db_path="event_tracker.db"):
+    def __init__(self, db_path="event_tracker.db", logger=None):
         self.db = ThreadSafeDB(db_path)
-        self.logger = None
+        self.set_logger(logger)
 
     def set_logger(self, logger):
         """Set a logger for the EventTracker."""
@@ -59,7 +59,8 @@ class EventTracker:
         """Close database connection."""
         self.db.close()
 
-    def register_event_after_update(self, event_id, services, new_last_update_time):
+    def register_event_after_update(self, event_id, services, new_last_update_time, origin_time=None,
+                                    expiration_days=5):
         """ 
         Register an event after an update with the new last update time. 
 
@@ -72,11 +73,12 @@ class EventTracker:
             old_meta = self.db.get_event_meta(event_id, service)
             if old_meta is None:
                 # No previous entry; just create new
-                self.db.add_event(event_id, [service], new_last_update_time)
+                self.db.add_event(event_id, [service], origin_time, 
+                                  new_last_update_time, expiration_days)
                 continue
 
             # Step 1: Mark old event as completed (updated)
-            self.db.mark_event_as_completed_due_to_update(event_id, service)
+            self.db.mark_event_completed(event_id, service)
 
             # Step 2: Insert new event copying old fields
             with self.db._lock:

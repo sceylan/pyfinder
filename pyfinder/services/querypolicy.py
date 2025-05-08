@@ -40,7 +40,7 @@ class RRSMQueryPolicy(AbstractPolicy):
     """
     # RRSM query schedule in minutes
     QUERY_SCHEDULE_MINUTES = [0, 5, 15, 60, 180, 360, 1440, 2880]
-    QUERY_SCHEDULE_MINUTES = [0, 1, 2, 3] # This is only for testing: TODO: remove
+    # QUERY_SCHEDULE_MINUTES = [0, 1] # This is only for testing: TODO: remove
     
     # allow query within some minutes window
     ALLOWED_DRIFT_MINUTES = 1  

@@ -47,12 +47,12 @@ pyfinderconfig = {
 
     # Logging configuration
     "logging": {
-        # The default log level for the console logging
-        "log-level": "INFO",
+        # The default log level for the console/file logging
+        "log-level": "DEBUG",
 
         # Overwrite the log file if it exists from previous runs. If False, 
         # the log file will be appended. If True, the previous logs will be lost.
-        "overwrite-log-file": True,
+        "overwrite-log-file": False,
 
         # Rotate the log file after reaching a certain size
         "rotate-log-file": True,

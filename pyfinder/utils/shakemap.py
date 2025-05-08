@@ -4,12 +4,13 @@
 # ShakeMapExporter: exports ShakeMap-compatible event.xml and stationlist.json from a FinderSolution
 import os
 import json
-import tempfile
 from datetime import datetime, timezone
 from xml.etree.ElementTree import Element, ElementTree
 import subprocess
 from finderutils import FinderSolution
 import logging
+import zipfile
+
 
 # --------------------------------------------
 # ShakeMapExporter utility for exporting ShakeMap-compatible files
@@ -21,13 +22,16 @@ class ShakeMapExporter:
     """
 
     def __init__(self, solution: FinderSolution, output_dir: str = None):
-        # Validate that the solution is a FinderSolution instance
+        # Get the pyfinder logger
+        self.logger = logging.getLogger("pyfinder")
+
+        # Validate that the solution is a FinderSolution instance. Do not react to the
+        # FinderSolution being wrong, but rather log it so that we can debug it.
         if solution is None:
             logging.error("No solution provided to ShakeMapExporter.")
         elif not isinstance(solution, FinderSolution):
-            logging.error("Provided solution is not a FinderSolution instance: {}".format(FinderSolution.__module__))
-            logging.error("Provided solution is not a FinderSolution instance: {}".format(type(solution)))
-        
+            logging.error(f"Provided solution {type(solution)} is not a {FinderSolution.__module__} instance.")
+            
         logging.info("ShakeMapExporter initialized with FinderSolution.")
         self.solution = solution
 
@@ -40,6 +44,52 @@ class ShakeMapExporter:
         )
         os.makedirs(self.output_dir, exist_ok=True)
         logging.info(f"ShakeMapExporter output directory: {self.output_dir}")
+
+
+    def archive_products(self, target_base_dir=None, extensions=("json", "jpg", "jpeg")):
+        """ 
+        Archive ShakeMap products into a zip file under the given target_base_dir. 
+        The files are filtered by the provided extensions to avoid large file sizes.
+        In the current implementation, the default extensions are json, jpg, and jpeg;
+        no wildcards are accepted.
+        """
+        # Check if target_base_dir is provided
+        if target_base_dir is None:
+            raise ValueError("target_base_dir for the zip archive must be provided")  # <<==
+
+        # Ensure products folder exists. This is where we copy the files to.
+        my_products_dir = os.path.join(target_base_dir, "shakemap_products")
+        os.makedirs(my_products_dir, exist_ok=True)
+
+        # Where the original files are
+        shmap_products_dir = os.path.join(self.output_dir, "products")
+
+        # Check if the original products directory exists
+        if not os.path.exists(shmap_products_dir):  # <<==
+            logging.warning(f"ShakeMap products directory does not exist: {shmap_products_dir}") 
+            return None 
+
+        # Create a zip file with the products
+        datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_filename = f"shakemap_output_{datetime_str}.zip"  # <<==
+        zip_path = os.path.join(my_products_dir, zip_filename)
+
+        # Zip everything in the products directory that matches the extensions
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for root, _, files in os.walk(shmap_products_dir):
+                for file in files:
+                    if file.lower().endswith(extensions):
+                        file_path = os.path.join(root, file)
+                        # Create a relative path to the file
+                        relative_path = os.path.relpath(file_path, shmap_products_dir)
+
+                        zipf.write(file_path, relative_path)
+                        logging.info(f"Added {file_path} to zip as {relative_path}")
+        logging.info(f"Created zip file: {zip_path}")
+
+        # Return the path to the zip file
+        return zip_path
+
 
     def export_all(self):
         """Exports both event.xml and stationlist.json as well as rupture.json """
@@ -190,11 +240,9 @@ class ShakeMapExporter:
 # ShakeMapTrigger utility for running ShakeMap
 # --------------------------------------------
 class ShakeMapTrigger:
-    """
-    Utility class to trigger ShakeMap from a set of exported files.
-    """
-
-    def __init__(self, event_id, event_xml, stationlist_path, rupture_path=None, shake_cmd='shake', logger=None):
+    """ Utility class to trigger ShakeMap from a set of exported files. """
+    def __init__(self, event_id, event_xml, stationlist_path, rupture_path=None, 
+                 shake_cmd='shake', logger=None):
         self.event_id = event_id
         self.event_xml = event_xml
         self.stationlist_path = stationlist_path

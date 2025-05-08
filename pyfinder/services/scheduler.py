@@ -22,12 +22,16 @@ class FollowUpScheduler:
     The scheduler checks for due events and processes them according to the defined 
     policies via dedicated policy instances in the SERVICE_POLICIES.
     """
-    def __init__(self, tracker: EventTracker):
+    def __init__(self, tracker: EventTracker=None):
         # Create a logger for the FollowUpScheduler and its sub-tasks
         self.logger = self._setup_file_logger()
         self._welcome_message(self.logger)
 
+        # Initialize the EventTracker for managing event updates
+        if tracker is None:
+            tracker = EventTracker("test_playback.db")
         self.tracker = tracker
+
         self.tracker.set_logger(self.logger)
         self.logger.info("EventTracker initialized for the scheduler.")
 
@@ -87,8 +91,13 @@ class FollowUpScheduler:
                 [f"--{k}={v}" for k, v in finder_options.items() if k != "command_line_args"]
             )
 
+            # Metadata to keep track of the simulation in between modules
+            solution_metadata = {
+                "last_query_time": str(event_meta['last_query_time']),
+                "minutes_until_next_update": delay,}
+
             # Create FinDerManager instance and run it
-            finder_manager = FinDerManager(options=finder_options)
+            finder_manager = FinDerManager(options=finder_options, metadata=solution_metadata)
             finder_solution = finder_manager.run(event_id=event_id)
             
             # Check if FinDerManager run was successful
@@ -104,8 +113,7 @@ class FollowUpScheduler:
                 else:
                     # Event is not terminal, keep the pending status and schedule the next query
                     self.tracker.update_status(event_id, service, "Pending", next_minutes=delay)
-                    due_time = datetime.now(timezone.utc) + timedelta(minutes=delay)
-                    self.logger.info(f"Event {event_id} scheduled for next query in {delay} minutes at {due_time}.")
+                    self.logger.info(f"Event {event_id} scheduled for next query in {delay} minutes.")
             
             else:
                 # If FinDerManager run failed, check if the event is still valid
@@ -149,6 +157,12 @@ class FollowUpScheduler:
         self.logger.info(f"Due events: {due_events}")
 
         for event_id, service in due_events:
+            # Mark the event as processing so that it is not fecthed again in the next
+            # loop after sleep. The actual processing chain takes much longer, and this
+            # event will keep queried until the FinDerManager run is finished at every call.
+            self.tracker.update_status(event_id, service, "Processing", next_minutes=0)
+            self.logger.info(f"Processing event {event_id} for service {service}.")
+
             event_meta = self.tracker.db.get_event_meta(event_id, service)
             if not event_meta:
                 continue
