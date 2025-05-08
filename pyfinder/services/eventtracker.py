@@ -7,11 +7,12 @@ events, including registering, updating, and querying.
 """
 from pyfinder.services.database import ThreadSafeDB
 from datetime import datetime
-
+import logging
 
 class EventTracker:
     def __init__(self, db_path="event_tracker.db", logger=None):
         self.db = ThreadSafeDB(db_path)
+        logger = logger or logging.getLogger("pyfinder")
         self.set_logger(logger)
 
     def set_logger(self, logger):
