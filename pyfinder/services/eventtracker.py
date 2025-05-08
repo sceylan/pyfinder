@@ -65,7 +65,7 @@ class EventTracker:
                 overwrite=False,
                 level=logging.DEBUG
             )
-        self.logger.error(f"Event {event_id} failed for service {service}: {error}")
+        # self.logger.error(f"Event {event_id} failed for service {service}: {error}")
 
     def retry_failures(self, max_retries=5):
         """Retry failed events that haven't exceeded retry limits."""
