@@ -55,8 +55,17 @@ class EventTracker:
         """Log an error for a failed query attempt."""
         self.db.log_query_error(event_id, service, error)
 
-        if self.logger:
-            self.logger.error(f"Event {event_id} failed for service {service}: {error}")
+        # Ensure logger fallback if not already set
+        if self.logger is None:
+            self.logger = logging.getLogger("pyfinder.eventtracker")
+            if not self.logger.hasHandlers():
+                handler = logging.StreamHandler()
+                handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s %(message)s'))
+                self.logger.addHandler(handler)
+                self.logger.setLevel(logging.DEBUG)
+                self.logger.propagate = False
+
+        self.logger.error(f"Event {event_id} failed for service {service}: {error}")
 
     def retry_failures(self, max_retries=5):
         """Retry failed events that haven't exceeded retry limits."""
