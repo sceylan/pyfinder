@@ -127,7 +127,9 @@ class FollowUpScheduler:
                     self.logger.error(f"Event {event_id} marked as completed after retry failure for service {service}.")
 
         except Exception as e:
-            self.logger.error(f"Error processing event {event_id} for service {service}: {e}")
+            if self.logger:
+                self.logger.error(f"Error processing event {event_id} for service {service}: {e}")
+            
             if policy.should_retry_on_failure(event_meta):
                 self.tracker.log_failure(event_id, service, str(e))
             else:
