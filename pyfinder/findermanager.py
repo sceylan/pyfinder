@@ -48,12 +48,8 @@ class FinDerManager:
         # Working directory
         self.working_dir = None
 
-        self.logger = customlogger.file_logger(
-            module_name="pyfinder",
-            log_file=self.configuration["finder-executable"]["log-file-name"],
-            rotate=self.configuration["logging"]["rotate-log-file"],
-            overwrite=self.configuration["logging"]["overwrite-log-file"]
-        )
+        # The logger for the FinDerManager
+        self.logger = None
         
     def set_finder_data_dirs(self, working_dir, finder_event_id):
         """ Set the FinDer data directories using the event id from FinDer run """
