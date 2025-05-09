@@ -49,7 +49,13 @@ class FinDerManager:
         self.working_dir = None
 
         # The logger for the FinDerManager
-        self.logger = None
+        self.logger = customlogger.file_logger(
+            module_name="FinDerManager",
+            log_file="finder_manager.log",
+            rotate=True,
+            overwrite=True,
+            level=logging.DEBUG
+        )
         
     def set_finder_data_dirs(self, working_dir, finder_event_id):
         """ Set the FinDer data directories using the event id from FinDer run """
@@ -62,8 +68,8 @@ class FinDerManager:
         self.finder_temp_data_dir = os.path.join(
             self.finder_temp_data_dir, finder_event_id)
         
-        logging.info(f"FinDer temp data directory: {self.finder_temp_data_dir}")
-        logging.info(f"FinDer temp directory: {self.finder_temp_dir}")
+        self.logger.info(f"FinDer temp data directory: {self.finder_temp_data_dir}")
+        self.logger.info(f"FinDer temp directory: {self.finder_temp_dir}")
 
     def run(self, event_id=None, file_path=None) -> FinderSolution:
         """ 
@@ -97,17 +103,17 @@ class FinDerManager:
         False, where FinDer assigns channel/station codes itself. 
         """
         if not finder_used_channels or len(finder_used_channels) == 0:
-            logging.error("No FinDer channel codes to rename. List is empty.")
+            self.logger.error("No FinDer channel codes to rename. List is empty.")
             return
         
-        logging.info("Renaming the channel codes in the FinDer output.")        
+        self.logger.info("Renaming the channel codes in the FinDer output.")        
         
         # Get FinDer's version of data_0 file
         finder_data_0 = os.path.join(self.finder_temp_data_dir, "data_0")
         
         # Check if the file exists
         if not os.path.exists(finder_data_0):
-            logging.error(f"File {finder_data_0} does not exist. Cannot rename the channel codes.")
+            self.logger.error(f"File {finder_data_0} does not exist. Cannot rename the channel codes.")
 
         # Read the FinDer data_0 file
         stations = {
@@ -152,7 +158,7 @@ class FinDerManager:
                 f.write(f"{stations['lat'][i]}  {stations['lon'][i]}  {stations['sncl'][i]}  " + \
                         f"{stations['timestamp'][i]} {stations['pga'][i]}\n")
 
-        logging.info(f"Channel codes have been renamed in the FinDer output. New file: {renamed_data_0}")
+        self.logger.info(f"Channel codes have been renamed in the FinDer output. New file: {renamed_data_0}")
 
     def process_event(self, event_id) -> FinderSolution:
         """ Process data associated with an event_id """
@@ -252,7 +258,7 @@ class FinDerManager:
 
             smap_exporter = ShakeMapExporter(solution=executable.get_finder_solution_object())
             shakemapexp = smap_exporter.export_all()
-            logging.info(f"ShakeMap files exported to: {shakemapexp['output_dir']}")
+            self.logger.info(f"ShakeMap files exported to: {shakemapexp['output_dir']}")
 
             # Trigger ShakeMap using exported files
             from utils.shakemap import ShakeMapTrigger
