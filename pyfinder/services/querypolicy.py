@@ -47,7 +47,7 @@ class RRSMQueryPolicy(AbstractPolicy):
 
     def should_query(self, event_meta):
         """Return True if current time is within an allowed window."""
-        origin = datetime.fromisoformat(event_meta["origin_time"])
+        origin = datetime.fromisoformat(event_meta["origin_time"].replace("Z", "+00:00"))
         now = datetime.now(timezone.utc)
         elapsed = (now - origin).total_seconds() / 60.0  # in minutes
         
@@ -68,7 +68,7 @@ class RRSMQueryPolicy(AbstractPolicy):
 
     def get_next_query_delay_minutes(self, event_meta):
         """Return the delay in minutes until the next query."""
-        origin = datetime.fromisoformat(event_meta["origin_time"])
+        origin = datetime.fromisoformat(event_meta["origin_time"].replace("Z", "+00:00"))
         now = datetime.now(timezone.utc)
         elapsed = (now - origin).total_seconds() / 60.0
 
@@ -87,7 +87,7 @@ class RRSMQueryPolicy(AbstractPolicy):
         if not origin_str:
             return False
 
-        origin = datetime.fromisoformat(origin_str)
+        origin = datetime.fromisoformat(origin_str.replace("Z", "+00:00"))
         expiration_delta = timedelta(days=max(self.QUERY_SCHEDULE_MINUTES) / 1440) + timedelta(minutes=15)
         return datetime.now(timezone.utc) > (origin + expiration_delta)
 
