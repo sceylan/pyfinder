@@ -81,18 +81,18 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
 
         # Check if event matches the region and magnitude criteria
         if not is_event_in_region(info, target_regions):
-            logger.info(f"|- Desicion SKIP: Event {info['unid']} is outside the target regions, skipping...")
+            logger.info(f"|- Decision SKIP: Event {info['unid']} is outside the target regions, skipping...")
             return
         else:
-            logger.info(f"|- Desicion KEEP: Event {info['unid']} is in the target regions: {target_regions}")
+            logger.info(f"|- Decision KEEP: Event {info['unid']} is in the target regions: {target_regions}")
 
         if not is_magnitude_above_threshold(info, min_magnitude):
-            logger.info(f"|- Desicion SKIP: Event {info['unid']} has magnitude {info['mag']} below threshold, skipping...")
+            logger.info(f"|- Decision SKIP: Event {info['unid']} has magnitude {info['mag']} below threshold, skipping...")
             return
         else:
-            logger.info(f"|- Desicion KEEP: Event {info['unid']} has magnitude {info['mag']} above threshold: {min_magnitude}")        
+            logger.info(f"|- Decision KEEP: Event {info['unid']} has magnitude {info['mag']} above threshold: {min_magnitude}")        
         
-        logger.info(f"Final decision: PROCESS: Event {info['unid']} with action: {info['action']}")
+        logger.info(f"|- Final Decision: PROCESS: Event {info['unid']} with action: {info['action']}")
 
         # Process new events
         if info['action'] == 'create':
