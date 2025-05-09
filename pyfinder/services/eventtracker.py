@@ -18,16 +18,17 @@ class EventTracker:
 
     def set_logger(self, logger=None):
         """Set a logger for the EventTracker."""
-        if logger is None:
-            self.logger = file_logger(
-                module_name="EventTracker",
-                log_file="eventtracker.log",
-                rotate=True,
-                overwrite=False,
-                level=logging.DEBUG
-            )
-        else:
-            self.logger = logger
+        # if logger is None:
+        #     self.logger = file_logger(
+        #         module_name="EventTracker",
+        #         log_file="eventtracker.log",
+        #         rotate=True,
+        #         overwrite=False,
+        #         level=logging.DEBUG
+        #     )
+        # else:
+        #     self.logger = logger
+        self.logger = logger
 
     def register_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
         """Register a new event for one or more services."""
@@ -65,7 +66,7 @@ class EventTracker:
                 overwrite=False,
                 level=logging.DEBUG
             )
-        # self.logger.error(f"Event {event_id} failed for service {service}: {error}")
+        self.logger.error(f"Event {event_id} failed for service {service}: {error}")
 
     def retry_failures(self, max_retries=5):
         """Retry failed events that haven't exceeded retry limits."""

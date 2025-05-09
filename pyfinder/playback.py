@@ -172,8 +172,8 @@ if __name__ == "__main__":
     scheduler_thread.start()
 
     # Playback manager instance
-    playback = EventAlertWSPlaybackManager(event_list, tracker, speedup_factor=1.0, 
-                                           default_services=["RRSM"])
+    playback = EventAlertWSPlaybackManager(
+        event_list, tracker, speedup_factor=1.0, default_services=["RRSM"])
 
     # Pause when you want
     time.sleep(5)
@@ -185,7 +185,6 @@ if __name__ == "__main__":
     # Resume auto
     playback.start_auto()
 
-    
     # Block main thread
     print("[Main] Running playback. Press Ctrl+C to exit.")
     try:

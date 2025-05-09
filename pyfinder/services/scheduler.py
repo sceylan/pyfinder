@@ -29,9 +29,8 @@ class FollowUpScheduler:
 
         # Initialize the EventTracker for managing event updates
         if tracker is None:
-            tracker = EventTracker("test_playback.db")
+            tracker = EventTracker("event_update_follow_up.db")
         self.tracker = tracker
-
         self.tracker.set_logger(self.logger)
         self.logger.info("EventTracker initialized for the scheduler.")
 
@@ -47,6 +46,10 @@ class FollowUpScheduler:
         
         logger.info("=========================================================")
         logger.info(" A new scheduler for event updates is being initialized. ")
+        logger.info("... Testing logger functionality ...")
+        logger.error("This is an error message for testing purposes.")
+        logger.info("This is an info message for testing purposes.")
+        logger.ok("This is an ok message for testing purposes.")
         logger.info("---------------------------------------------------------")
         logger.info("BEGIN: Init FollowUpScheduler")
 
