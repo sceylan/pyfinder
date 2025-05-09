@@ -8,10 +8,12 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 import math
 
-
 def normalize_iso8601(ts: str) -> datetime:
+    tz = None
     if ts.endswith("Z"):
-        ts = ts[:-1]  # remove 'Z'
+        ts = ts[:-1]
+        tz = timezone.utc
+
     if "." in ts:
         date_part, frac = ts.split(".")
         if "+" in frac or "-" in frac:  # timezone present
@@ -21,7 +23,9 @@ def normalize_iso8601(ts: str) -> datetime:
         else:
             frac = (frac + "000000")[:6]
             ts = f"{date_part}.{frac}"
-    return datetime.fromisoformat(ts)
+
+    dt = datetime.fromisoformat(ts)
+    return dt.replace(tzinfo=tz) if tz else dt
 
 class AbstractPolicy(ABC):
     @abstractmethod
