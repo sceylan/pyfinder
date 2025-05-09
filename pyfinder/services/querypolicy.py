@@ -8,6 +8,21 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 import math
 
+
+def normalize_iso8601(ts: str) -> datetime:
+    if ts.endswith("Z"):
+        ts = ts[:-1]  # remove 'Z'
+    if "." in ts:
+        date_part, frac = ts.split(".")
+        if "+" in frac or "-" in frac:  # timezone present
+            frac_part, tz_part = frac[:-6], frac[-6:]
+            frac_part = (frac_part + "000000")[:6]
+            ts = f"{date_part}.{frac_part}{tz_part}"
+        else:
+            frac = (frac + "000000")[:6]
+            ts = f"{date_part}.{frac}"
+    return datetime.fromisoformat(ts)
+
 class AbstractPolicy(ABC):
     @abstractmethod
     def should_query(self, event_meta: dict) -> bool:
@@ -47,7 +62,10 @@ class RRSMQueryPolicy(AbstractPolicy):
 
     def should_query(self, event_meta):
         """Return True if current time is within an allowed window."""
-        origin = datetime.fromisoformat(event_meta["origin_time"].rstrip("Z"))
+        # Normalize the origin time
+        event_meta["origin_time"] = event_meta["origin_time"].rstrip("Z")
+        origin = normalize_iso8601(event_meta["origin_time"])
+
         now = datetime.now(timezone.utc)
         elapsed = (now - origin).total_seconds() / 60.0  # in minutes
         
@@ -68,7 +86,7 @@ class RRSMQueryPolicy(AbstractPolicy):
 
     def get_next_query_delay_minutes(self, event_meta):
         """Return the delay in minutes until the next query."""
-        origin = datetime.fromisoformat(event_meta["origin_time"].rstrip("Z"))
+        origin = normalize_iso8601(event_meta["origin_time"])
         now = datetime.now(timezone.utc)
         elapsed = (now - origin).total_seconds() / 60.0
 
@@ -87,7 +105,7 @@ class RRSMQueryPolicy(AbstractPolicy):
         if not origin_str:
             return False
 
-        origin = datetime.fromisoformat(origin_str.rstrip("Z"))
+        origin = normalize_iso8601(origin_str)
         expiration_delta = timedelta(days=max(self.QUERY_SCHEDULE_MINUTES) / 1440) + timedelta(minutes=15)
         return datetime.now(timezone.utc) > (origin + expiration_delta)
 
