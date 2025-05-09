@@ -219,7 +219,7 @@ class FinDerManager:
         # Merge the raw data if both are available
         if esm_raw and rrsm_raw:
             # Merge the data
-            logging.info("Merging the ESM and RRSM data")
+            self.logger.info("Merging the ESM and RRSM data")
             _amplitude_data = StationMerger().merge(esm_data=esm_raw, rrsm_data=rrsm_raw)
         else:
             # Use the raw data from either ESM or RRSM

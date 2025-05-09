@@ -102,11 +102,15 @@ class FinDerExecutable(object):
         output_root_folder = self.get_configured_root_folder()
         has_write_access = os.access(output_root_folder, os.W_OK)
         
-        # Check if the output root folder is a directory and not a file
-        if not os.path.isdir(output_root_folder):
-           self.logger.error("Terminating! The output root folder is not a directory: {}".format(output_root_folder))
-           raise NotADirectoryError("The output root folder is not a directory: {}".format(output_root_folder))
-        
+        # Create the output root folder if it does not exist
+        if not os.path.exists(output_root_folder):
+            os.makedirs(output_root_folder)
+        else:
+            # Check if the output root folder is a directory and not a file
+            if not os.path.isdir(output_root_folder):
+                raise NotADirectoryError(
+                    "The output root folder is not a directory: {}".format(output_root_folder))
+            
         # Check if we have write access to the output root folder
         is_workdir_overriden = False
         if not has_write_access:
