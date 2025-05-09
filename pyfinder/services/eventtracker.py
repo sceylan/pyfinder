@@ -11,7 +11,7 @@ import logging
 from utils.customlogger import file_logger
 
 class EventTracker:
-    def __init__(self, db_path="event_tracker.db", logger=None):
+    def __init__(self, db_path="event_update_follow_up.db", logger=None):
         self.db = ThreadSafeDB(db_path)
         logger = logger or logging.getLogger("pyfinder")
         self.set_logger(logger)

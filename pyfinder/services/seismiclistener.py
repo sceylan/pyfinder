@@ -31,7 +31,7 @@ logger = file_logger(
     level=logging.DEBUG
 )
 # Database tracker for event management
-tracker = EventTracker("event_tracker.db", logger=logger)
+tracker = EventTracker("event_update_follow_up.db", logger=logger)
 
 # Filter for region
 def is_event_in_region(event, target_regions):
