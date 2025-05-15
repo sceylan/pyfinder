@@ -104,8 +104,9 @@ if gmt_resources.endswith("gmt_input"):
 # The template configuration for the FinDer executable (finder_file)
 finder_file_config_template = {
     # <size_t> number of thresholds, list of their <double> PGA values
-    "THRESHOLDS": "9 2.0 4.6 10.5 23.2 48.6 90.7 148.8 221.3 304.5",
-    
+    # "THRESHOLDS": "9 2.0 4.6 10.5 23.2 48.6 90.7 148.8 221.3 304.5",
+    "THRESHOLDS": "10 0.1 2.0 4.6 10.5 23.2 48.6 90.7 148.8 221.3 304.5",
+
     # <string> [local directory] for generic templates 
     "TEMPLATE_DIRECTORY": os.path.join(finder_resources, "Templates_PGA_20161020_CH2009_resolution_5"),
     

@@ -169,9 +169,13 @@ class FinDerManager:
         # Create the RRSM and ESM clients
         rrsm_client = RRSMPeakMotionClient()
         _rrsm_code, _rrsm_event_and_amplitudes, _ = rrsm_client.query(event_id=event_id)
-        _rrsm_event = _rrsm_event_and_amplitudes.get_event_data()
-        _rrsm_amplitude = _rrsm_event_and_amplitudes
-        
+        if _rrsm_event_and_amplitudes:
+            _rrsm_event = _rrsm_event_and_amplitudes.get_event_data()
+            _rrsm_amplitude = _rrsm_event_and_amplitudes
+        else:
+            _rrsm_event = None
+            _rrsm_amplitude = None
+
         esm_client = ESMShakeMapClient()
         _esm_code, _esm_event, _esm_amplitude = esm_client.query(event_id=event_id)
 
@@ -219,9 +223,7 @@ class FinDerManager:
             self.metadata['depth'] = _event_data.get_depth()
         except Exception as e:
             print(f"Error collecting metadata: {e}")
-            import sys
-            sys.exit(1)
-
+            
         print(f"Calculation metadata: {self.metadata}")
         if hasattr(_event_data, "get_magnitude_type"):
             self.metadata['magnitude_type'] = _event_data.get_magnitude_type()
