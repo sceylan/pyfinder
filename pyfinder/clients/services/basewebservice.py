@@ -225,30 +225,46 @@ class BaseWebService(ABC):
                             options[option], option))
         return options
     
-    def open_url(self, url, opener):
+    def open_url(self, url, opener, retries=3, timeout=10, wait=2):
         """ 
-        Open the given URL using the opener. Return HTTP return code, 
-        the response, and the error, if any. A combination of the error
-        code and response might provide more granular information about
-        the error in subclasses.
+        Open the given URL using the opener. Retry on failure. 
+        Return HTTP return code, the response, and the error, if any.
         """
-        try:
-            url_response = opener.open(url)
-            code = url_response.getcode()
-            error = None
-        except urllib.error.HTTPError as e:
-            code = e.code
-            url_response = None
-            error = e
-        except urllib.error.URLError as e:
-            code = 400
-            url_response = None
-            error = e
-        except Exception as e:
-            code = 400
-            url_response = None
-            error = e
+        import time
+        import urllib.error
 
-        # return the code, response and error, if any    
-        return code, url_response, error
+        last_exception = None
+        for attempt in range(retries):
+            print(f"Attempt {attempt + 1} of {retries} to open URL: {url}")
+            try:
+                url_response = opener.open(url, timeout=timeout)
+                code = url_response.getcode()
+                error = None
+
+                # Check for empty response content
+                if getattr(url_response, "length", None) == 0:
+                    print(f"Empty response received from the web service.")
+                    raise ValueError("Empty response received from the web service.")
+                print(f"Response code: {code}")
+                return code, url_response, error
+
+            except (urllib.error.HTTPError, urllib.error.URLError, ValueError) as e:
+                last_exception = e
+                code = getattr(e, 'code', 400)
+                url_response = None
+                error = e
+
+            except Exception as e:
+                last_exception = e
+                code = 400
+                url_response = None
+                error = e
+
+            # Wait before next retry if not the last attempt
+            if attempt < retries - 1:
+                print(f"Retrying in {wait} seconds...")
+                time.sleep(wait)
+
+        # After retries, return the last error
+        return code, url_response, last_exception
     

@@ -272,7 +272,7 @@ class FinDerExecutable(object):
         self.logger.debug(f"-"*80)
         self.logger.debug(f"FinDer Event ID used for output: {self.finder_event_id}")
         if self.finder_event_id is None:
-            self.logger.ERROR("FinDer did not return an event ID. Check the output for errors.")
+            self.logger.error("FinDer did not return an event ID. Check the output for errors.")
         self.logger.debug(f"-"*80)
 
         # Log the stderr if there are any
@@ -321,6 +321,14 @@ class FinDerExecutable(object):
     def _collect_finder_output(self, event_id):
         """ Collect the FinDer output. """
         self.logger.info("Collecting the FinDer output...")
+
+        # Check if the event ID is set
+        if self.finder_event_id is None:
+            self.logger.error("FinDer did not return an event ID. Check the output for errors.")
+            return
+        if event_id is None:
+            self.logger.error("Event ID is not set. Check the output for errors.")
+            return
         
         # Folder where the FinDer output is stored:
         # <output_root_folder>/<event_id>/temp_data/<finder_event_id>

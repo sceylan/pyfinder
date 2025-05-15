@@ -137,9 +137,23 @@ if __name__ == "__main__":
          'flynn_region': 'EASTERN TURKEY', 
          'lat':37.17, 'lon':37.08, 'depth':20.0,
          'evtype': 'ke', 'auth': 'SCSN', 'mag': 7.7, 'magtype': 'Mw', 
-         'unid': '20230206_0000008', 
+         'unid': '20250513_0000240', 
          'action': 'create'
          },
+
+        # {'source_id': '00000001', 
+        #  'source_catalog': 'EMSC-RTS', 
+        #  # 'lastupdate': '2023-02-06T01:17:36Z', 
+        #  # 'time': '2023-02-06T01:17:36Z', 
+        #  'time': (base_time + timedelta(seconds=0)).isoformat(),
+        #  'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
+        #  'flynn_region': 'EASTERN TURKEY', 
+        #  'lat':37.17, 'lon':37.08, 'depth':20.0,
+        #  'evtype': 'ke', 'auth': 'SCSN', 'mag': 7.7, 'magtype': 'Mw', 
+        #  'unid': '20230206_0000008', 
+        #  'action': 'create'
+        #  },
+
         # {'source_id': '00000002',
         #  'source_catalog': 'EMSC-RTS', 
         #  # 'lastupdate': '2016-10-30T06:40:18Z', 

@@ -168,24 +168,27 @@ class FinDerManager:
         
         # Create the RRSM and ESM clients
         rrsm_client = RRSMPeakMotionClient()
-        _rrsm_code, _rrsm_event, _rrsm_amplitude = rrsm_client.query(event_id=event_id)
+        _rrsm_code, _rrsm_event_and_amplitudes, _ = rrsm_client.query(event_id=event_id)
+        _rrsm_event = _rrsm_event_and_amplitudes.get_event_data()
+        _rrsm_amplitude = _rrsm_event_and_amplitudes
         
         esm_client = ESMShakeMapClient()
         _esm_code, _esm_event, _esm_amplitude = esm_client.query(event_id=event_id)
-        
+
         # Is the connection successful?
         if _rrsm_code != 200:
             self.metadata['RRSM_status'] = "Failed: " + str(_rrsm_code)
-            raise ConnectionError("Connection to the RRSM web service failed")
+            # raise ConnectionError("Connection to the RRSM web service failed")
         else:
             self.metadata['RRSM_status'] = "Success"
 
         if _esm_code != 200:
             self.metadata['ESM_status'] = "Failed: " + str(_esm_code)
-            raise ConnectionError("Connection to the ESM web service failed")
+            # raise ConnectionError("Connection to the ESM web service failed")
         else:
             self.metadata['ESM_status'] = "Success"
         
+        print("Extacting raw amplitudes ...")
         if _esm_event and _esm_amplitude:
             esm_raw = ESMShakeMapDataFormatter.extract_raw_stations(
                 event_data=_esm_event, amplitudes=_esm_amplitude)
@@ -194,10 +197,11 @@ class FinDerManager:
 
         if _rrsm_event and _rrsm_amplitude:
             rrsm_raw = RRSMPeakMotionDataFormatter.extract_raw_stations(
-                event_data=_rrsm_event, amplitudes=_rrsm_amplitude)
+                event_data=_rrsm_amplitude, amplitudes=_rrsm_amplitude)
         else:
             rrsm_raw = None
-            
+        print("Raw amplitudes extracted.")
+
         # ESM gets the priority over RRSM for event
         _event_data = _esm_event if _esm_event else _rrsm_event
 
@@ -206,11 +210,19 @@ class FinDerManager:
         # solution_metadata = {
         #         "last_query_time": str(event_meta['last_query_time']),
         #         "delay_until_next_query": delay,}
-        self.metadata['origin_time'] = _event_data.get_origin_time()
-        self.metadata['longitude'] = _event_data.get_longitude()
-        self.metadata['latitude'] = _event_data.get_latitude()
-        self.metadata['magnitude'] = _event_data.get_magnitude()
-        self.metadata['depth'] = _event_data.get_depth()
+        print("Collecting metadata ...")
+        try:
+            self.metadata['origin_time'] = _event_data.get_origin_time()
+            self.metadata['longitude'] = _event_data.get_longitude()
+            self.metadata['latitude'] = _event_data.get_latitude()
+            self.metadata['magnitude'] = _event_data.get_magnitude()
+            self.metadata['depth'] = _event_data.get_depth()
+        except Exception as e:
+            print(f"Error collecting metadata: {e}")
+            import sys
+            sys.exit(1)
+
+        print(f"Calculation metadata: {self.metadata}")
         if hasattr(_event_data, "get_magnitude_type"):
             self.metadata['magnitude_type'] = _event_data.get_magnitude_type()
         else:
@@ -244,6 +256,12 @@ class FinDerManager:
                 options=self.options, configuration=self.configuration).execute(
                     event_data=_event_data, amplitudes=_amplitude_data)
             
+            # Check if the executable was successful
+            if not executable or not executable.get_finder_solution_object():
+                self.logger.error("FinDer executable failed to run or returned no solution.")
+                return None
+            
+
             # Set the FinDer data directories
             self.working_dir = executable.get_working_directory()
             self.set_finder_data_dirs(working_dir=executable.get_working_directory(), 
