@@ -209,15 +209,25 @@ class FinDerExecutable(object):
         if isinstance(amplitudes, PeakMotionData):
             # RRSM peak motion data contains the event data as well.
             # Amplitudes and event data are the same for the RRSM peak motion service.
-            out_str, finder_stations = RRSMPeakMotionDataFormatter().format_data(
-                amplitudes=amplitudes, event_data=amplitudes)
+            self.logger.info("FinDerExecutable received RRSM peak motion data. Formatting now...")
+
+            out_str, finder_stations = RRSMPeakMotionDataFormatter(
+                logger=self.logger).format_data(
+                    amplitudes=amplitudes, event_data=amplitudes)
+            
+            self.logger.info("FinDerExecutable formatted RRSM peak motion data.")
             
         elif isinstance(amplitudes, ShakeMapStationAmplitudes):
-            out_str, finder_stations = ESMShakeMapDataFormatter().format_data(
-                amplitudes=amplitudes, event_data=event_data)
+            self.logger.info("FinDerExecutable received ESM ShakeMap data. Formatting now...")
+
+            out_str, finder_stations = ESMShakeMapDataFormatter(
+                logger=self.logger).format_data(
+                    amplitudes=amplitudes, event_data=event_data)
+            
+            self.logger.info("FinDerExecutable formatted ESM ShakeMap data.")
             
         elif isinstance(amplitudes, List) or isinstance(amplitudes, list):   
-            self.logger.info("Merged ESM+RRSM data has been passed to FinDer.")
+            self.logger.info("Merged ESM+RRSM data has been passed to FinDerExecutable.")
             # Format the merged data for FinDer   
             out_str, finder_stations = FinDerFormatterFromRawList.format(
                 event_lat=event_data.get_latitude(),
@@ -227,6 +237,7 @@ class FinDerExecutable(object):
                 event_time_epoch=get_epoch_time(event_data.get_origin_time()),
                 station_list=amplitudes
             )
+            self.logger.info("FinDerExecutable formatted merged ESM+RRSM data.")
 
         # Write the data to the working directory
         with open(data_file_path, "wb") as data_file:
@@ -385,17 +396,18 @@ class FinDerExecutable(object):
         try:
             # Execute the FinDer executable
             self._run_finder()
+
+            # Log the success and collect the output
+            self.logger.info(f"FinDer execution completed. Now collecting the output...")
+
+            # Collect the output of the executable
+            self._collect_finder_output(event_id=event_id)
             
         except Exception as e:
             # Log the error and exit
             self.logger.error(f"Error executing FinDer:")
             self.logger.error(f"{e}")
             sys.exit(1)
-
-        else:
-            # Log the success and collect the output
-            self.logger.info(f"FinDer execution is successful.")
-            self._collect_finder_output(event_id=event_id)
 
         finally:
             # The end of the execution

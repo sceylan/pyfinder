@@ -11,13 +11,14 @@ from typing import Union
 from .calculator import Calculator
 from pyfinderconfig import pyfinderconfig
 from clients.services.shakemap_data import ShakeMapEventData, ShakeMapStationAmplitudes
+from clients.services.peakmotion_data import PeakMotionData
 from finderutils import FinderChannelList
 from pyfinder.utils.station_merger import RawStationMeasurement
 
 # Thresholds for the RRSM peak motion data that are used to filter out
 # the stations with PGA/PGV values that are not in the range.
 RRSM_PEAKMOTION_PGA_MIN = 0.00001
-RRSM_PEAKMOTION_PGA_MAX = 4*9.806 # m/s/s
+RRSM_PEAKMOTION_PGA_MAX = 4*9.806 # cm/s/s
 RRSM_PEAKMOTION_PGV_MIN = 0.000001
 RRSM_PEAKMOTION_PGV_MAX = 1.0 # m/s
 RRSM_PEAKMOTION_PGV_BROADBAND_MIN = 0.000001
@@ -119,8 +120,50 @@ class FinDerFormatterFromRawList:
 ###### Service-specific data formatters ######
 # Base class for data formatters
 class BaseDataFormatter(object):
-    def __init__(self):
-        pass
+    def __init__(self, logger=None):
+        self.logger = logger or logging.getLogger("pyfinder")
+
+    def set_logger(self, logger=None):
+        """Set a logger for the BaseDataFormatter."""
+        if logger is None:
+            self.logger = logging.getLogger("pyfinder")
+        else:
+            self.logger = logger
+        self.logger.info("Logger set for BaseDataFormatter.")
+
+    def get_logger(self):
+        """Get the logger for the BaseDataFormatter."""
+        if self.logger is None:
+            self.logger = logging.getLogger("pyfinder")
+        return self.logger
+    
+    def log(self, message, level="info"):
+        """ Log a message. """
+        if self.logger:
+            if level == "info":
+                self.logger.info(message)
+            elif level == "warning":
+                self.logger.warning(message)
+            elif level == "error":
+                self.logger.error(message)
+            elif level == "debug":
+                self.logger.debug(message)
+            else:
+                self.logger.info(message)
+    
+    def safe_sort(self, paired_list, key_index=0, reverse=False):
+        """
+        Sorts a list of tuples/lists safely by key_index.
+
+        Args:
+            paired_list (list): List of tuples or lists (e.g., [(key, obj), ...]).
+            key_index (int): Index of the element in the tuple to sort by.
+            reverse (bool): Whether to sort in descending order.
+
+        Returns:
+            list: The values from each tuple/list in the original second position.
+        """
+        return [item for _, item in sorted(paired_list, key=lambda x: x[key_index], reverse=reverse)]
 
     def format_data(self, event_data, amplitudes) -> Union[str, FinderChannelList]:
         """ Format the data for the FinDer executable. """
@@ -133,8 +176,8 @@ class BaseDataFormatter(object):
     
 class ESMShakeMapDataFormatter(BaseDataFormatter):
     """ Class for formatting the ESM ShakeMap data for the FinDer executable. """
-    def __init__(self):
-        pass
+    def __init__(self, logger=None):
+        super().__init__(logger=logger)
 
     @staticmethod
     def extract_raw_stations(event_data, amplitudes) -> List[RawStationMeasurement]:
@@ -187,22 +230,22 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
     def format_data(self, event_data: ShakeMapEventData, 
                     amplitudes: ShakeMapStationAmplitudes) -> Union[str, FinderChannelList]:
         """ Format the data for the FinDer executable. """
-        logging.info(f"Formatting the ESM ShakeMap: {type(amplitudes)}.......")
+        self.log(message=f"Formatting the ESM ShakeMap: {type(amplitudes)}.......")
         is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
 
         time_epoch = int(get_epoch_time(event_data.get_origin_time()))
 
         # Print the event information
-        logging.info(f"Event ID: {event_data.get_event_id()}")
-        logging.info(f"|- Time: {event_data.get_origin_time()}")
-        logging.info(f"|- Latitude: {event_data.get_latitude()}")
-        logging.info(f"|- Longitude: {event_data.get_longitude()}")
-        logging.info(f"|- Depth: {event_data.get_depth()}")
-        logging.info(f"|- Magnitude: {event_data.get_magnitude()}")
+        self.log(message=f"Event ID: {event_data.get_event_id()}")
+        self.log(message=f"|- Time: {event_data.get_origin_time()}")
+        self.log(message=f"|- Latitude: {event_data.get_latitude()}")
+        self.log(message=f"|- Longitude: {event_data.get_longitude()}")
+        self.log(message=f"|- Depth: {event_data.get_depth()}")
+        self.log(message=f"|- Magnitude: {event_data.get_magnitude()}")
 
         # Collect the station, channel and PGA information
         stations = amplitudes.get_stations()
-        logging.info(f"There are {len(stations)} stations. Looking for the maximum PGA for each.")
+        self.log(message=f"There are {len(stations)} stations. Looking for the maximum PGA for each.")
         
         selected_channels = []
         pga_strings = []
@@ -250,14 +293,14 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
                 if is_live_mode:
                     pga_strings.append(f"{latitude} {longitude} {sncl} {time_epoch} {round(pga, 3)}")
 
-                    logging.ok(f"{sncl} PGA: {round(pga, 3)} m/s/s at " + \
-                               f" Latitude: {latitude}, Longitude: {longitude}")
+                    self.log(message=f"{sncl} PGA: {round(pga, 3)} m/s/s at " + \
+                             f" Latitude: {latitude}, Longitude: {longitude}")
                     
                 else:
                     pga_strings.append(f"{latitude} {longitude} {round(pga, 3)}")
 
-                    logging.ok(f"{sncl} logPGA: {round(pga, 3)} m/s/s at " + \
-                               f" Latitude: {latitude}, Longitude: {longitude}")
+                    self.log(message=f"{sncl} logPGA: {round(pga, 3)} m/s/s at " + \
+                             f" Latitude: {latitude}, Longitude: {longitude}")
                     
                 finder_channels.add_finder_channel(latitude=latitude, longitude=longitude,
                                                    pga=pga, sncl=sncl, is_artificial=False)
@@ -274,12 +317,12 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
 
         # Find the maximum observed PGA
         max_oberserved_pga = np.max([channel.get_acceleration() for channel in selected_channels])
-        logging.info(f"Maximum observed PGA: {round(max_oberserved_pga, 3)} cm/s/s at the stations.")
+        self.log(message=f"Maximum observed PGA: {round(max_oberserved_pga, 3)} cm/s/s at the stations.")
         fake_max_pga = np.max([Calculator.predict_PGA_from_magnitude(
                 magnitude=magnitude, event_depth=depth, log_scale=(is_live_mode == False)), 
                 max_oberserved_pga * 1.2]) 
-        logging.info(f"Use log10(PGA) in the FinDer input: {is_live_mode == False}")
-        logging.info(f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
+        self.log(message=f"Use log10(PGA) in the FinDer input: {is_live_mode == False}")
+        self.log(message=f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
         
         # List to store merged the coordinates and PGAs 
         data = []
@@ -307,8 +350,8 @@ class ESMShakeMapDataFormatter(BaseDataFormatter):
         
 class RRSMPeakMotionDataFormatter(BaseDataFormatter):
     """ Class for formatting the RRSM peak motion data for the FinDer executable. """
-    def __init__(self):
-        pass
+    def __init__(self, logger=None):
+        super().__init__(logger=logger)
 
     @staticmethod
     def extract_raw_stations(event_data, amplitudes) -> List[RawStationMeasurement]:
@@ -364,25 +407,29 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
 
     def format_data(self, event_data, amplitudes) -> Union[str, FinderChannelList]:
         """ Format the data for the FinDer executable. """
-        logging.info("Formatting the RRSM PeakMotionData.......")
+        self.log(message="Formatting the RRSM PeakMotionData.......")
         
         station_codes = event_data.get_station_codes()
 
         # Swap variables
-        peak_motions = event_data
-        event_data = peak_motions.get_event_data()
+        peak_motions = amplitudes
+        # RRSM peak motion data contains both event and amplitude data.
+        # Check if the peak motion data is passed to the formatter.
+        if isinstance(peak_motions, PeakMotionData):
+            event_data = peak_motions.get_event_data()
+        
         is_live_mode = pyfinderconfig["finder-executable"]["finder-live-mode"]
         
         # Print the event information
-        logging.info(f"Event ID: {event_data.get_event_id()}")
-        logging.info(f"|- Time: {event_data.get_origin_time()}")
-        logging.info(f"|- Latitude: {event_data.get_latitude()}")
-        logging.info(f"|- Longitude: {event_data.get_longitude()}")
-        logging.info(f"|- Depth: {event_data.get_depth()}")
-        logging.info(f"|- Magnitude: {event_data.get_magnitude()}, {event_data.get_magnitude_type()}")
+        self.log(message=f"Event ID: {event_data.get_event_id()}")
+        self.log(message=f"|- Time: {event_data.get_origin_time()}")
+        self.log(message=f"|- Latitude: {event_data.get_latitude()}")
+        self.log(message=f"|- Longitude: {event_data.get_longitude()}")
+        self.log(message=f"|- Depth: {event_data.get_depth()}")
+        self.log(message=f"|- Magnitude: {event_data.get_magnitude()}, {event_data.get_magnitude_type()}")
 
         # Collect the station, channel and PGA information
-        logging.info(f"There are {len(station_codes)} stations. Looking for the maximum PGA for each.")
+        self.log(message=f"There are {len(station_codes)} stations. Looking for the maximum PGA for each.")
         all_stations = []
         all_pga = []
 
@@ -404,7 +451,21 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
             all_pga.append(pga)
 
         # Sort the stations by the maximum PGA just for logging in order
-        sorted_stations = [station for _, station in sorted(zip(all_pga, all_stations), reverse=True)]
+        self.log(message=f"Sorting the stations by the maximum PGA.")
+        try:
+            # Sort the stations by the maximum PGA, by taking care of the
+            # same-value problem. The sort is done by the first element of 
+            # the tuple only.
+            sorted_stations = self.safe_sort(
+                zip(all_pga, all_stations), key_index=0, reverse=True)
+
+        except Exception as e:
+            self.log(message=f"Error sorting the stations: {e}", level="error")
+
+            # Continue without sorting
+            sorted_stations = all_stations
+            
+        self.log(message=f"Sorting the stations by the maximum PGA done.")
 
         # Valid stations have PGAs within the range. Invalid stations are either
         # missing the PGA value or the value is not in the range.
@@ -439,20 +500,24 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
                 # No valid PGA found for this station. Either PGAs for all componentds are 
                 # not in the range, or value is missing.
                 invalid_stations.append(station_data)
-                logging.warning(f"Discarding station {station_code}. No (valid) PGA found.")
+                self.log(message=f"Discarding station {station_code}. No (valid) PGA found.", level="warning")
                 
             elif pga <= RRSM_PEAKMOTION_PGA_MIN or pga >= RRSM_PEAKMOTION_PGA_MAX:
                 # The maximum PGA for this station is not in the range.
                 invalid_stations.append(station_data)
-                logging.warning(f"Discarding station {network_code}.{station_code}. PGA ({pga}) not in the range.")
+                self.log(message=f"Discarding station {network_code}.{station_code}. PGA ({pga}) not in the range.",
+                         level="warning")
             
             else:
                 # A valid PGA found for this station.
                 valid_stations.append(station_data)
 
-                # Log10 transform the PGA if NOT in the live mode. Otherwise, 
-                # keep it in cm/s/s as it is.
+                # Log10 transform the PGA if NOT in the live mode. Otherwise, keep it in cm/s/s as it is.
                 if is_live_mode == False:
+                    if pga <= 0:
+                        self.log(message=f"Discarding station {network_code}.{station_code}. "
+                                     f"PGA ({pga}) is not in the range.", level="warning")
+                        continue
                     pga = np.log10(pga)
                 valid_pgas.append(pga)
 
@@ -473,16 +538,16 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
                                                    pga=pga, sncl=sncl, is_artificial=False)
 
                 if is_live_mode:
-                    logging.ok(f"{sncl}, PGA: {round(pga, 3)} cm/s/s at {round(distance, 2)} km,"
-                               f" Latitude: {latitude}, Longitude: {longitude}")
+                    self.log(message=f"{sncl}, PGA: {round(pga, 3)} cm/s/s at {round(distance, 2)} km,"
+                             f" Latitude: {latitude}, Longitude: {longitude}")
                 else:
-                    logging.ok(f"{sncl}, log10(PGA): {round(pga, 3)} cm/s/s at {round(distance, 2)} km,"
-                            f" Latitude: {latitude}, Longitude: {longitude}")
+                    self.log(message=f"{sncl}, log10(PGA): {round(pga, 3)} cm/s/s at {round(distance, 2)} km,"
+                             f" Latitude: {latitude}, Longitude: {longitude}")
             
         # A small summary
-        logging.info(f"Total number of stations: {len(sorted_stations)}")
-        logging.info(f"Number of valid stations: {len(valid_stations)} out of {len(sorted_stations)}")
-        logging.info(f"Number of invalid stations: {len(invalid_stations)} out of {len(sorted_stations)}")
+        self.log(message=f"Total number of stations: {len(sorted_stations)}")
+        self.log(message=f"Number of valid stations: {len(valid_stations)} out of {len(sorted_stations)}")
+        self.log(message=f"Number of invalid stations: {len(invalid_stations)} out of {len(sorted_stations)}")
 
         # We insert a fake maximum PGA at the epicenter to make FinDer 
         # stick to the actual location. This fake PGA is 1% more than the
@@ -497,12 +562,12 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
 
         # Find the maximum observed PGA
         max_oberserved_pga = np.max(valid_pgas)
-        logging.info(f"Maximum observed PGA: {round(max_oberserved_pga, 3)} cm/s/s at the stations.")
+        self.log(message=f"Maximum observed PGA: {round(max_oberserved_pga, 3)} cm/s/s at the stations.")
         fake_max_pga = np.max([Calculator.predict_PGA_from_magnitude(
                 magnitude=magnitude, event_depth=depth, log_scale=(is_live_mode == False)), 
                 max_oberserved_pga * 1.2]) 
-        logging.info(f"Use log10(PGA) in the FinDer input: {is_live_mode == False}")
-        logging.info(f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
+        self.log(message=f"Use log10(PGA) in the FinDer input: {is_live_mode == False}")
+        self.log(message=f"Artificial maximum PGA: {round(fake_max_pga, 3)} cm/s/s at the epicenter.")
         
         # Merge the coordinates and PGAs into a string
         data = []
@@ -521,10 +586,20 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
         finder_channels.add_finder_channel(latitude=fake_latitude, longitude=fake_longitude,
                                            pga=fake_max_pga, sncl=fake_station, is_artificial=True)
 
-        # Sort all arrays by the PGA values
-        valid_stations = [station for _, station in sorted(zip(valid_pgas, valid_stations), reverse=True)]
-        valid_channels = [channel for _, channel in sorted(zip(valid_pgas, valid_channels), reverse=True)]
-        valid_pgas = sorted(valid_pgas, reverse=True)
+        
+        # Sort all arrays using safe_sort
+        try:
+            valid_stations = self.safe_sort(
+                zip(valid_pgas, valid_stations), key_index=0, reverse=True)
+            valid_channels = self.safe_sort(
+                zip(valid_pgas, valid_channels), key_index=0, reverse=True)
+            valid_pgas = sorted(valid_pgas, reverse=True)
+
+        except Exception as e:
+            self.log(message=f"Error sorting the stations: {e}", level="error")
+
+            # Continue without sorting
+            pass
 
         # Append the stations
         for station_data, pga, sncl_data in zip(valid_stations, valid_pgas, valid_channels):
@@ -536,6 +611,8 @@ class RRSMPeakMotionDataFormatter(BaseDataFormatter):
             else:
                 data.append(f"{latitude} {longitude} {np.round(pga, 3)}")
             
+        self.log(message=f"Formatted {len(data)} lines of data for FinDer. Returning to the caller.")
+        
         # Return the formatted data
         return "\n".join(data).encode("ascii"), finder_channels
     

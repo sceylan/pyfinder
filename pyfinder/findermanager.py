@@ -167,6 +167,7 @@ class FinDerManager:
             raise ValueError("An event_id must be provided intead of None")
         
         # Create the RRSM and ESM clients
+        self.logger.info(f"Querying the RRSM and ESM web services for event {event_id}")
         rrsm_client = RRSMPeakMotionClient()
         _rrsm_code, _rrsm_event_and_amplitudes, _ = rrsm_client.query(event_id=event_id)
         if _rrsm_event_and_amplitudes:
@@ -176,23 +177,31 @@ class FinDerManager:
             _rrsm_event = None
             _rrsm_amplitude = None
 
+        # Log the RRSM status
+        self.logger.info(f"RRSM event status: {_rrsm_event is not None} )")
+        self.logger.info(f"RRSM amplitude status: {_rrsm_amplitude is not None} )")
+
+        # Create the ESM client
+        self.logger.info(f"Querying the ESM web services for event {event_id}")
         esm_client = ESMShakeMapClient()
         _esm_code, _esm_event, _esm_amplitude = esm_client.query(event_id=event_id)
+        self.logger.info(f"ESM event status: {_esm_event is not None} )")
+        self.logger.info(f"ESM amplitude status: {_esm_amplitude is not None} )")
 
         # Is the connection successful?
         if _rrsm_code != 200:
-            self.metadata['RRSM_status'] = "Failed: " + str(_rrsm_code)
+            self.metadata['RRSM_status'] = "Failed with HTTP " + str(_rrsm_code)
             # raise ConnectionError("Connection to the RRSM web service failed")
         else:
             self.metadata['RRSM_status'] = "Success"
 
         if _esm_code != 200:
-            self.metadata['ESM_status'] = "Failed: " + str(_esm_code)
+            self.metadata['ESM_status'] = "Failed with HTTP " + str(_esm_code)
             # raise ConnectionError("Connection to the ESM web service failed")
         else:
             self.metadata['ESM_status'] = "Success"
         
-        print("Extacting raw amplitudes ...")
+        self.logger.info("Extacting raw amplitudes ...")
         if _esm_event and _esm_amplitude:
             esm_raw = ESMShakeMapDataFormatter.extract_raw_stations(
                 event_data=_esm_event, amplitudes=_esm_amplitude)
@@ -204,7 +213,7 @@ class FinDerManager:
                 event_data=_rrsm_amplitude, amplitudes=_rrsm_amplitude)
         else:
             rrsm_raw = None
-        print("Raw amplitudes extracted.")
+        self.logger.info("Raw amplitudes extracted.")
 
         # ESM gets the priority over RRSM for event
         _event_data = _esm_event if _esm_event else _rrsm_event
@@ -214,7 +223,7 @@ class FinDerManager:
         # solution_metadata = {
         #         "last_query_time": str(event_meta['last_query_time']),
         #         "delay_until_next_query": delay,}
-        print("Collecting metadata ...")
+        self.logger.info("Collecting metadata ...")
         try:
             self.metadata['origin_time'] = _event_data.get_origin_time()
             self.metadata['longitude'] = _event_data.get_longitude()
@@ -222,19 +231,20 @@ class FinDerManager:
             self.metadata['magnitude'] = _event_data.get_magnitude()
             self.metadata['depth'] = _event_data.get_depth()
         except Exception as e:
-            print(f"Error collecting metadata: {e}")
-            
-        print(f"Calculation metadata: {self.metadata}")
+            self.logger.error(f"Error collecting metadata: {e}")
+        
         if hasattr(_event_data, "get_magnitude_type"):
             self.metadata['magnitude_type'] = _event_data.get_magnitude_type()
         else:
             self.metadata['magnitude_type'] = ""
+        self.logger.info(f"Calculation metadata: {self.metadata}")
 
         # Merge the raw data if both are available
         if esm_raw and rrsm_raw:
             # Merge the data
             self.logger.info("Merging the ESM and RRSM data")
             _amplitude_data = StationMerger().merge(esm_data=esm_raw, rrsm_data=rrsm_raw)
+            self.logger.info("Merge completed")
         else:
             # Use the raw data from either ESM or RRSM
             _amplitude_data = _esm_amplitude if _esm_amplitude else _rrsm_amplitude
@@ -247,12 +257,12 @@ class FinDerManager:
                     event_data=_event_data, amplitudes=_amplitude_data)
             
             # Return None for the library wrapper. Once implemented, it should return 
-            # a FinderSolution object.
-            # return True, FinderLibrary.get_finder_solution()
+            # a FinderSolution object: return True for a valid FinderLibrary.get_finder_solution()
             return None
         
         else:
             # Call the FinDer executable
+            self.logger.info("Starting FinDer executable")
             from finderexec import FinDerExecutable
             executable = FinDerExecutable(
                 options=self.options, configuration=self.configuration).execute(
@@ -261,7 +271,12 @@ class FinDerManager:
             # Check if the executable was successful
             if not executable or not executable.get_finder_solution_object():
                 self.logger.error("FinDer executable failed to run or returned no solution.")
+                self.logger.error("Check the FinDer ouput in the pyfinder logs for more details.")
+                self.logger.warning("Returning to caller with no solution.")
+
+                # Return None for no solution
                 return None
+            self.logger.info("FinDer executable completed successfully")
             
 
             # Set the FinDer data directories
@@ -270,12 +285,6 @@ class FinDerManager:
                                       finder_event_id=executable.get_finder_event_id())
             
             from utils.shakemap import ShakeMapExporter
-            # from datetime import datetime
-            # suffix = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-            # solution = executable.get_finder_solution_object()
-            # solution.set_finder_event_id(f"{executable.get_finder_event_id()}_{suffix}")
-
             smap_exporter = ShakeMapExporter(solution=executable.get_finder_solution_object())
             shakemapexp = smap_exporter.export_all()
             self.logger.info(f"ShakeMap files exported to: {shakemapexp['output_dir']}")
@@ -310,8 +319,7 @@ class FinDerManager:
                 finder_solution=executable.get_finder_solution_object(),
                 metadata=self.metadata
             )
-
-            # Check if the executable was successful            
+     
             # Rename the channel codes if live mode is False. When live mode is False,
             # we pass FinDer only the coordinates and it assigns the channel codes itself.
             # We rename them back to the real ones for debugging purposes.
@@ -321,7 +329,6 @@ class FinDerManager:
             # Return the FinderSolution object
             return executable.get_finder_solution_object()
             
-        return None
     
 def build_args():
     """ Build the command line arguments """
