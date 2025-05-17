@@ -178,15 +178,15 @@ class FinDerManager:
             _rrsm_amplitude = None
 
         # Log the RRSM status
-        self.logger.info(f"RRSM event status: {_rrsm_event is not None} )")
-        self.logger.info(f"RRSM amplitude status: {_rrsm_amplitude is not None} )")
+        self.logger.info(f"RRSM event status: {_rrsm_event is not None} ")
+        self.logger.info(f"RRSM amplitude status: {_rrsm_amplitude is not None} ")
 
         # Create the ESM client
         self.logger.info(f"Querying the ESM web services for event {event_id}")
         esm_client = ESMShakeMapClient()
         _esm_code, _esm_event, _esm_amplitude = esm_client.query(event_id=event_id)
-        self.logger.info(f"ESM event status: {_esm_event is not None} )")
-        self.logger.info(f"ESM amplitude status: {_esm_amplitude is not None} )")
+        self.logger.info(f"ESM event status: {_esm_event is not None} ")
+        self.logger.info(f"ESM amplitude status: {_esm_amplitude is not None} ")
 
         # Is the connection successful?
         if _rrsm_code != 200:
@@ -219,7 +219,7 @@ class FinDerManager:
         _event_data = _esm_event if _esm_event else _rrsm_event
 
         # Collect more metadata for the solution. The scheduler already 
-        # should have dumped some field in the dict:
+        # should have dumped some fields in the dict:
         # solution_metadata = {
         #         "last_query_time": str(event_meta['last_query_time']),
         #         "delay_until_next_query": delay,}
@@ -230,13 +230,13 @@ class FinDerManager:
             self.metadata['latitude'] = _event_data.get_latitude()
             self.metadata['magnitude'] = _event_data.get_magnitude()
             self.metadata['depth'] = _event_data.get_depth()
+        
+            if hasattr(_event_data, "get_magnitude_type"):
+                self.metadata['magnitude_type'] = _event_data.get_magnitude_type()
+            else:
+                self.metadata['magnitude_type'] = ""
         except Exception as e:
             self.logger.error(f"Error collecting metadata: {e}")
-        
-        if hasattr(_event_data, "get_magnitude_type"):
-            self.metadata['magnitude_type'] = _event_data.get_magnitude_type()
-        else:
-            self.metadata['magnitude_type'] = ""
         self.logger.info(f"Calculation metadata: {self.metadata}")
 
         # Merge the raw data if both are available
@@ -248,6 +248,23 @@ class FinDerManager:
         else:
             # Use the raw data from either ESM or RRSM
             _amplitude_data = _esm_amplitude if _esm_amplitude else _rrsm_amplitude
+
+
+        # A final check before running FinDer
+        if not _event_data or not _amplitude_data:
+            self.logger.warning("FinDer cannot be run.")
+            self.logger.warning("|- Reason: Neither ESM nor RRSM has event and/or amplitudes.")
+            self.logger.warning(f"|- event_id: {event_id}")
+            self.logger.warning(f"|- ESM event: {_esm_event is not None}")
+            self.logger.warning(f"|- ESM amplitude: {_esm_amplitude is not None}")
+            self.logger.warning(f"|- RRSM event: {_rrsm_event is not None}")
+            self.logger.warning(f"|- RRSM amplitude: {_rrsm_amplitude is not None}")
+            self.logger.warning(f"|- ESM raw: {esm_raw is not None}")
+            self.logger.warning(f"|- RRSM raw: {rrsm_raw is not None}")
+            self.logger.warning(f"|- ESM code: {_esm_code}")
+            self.logger.warning(f"|- RRSM code: {_rrsm_code}")
+
+            return None
 
         if self.options["use_library"]:
             # Call the FinDer library wrapper
