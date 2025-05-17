@@ -124,13 +124,15 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
                 if next_update <= 60:
                     metadata['time_until_next_update'] = str(next_update) + " minutes"
                 else:
-                    metadata['time_until_next_update'] = str(round(next_update / 60, 1)) + " hours"
-                
+                    hours = int(next_update // 60)
+                    minutes = int(next_update % 60)
+                    metadata['time_until_next_update'] = f"{hours}h {minutes}m"
+                    
                 # Remove the old field from metadata
                 del metadata['minutes_until_next_update']
             except:
                 pass            
-            
+
         # A bit tidy up the metadata
         key_order = ["origin_time", "latitude", "longitude", "depth", "magnitude", "magnitude_type"]
         for key in key_order:
