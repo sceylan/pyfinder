@@ -70,7 +70,7 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
     msg["To"] = from_addr
 
     # Add all recipients in Bcc
-    msg["Bcc"] = ", ".join(to_addrs)
+    # msg["Bcc"] = ", ".join(to_addrs)
 
     msg["Subject"] = subject
 
@@ -192,7 +192,9 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
     with smtplib.SMTP("smtp.gmail.com", smtp_port) as server:
         server.starttls()
         server.login(from_addr, password)
-        server.sendmail(from_addr, to_addrs, msg.as_string())
+
+        all_recipients = [from_addr] + to_addrs
+        server.sendmail(from_addr, all_recipients, msg.as_string())
 
 
 

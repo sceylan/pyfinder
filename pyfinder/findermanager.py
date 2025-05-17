@@ -160,6 +160,28 @@ class FinDerManager:
 
         self.logger.info(f"Channel codes have been renamed in the FinDer output. New file: {renamed_data_0}")
 
+    def _send_failure_email(self, event_id, attachment=None):
+        try:
+            from services.alert import send_email_with_attachment
+            subject = f"pyFinder Alert - event {event_id}"
+            body = f"pyFinder attempted a shakemap calculation for {event_id},\n"
+            body += f"but FinDer executable failed to produce a solution for the event.\n"
+            body += f"Check the FinDer logs for more details.\n"
+            
+            send_email_with_attachment(
+                subject=subject,
+                body=body,
+                attachments=[attachment],
+                event_id=event_id,
+                finder_solution=None,
+                metadata=self.metadata
+            )
+            self.logger.info(f"Failure notification sent.")
+
+        except Exception as e:
+            self.logger.error(f"Failed to send failure notification: {e}")
+
+
     def process_event(self, event_id) -> FinderSolution:
         """ Process data associated with an event_id """
         # Check if the event_id is not None
@@ -291,6 +313,12 @@ class FinDerManager:
                 self.logger.error("Check the FinDer ouput in the pyfinder logs for more details.")
                 self.logger.warning("Returning to caller with no solution.")
 
+                self._send_failure_email(
+                    event_id=event_id, 
+                    attachment=os.path.join(
+                        executable.get_working_directory(), "pyfinder.log")
+                )
+                    
                 # Return None for no solution
                 return None
             self.logger.info("FinDer executable completed successfully")
