@@ -116,6 +116,22 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
         plain_body += "\n\n--- Processing metadata ---\n"
         html_body += "<br><p><strong>Processing metadata:</strong><br>"
 
+        # Hack the delay time field
+        if 'minutes_until_next_update' in metadata:
+            try:
+                next_update = float(metadata['minutes_until_next_update'])
+
+                if next_update <= 60:
+                    metadata['time_until_next_update'] = str(next_update) + " minutes"
+                else:
+                    metadata['time_until_next_update'] = str(round(next_update / 60, 1)) + " hours"
+                
+                # Remove the old field from metadata
+                del metadata['minutes_until_next_update']
+            except:
+                pass            
+            
+        # A bit tidy up the metadata
         key_order = ["origin_time", "latitude", "longitude", "depth", "magnitude", "magnitude_type"]
         for key in key_order:
             if key in metadata:
