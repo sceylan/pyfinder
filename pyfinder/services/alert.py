@@ -119,10 +119,10 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
         # Hack the delay time field
         if 'minutes_until_next_update' in metadata:
             try:
-                next_update = float(metadata['minutes_until_next_update'])
+                next_update = int(metadata['minutes_until_next_update'])
 
                 if next_update <= 60:
-                    metadata['time_until_next_update'] = str(next_update) + " minutes"
+                    metadata['time_until_next_update'] = str(next_update) + " m"
                 else:
                     hours = int(next_update // 60)
                     minutes = int(next_update % 60)

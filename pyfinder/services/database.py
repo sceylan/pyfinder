@@ -67,7 +67,8 @@ class ThreadSafeDB:
     def fetch_due_events(self, service=None, limit=10):
         """Fetch events that are due for querying, optionally filtered by service."""
         now = datetime.now().isoformat()
-        query = 'SELECT event_id, service FROM event_tracker WHERE next_query_time <= ? AND status = "Pending"'
+        query = '''SELECT event_id, service FROM event_tracker 
+                   WHERE next_query_time <= ? AND status IN ("Pending", "Failed")'''
         params = [now]
         if service:
             query += ' AND service = ?'
@@ -130,15 +131,17 @@ class ThreadSafeDB:
             ''', (now.isoformat(), now.isoformat(), max_retries))
             self.conn.commit()
 
-    def log_query_error(self, event_id, service, error_message):
+    def log_query_error(self, event_id, service, error_message, next_interval_minutes=30):
         """Log an error message for a failed query and increment retry_count."""
-        now = datetime.now().isoformat()
+        now = datetime.now()
+        next_query_time = (now + timedelta(minutes=next_interval_minutes)).isoformat()
         with self._lock:
             self.cursor.execute('''
             UPDATE event_tracker
-            SET status = "Failed", last_error = ?, retry_count = retry_count + 1, last_modified = ?
+            SET status = "Failed", last_error = ?, retry_count = retry_count + 1, 
+                last_modified = ?, next_query_time = ?
             WHERE event_id = ? AND service = ?
-            ''', (error_message, now, event_id, service))
+            ''', (error_message, now.isoformat(), next_query_time, event_id, service))
             self.conn.commit()
 
     def cleanup_expired_events(self):
