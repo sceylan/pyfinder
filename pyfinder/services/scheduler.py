@@ -97,7 +97,11 @@ class FollowUpScheduler:
             # Metadata to keep track of the simulation in between modules
             solution_metadata = {
                 "last_query_time": str(event_meta['last_query_time']),
-                "minutes_until_next_update": delay,}
+                "minutes_until_next_update": delay,
+                "current_delay": policy.get_current_query_delay_minutes(event_meta),
+            }
+
+            self.logger.info(f"FinderManager will be triggerred for the current delay for {event_id}: {policy.get_current_query_delay_minutes(event_meta)} minutes.")
 
             # Create FinDerManager instance and run it
             finder_manager = FinDerManager(options=finder_options, metadata=solution_metadata)

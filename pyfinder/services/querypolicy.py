@@ -39,6 +39,11 @@ class AbstractPolicy(ABC):
         pass
 
     @abstractmethod
+    def get_current_query_delay_minutes(self, event_meta: dict) -> int:
+        """Return how many minutes to wait before the next query."""
+        pass
+
+    @abstractmethod
     def is_terminal(self, response: dict) -> bool:
         """Return True if the response indicates querying can stop permanently."""
         pass
@@ -103,6 +108,20 @@ class RRSMQueryPolicy(AbstractPolicy):
         # so that any further queries are skipped
         return None  
 
+
+    def get_current_query_delay_minutes(self, event_meta):
+        origin = normalize_iso8601(event_meta["origin_time"])
+        now = datetime.now(timezone.utc)
+        elapsed = (now - origin).total_seconds() / 60.0
+
+        past_scheduled = [t for t in self.QUERY_SCHEDULE_MINUTES if t <= elapsed]
+
+        if not past_scheduled:
+            return 0  # Default to 0 if nothing matches yet
+
+        return int(max(past_scheduled))
+
+
     def is_terminal(self, response):
         """RRSM is considered terminal if more than 2 days + 15 min have passed."""
         origin_str = response.get("origin_time")
@@ -122,16 +141,19 @@ class RRSMQueryPolicy(AbstractPolicy):
 ########
 class ESMQueryPolicy(AbstractPolicy):
     QUERY_SCHEDULE_MINUTES = []
-    ALLOWED_DRIFT_MINUTES = 2
+    ALLOWED_DRIFT_MINUTES = 1
 
     def should_query(self, event_meta):
-       return False, "Dummy policy: ESM query not implemented"
+        return False, "Dummy policy: ESM query not implemented"
 
     def get_next_query_delay_minutes(self, event_meta):
-       pass
+        pass
+
+    def get_current_query_delay_minutes(self, event_meta):
+        pass
 
     def is_terminal(self, response):
-       pass
+        pass
 
     def should_retry_on_failure(self, event_meta):
         pass
@@ -142,16 +164,19 @@ class ESMQueryPolicy(AbstractPolicy):
 ########
 class EMSCQueryPolicy(AbstractPolicy):
     QUERY_SCHEDULE_MINUTES = []
-    ALLOWED_DRIFT_MINUTES = 2
+    ALLOWED_DRIFT_MINUTES = 1
 
     def should_query(self, event_meta):
-       return False, "Dummy policy: EMSC query not implemented"
+        return False, "Dummy policy: EMSC query not implemented"
 
     def get_next_query_delay_minutes(self, event_meta):
-       pass
+        pass
+
+    def get_current_query_delay_minutes(self, event_meta):
+        pass
 
     def is_terminal(self, response):
-       pass
+        pass
 
     def should_retry_on_failure(self, event_meta):
         pass

@@ -21,9 +21,13 @@ class ShakeMapExporter:
     It generates event.xml and stationlist.json in a temporary or specified directory.
     """
 
-    def __init__(self, solution: FinderSolution, output_dir: str = None):
-        # Get the pyfinder logger
-        self.logger = logging.getLogger("pyfinder")
+    def __init__(self, solution: FinderSolution, logger=None,
+                 output_dir: str = None, augmented_id: str = None):
+        # Get the finder-manager logger
+        if logger is None:
+            self.logger = logging.getLogger("FinDerManager")
+        else:
+            self.logger = logger
 
         # Validate that the solution is a FinderSolution instance. Do not react to the
         # FinderSolution being wrong, but rather log it so that we can debug it.
@@ -35,16 +39,23 @@ class ShakeMapExporter:
         logging.info("ShakeMapExporter initialized with FinderSolution.")
         self.solution = solution
 
-        # Create a default output directory in the user's home if not specified
+        # Set the augmented ID: This is the eventID with delay appended
+        # to it. This is used to create a unique event ID for ShakeMap.
+        self.augmented_id = augmented_id
+        if self.augmented_id is not None:
+            self.logger.info(f"Augmented ID set to: {self.augmented_id}")
+        else:
+            self.logger.info("No augmented ID provided.")
+
+        # Create a default output directory in the user's home. Use the augmented ID 
+        # if provided, otherwise use the event ID or finder event ID.
+        _id_to_use = self.augmented_id or self.solution.get_event_id() or self.solution.get_finder_event_id()
+        
         self.output_dir = output_dir or os.path.join(
-            os.path.expanduser("~"),
-            "shakemap_profiles", "default", "data",
-            self.solution.get_event_id() or self.solution.get_finder_event_id(),
-            "current"
+            os.path.expanduser("~"), "shakemap_profiles", "default", "data", _id_to_use, "current"
         )
         os.makedirs(self.output_dir, exist_ok=True)
         logging.info(f"ShakeMapExporter output directory: {self.output_dir}")
-
 
     def archive_products(self, target_base_dir=None, extensions=("json", "jpg", "jpeg")):
         """ 
@@ -225,7 +236,7 @@ class ShakeMapExporter:
             "type": "FeatureCollection",
             "features": features,
             "metadata": {
-                "created": datetime.utcnow().isoformat() + "Z",
+                "created": datetime.now().isoformat() + "Z",
                 "source": "pyfinder"
             }
         }

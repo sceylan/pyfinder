@@ -122,7 +122,7 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
                 next_update = int(metadata['minutes_until_next_update'])
 
                 if next_update <= 60:
-                    metadata['time_until_next_update'] = str(next_update) + " m"
+                    metadata['time_until_next_update'] = str(next_update) + "m"
                 else:
                     hours = int(next_update // 60)
                     minutes = int(next_update % 60)
@@ -131,7 +131,20 @@ def send_email_with_attachment(subject=None, body=None, attachments=None, finder
                 # Remove the old field from metadata
                 del metadata['minutes_until_next_update']
             except:
-                pass            
+                pass        
+
+        # Also hack the current delay field
+        if 'current_delay' in metadata:
+            try:
+                current_delay = int(metadata['current_delay'])
+                if current_delay <= 60:
+                    metadata['current_delay'] = str(current_delay) + "m"
+                else:
+                    hours = int(current_delay // 60)
+                    minutes = int(current_delay % 60)
+                    metadata['current_delay'] = f"{hours}h {minutes}m"
+            except:
+                pass    
 
         # A bit tidy up the metadata
         key_order = ["origin_time", "latitude", "longitude", "depth", "magnitude", "magnitude_type"]

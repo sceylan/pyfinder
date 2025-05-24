@@ -182,6 +182,19 @@ class FinDerManager:
             self.logger.error(f"Failed to send failure notification: {e}")
 
 
+    def _build_augmented_event_id(self, event_id, delay_minutes):
+        self.logger.info(f"Building augmented event id for {event_id} with delay {delay_minutes} minutes.")
+
+        if delay_minutes is not None:
+            # e.g., "t00010" for 10 min
+            appendix = f"t{delay_minutes:05d}"  
+        else:
+            # fallback if delay is undefined
+            appendix = "t00000"  
+        
+        # e.g., "20230101_013045_t00010"
+        return f"{event_id}_{appendix}"
+    
     def process_event(self, event_id) -> FinderSolution:
         """ Process data associated with an event_id """
         # Check if the event_id is not None
@@ -326,11 +339,20 @@ class FinDerManager:
 
             # Set the FinDer data directories
             self.working_dir = executable.get_working_directory()
-            self.set_finder_data_dirs(working_dir=executable.get_working_directory(), 
-                                      finder_event_id=executable.get_finder_event_id())
+            self.set_finder_data_dirs(
+                working_dir=executable.get_working_directory(), 
+                finder_event_id=executable.get_finder_event_id())
             
             from utils.shakemap import ShakeMapExporter
-            smap_exporter = ShakeMapExporter(solution=executable.get_finder_solution_object())
+
+            augmented_event_id = self._build_augmented_event_id(
+                event_id=event_id, delay_minutes=self.metadata['current_delay'])
+            self.logger.info(f"Augmented event id for shakemap is {augmented_event_id}")
+
+            smap_exporter = ShakeMapExporter(
+                solution=executable.get_finder_solution_object(),
+                augmented_id=augmented_event_id,
+                logger=self.logger)
             shakemapexp = smap_exporter.export_all()
             self.logger.info(f"ShakeMap files exported to: {shakemapexp['output_dir']}")
 
@@ -341,7 +363,7 @@ class FinDerManager:
             os.makedirs(products_dir, exist_ok=True)
             # Copy the ShakeMap files to the products directory
             trigger = ShakeMapTrigger(
-                event_id=event_id,
+                event_id=augmented_event_id,#event_id,
                 event_xml=shakemapexp["event.xml"],
                 stationlist_path=shakemapexp["stationlist.json"],
                 rupture_path=shakemapexp["rupture.json"]  
