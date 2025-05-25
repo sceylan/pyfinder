@@ -1,5 +1,6 @@
 import os
 import sys
+import argparse
 # Add the parent directory to the system path
 # to import the necessary modules
 if not os.path.abspath("../") in sys.path:
@@ -12,6 +13,64 @@ from datetime import datetime
 from services.database import ThreadSafeDB
 from services.scheduler import FollowUpScheduler
 from services.eventtracker import EventTracker
+
+
+def generate_event_list():
+    """
+    Generate a list of events for testing purposes.
+    """
+    base_time = datetime.now(timezone.utc)
+    return [
+        {
+            'source_id': '00000001', 'source_catalog': 'EMSC-RTS',
+            'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
+            'time': (base_time + timedelta(seconds=0)).isoformat(),
+            'flynn_region': 'NORCIA, ITALY',
+            'lat': 42.84, 'lon': 13.11, 'depth': 10.0,
+            'evtype': 'ke', 'auth': 'SCSN', 'mag': 6.5, 'magtype': 'Mw',
+            'unid': '20161030_0000029', 'action': 'create'
+        },
+
+        {
+            'source_id': '00000002', 'source_catalog': 'EMSC-RTS',
+            'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
+            'time': (base_time + timedelta(seconds=0)).isoformat(),
+            'flynn_region': 'PAZARCIK, TURKEY',
+            'lat': 37.17, 'lon': 37.08, 'depth': 20.0,
+            'evtype': 'ke', 'auth': 'SCSN', 'mag': 7.8, 'magtype': 'Mw',
+            'unid': '20230206_0000008', 'action': 'create'
+        },
+
+        {
+            'source_id': '00000003', 'source_catalog': 'EMSC-RTS',
+            'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
+            'time': (base_time + timedelta(seconds=0)).isoformat(),
+            'flynn_region': 'ELBISTAN, TURKEY',
+            'lat': 38.11, 'lon': 37.24, 'depth': 10.0,
+            'evtype': 'ke', 'auth': 'SCSN', 'mag': 7.5, 'magtype': 'Mw',
+            'unid': '20230206_0000222', 'action': 'create'
+        },
+
+        {
+            'source_id': '00000004', 'source_catalog': 'EMSC-RTS',
+            'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
+            'time': (base_time + timedelta(seconds=0)).isoformat(),
+            'flynn_region': 'CRETE, GREECE',
+            'lat': 35.72, 'lon': 25.91, 'depth': 53.0,
+            'evtype': 'ke', 'auth': 'SCSN', 'mag': 6.2, 'magtype': 'Mw',
+            'unid': '20250522_0000028', 'action': 'create'
+        },
+
+        {
+            'source_id': '00000005', 'source_catalog': 'EMSC-RTS',
+            'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
+            'time': (base_time + timedelta(seconds=0)).isoformat(),
+            'flynn_region': 'ISTANBUL, TURKEY',
+            'lat': 40.887, 'lon': 28.138, 'depth': 12.0,
+            'evtype': 'ke', 'auth': 'SCSN', 'mag': 6.2, 'magtype': 'Mw',
+            'unid': '20250423_0000104', 'action': 'create'
+        }
+    ]
 
 class EventAlertWSPlaybackManager:
     """
@@ -99,7 +158,12 @@ class EventAlertWSPlaybackManager:
     def _inject_event(self, event):
         """Internal helper to inject an event into system."""
         scaled_expiration = max(0.01, 5.0 / self.speedup_factor)  
-       
+        
+        # Override the event's lastupdate and time to current time
+        now = datetime.now(timezone.utc).isoformat()
+        event['lastupdate'] = now
+        event['time'] = now
+
         self.event_tracker.register_event(
             event_id=event['unid'], 
             services=self.default_services, 
@@ -116,6 +180,10 @@ class EventAlertWSPlaybackManager:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="EMSC Event Alert Playback Tool")
+    parser.add_argument("--event-id", type=str, nargs='+', help="Inject one or more specific events by ID.")
+    args = parser.parse_args()
+
     def handle_shutdown(signum, frame):
         print("\n[Main] Interrupt received. Shutting down...")
         playback.pause()
@@ -123,50 +191,14 @@ if __name__ == "__main__":
         sys.exit(0)
     
 
-    # Example event list for playback: Kahramanmaras, Turkey 2023
-    # and Norcia, Italy 2016. This is the JSON structure used by EMSC
-    # and the one that will be used in the playback.
-    base_time = datetime.now(timezone.utc)
-    event_list = [
-        {'source_id': '00000001', 
-         'source_catalog': 'EMSC-RTS', 
-         # 'lastupdate': '2023-02-06T01:17:36Z', 
-         # 'time': '2023-02-06T01:17:36Z', 
-         'time': (base_time + timedelta(seconds=0)).isoformat(),
-         'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
-         'flynn_region': 'EASTERN TURKEY', 
-         'lat':37.17, 'lon':37.08, 'depth':20.0,
-         'evtype': 'ke', 'auth': 'SCSN', 'mag': 7.7, 'magtype': 'Mw', 
-         'unid': '20250513_0000240', 
-         'action': 'create'
-         },
-
-        # {'source_id': '00000001', 
-        #  'source_catalog': 'EMSC-RTS', 
-        #  # 'lastupdate': '2023-02-06T01:17:36Z', 
-        #  # 'time': '2023-02-06T01:17:36Z', 
-        #  'time': (base_time + timedelta(seconds=0)).isoformat(),
-        #  'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
-        #  'flynn_region': 'EASTERN TURKEY', 
-        #  'lat':37.17, 'lon':37.08, 'depth':20.0,
-        #  'evtype': 'ke', 'auth': 'SCSN', 'mag': 7.7, 'magtype': 'Mw', 
-        #  'unid': '20230206_0000008', 
-        #  'action': 'create'
-        #  },
-
-        # {'source_id': '00000002',
-        #  'source_catalog': 'EMSC-RTS', 
-        #  # 'lastupdate': '2016-10-30T06:40:18Z', 
-        #  # 'time': '2016-10-30T06:40:18Z', 
-        #  'time': (base_time + timedelta(seconds=60)).isoformat(),
-        #  'lastupdate': (base_time + timedelta(seconds=60)).isoformat(),
-        #  'flynn_region': 'ITALY', 
-        #  'lat':42.83794, 'lon':13.12324, 'depth':6.2,
-        #  'evtype': 'ke', 'auth': 'SCSN', 'mag': 6.6, 'magtype': 'Mw', 
-        #  'unid': '20161030_0000029', 
-        #  'action': 'update'
-        # }
-    ]
+    # The predefined list of events to be played back
+    event_list = generate_event_list()
+    if args.event_id:
+        event_list = [e for e in event_list if e['unid'] in args.event_id]
+    # Make sure we have events to play back
+    if not event_list:
+        print("No events found for the specified IDs. Exiting.")
+        sys.exit(1)
 
     # Start with a clean database
     for file in ["test_playback.db", "test_playback.db-shm", "test_playback.db-wal"]:
@@ -174,11 +206,10 @@ if __name__ == "__main__":
             os.remove(file)
     tracker = EventTracker("test_playback.db")
 
-    
     # Initialize the scheduler with the database instance
     scheduler = FollowUpScheduler(tracker=tracker)
 
-    # Start the scheduler in a separate thread. This is how the implementation
+    # Start the scheduler in a separate thread. This is also how the implementation
     # is done in the real-time system.
     def scheduler_loop():
         scheduler.run_forever()
@@ -187,16 +218,8 @@ if __name__ == "__main__":
 
     # Playback manager instance
     playback = EventAlertWSPlaybackManager(
-        event_list, tracker, speedup_factor=1.0, default_services=["RRSM"])
-
-    # Pause when you want
-    time.sleep(5)
-    playback.pause()
-
-    # Inject manually
-    playback.inject_next_event()
-
-    # Resume auto
+        event_list=event_list, event_tracker=tracker, 
+        speedup_factor=1.0, default_services=["RRSM"])
     playback.start_auto()
 
     # Block main thread
@@ -206,5 +229,3 @@ if __name__ == "__main__":
             scheduler_thread.join(timeout=1)
     except (KeyboardInterrupt, SystemExit):
         handle_shutdown(None, None)
-
-    
