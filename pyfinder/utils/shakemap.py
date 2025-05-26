@@ -32,9 +32,9 @@ class ShakeMapExporter:
         # Validate that the solution is a FinderSolution instance. Do not react to the
         # FinderSolution being wrong, but rather log it so that we can debug it.
         if solution is None:
-            logging.error("No solution provided to ShakeMapExporter.")
+            self.logger.error("No solution provided to ShakeMapExporter.")
         elif not isinstance(solution, FinderSolution):
-            logging.error(f"Provided solution {type(solution)} is not a {FinderSolution.__module__} instance.")
+            self.logger.error(f"Provided solution {type(solution)} is not a {FinderSolution.__module__} instance.")
             
         logging.info("ShakeMapExporter initialized with FinderSolution.")
         self.solution = solution
@@ -55,7 +55,7 @@ class ShakeMapExporter:
             os.path.expanduser("~"), "shakemap_profiles", "default", "data", _id_to_use, "current"
         )
         os.makedirs(self.output_dir, exist_ok=True)
-        logging.info(f"ShakeMapExporter output directory: {self.output_dir}")
+        self.logger.info(f"ShakeMapExporter output directory: {self.output_dir}")
 
     def archive_products(self, target_base_dir=None, extensions=("json", "jpg", "jpeg")):
         """ 
@@ -77,7 +77,7 @@ class ShakeMapExporter:
 
         # Check if the original products directory exists
         if not os.path.exists(shmap_products_dir):  # <<==
-            logging.warning(f"ShakeMap products directory does not exist: {shmap_products_dir}") 
+            self.logger.warning(f"ShakeMap products directory does not exist: {shmap_products_dir}") 
             return None 
 
         # Create a zip file with the products
@@ -95,8 +95,8 @@ class ShakeMapExporter:
                         relative_path = os.path.relpath(file_path, shmap_products_dir)
 
                         zipf.write(file_path, relative_path)
-                        logging.info(f"Added {file_path} to zip as {relative_path}")
-        logging.info(f"Created zip file: {zip_path}")
+                        self.logger.info(f"Added {file_path} to zip as {relative_path}")
+        self.logger.info(f"Created zip file: {zip_path}")
 
         # Return the path to the zip file
         return zip_path
@@ -105,18 +105,19 @@ class ShakeMapExporter:
     def export_all(self):
         """Exports both event.xml and stationlist.json as well as rupture.json """
         event_path = self._write_event_xml()
-        station_path = self._write_stationlist_json()
+        # station_path = self._write_stationlist_json()
         rupture_path = self._write_rupture_json()
-        
+        event_dat_xml_path = self._write_event_dat_xml()
+
         # Ensure products dir exists
         products_dir = os.path.join(self.output_dir, "products")
         os.makedirs(products_dir, exist_ok=True)
 
-        logging.info(f"ShakeMap files written to {self.output_dir}")
+        self.logger.info(f"ShakeMap files written to {self.output_dir}")
 
         return {
             "event.xml": event_path,
-            "stationlist.json": station_path,
+            "stationlist.json": event_dat_xml_path, #station_path,
             "rupture.json": rupture_path,
             "output_dir": self.output_dir
         }
@@ -154,7 +155,57 @@ class ShakeMapExporter:
             json.dump(rupture_data, f, indent=2)
         return path
     
+    def _write_event_dat_xml(self):
+        """Writes event_dat.xml using the standard ShakeMap XML format for station data."""
+        from xml.dom.minidom import Document
+        import os
+        from datetime import datetime
 
+        if self.solution.get_channels() is None:
+            self.logger.error("No channels found in the solution.")
+            return None
+
+        doc = Document()
+        root = doc.createElement("stationlist")
+        root.setAttribute("created", datetime.now().isoformat())
+        root.setAttribute("xmlns", "ch.ethz.sed.shakemap.usgs.xml")
+        doc.appendChild(root)
+
+        for ch in self.solution.get_channels():
+            pga = ch.get_pga()
+            pga_g = pga / 9.81 if pga is not None else None
+            if pga_g is None:
+                continue
+
+            station = doc.createElement("station")
+            station.setAttribute("code", ch.get_station_code())
+            station.setAttribute("name", ch.get_station_code())
+            station.setAttribute("insttype", ch.get_channel_code())
+            station.setAttribute("lat", str(ch.get_latitude()))
+            station.setAttribute("lon", str(ch.get_longitude()))
+            station.setAttribute("source", ch.get_network_code())
+            station.setAttribute("commtype", "DIG")
+            station.setAttribute("netid", ch.get_network_code())
+            station.setAttribute("loc", ch.get_location_code())
+
+            comp = doc.createElement("comp")
+            comp.setAttribute("name", f"{ch.get_channel_code()}N")
+
+            acc = doc.createElement("acc")
+            acc.setAttribute("value", f"{pga_g:.5f}")
+            acc.setAttribute("flag", "0")
+
+            comp.appendChild(acc)
+            station.appendChild(comp)
+            root.appendChild(station)
+
+        path = os.path.join(self.output_dir, "event_dat.xml")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(doc.toprettyxml(indent="  "))
+
+        self.logger.info(f"event_dat.xml written to {path}")
+        return path
+    
     
     def _write_event_xml(self):
         event = self.solution.get_event()
@@ -182,6 +233,59 @@ class ShakeMapExporter:
             logging.error("No channels found in the solution.")
 
         for ch in self.solution.get_channels():
+            pga = ch.get_pga()
+            pga_g = pga / 9.81 if pga is not None else None
+            # Build properties dict, extending with pgm and units field
+            properties = {
+                "network": ch.get_network_code(),
+                "netid": ch.get_network_code(),
+                "intensity_flag": "",
+                "mmi_from_pgm": [],
+                "commType": "UNK",
+                "intensity": None,
+                "pgv": None,
+                "source": ch.get_network_code(),
+                "instrumentType": "OBSERVED",
+                "station_type": "seismic",
+                "code": f"{ch.get_network_code()}.{ch.get_station_code()}",
+                "name": ch.get_station_code(),
+                "pga": pga_g,
+                "pgm": {
+                    "pga": {
+                        "value": pga_g,
+                        "units": "g",
+                        "flag": 0
+                    }
+                } if pga_g is not None else {},
+                "units": {
+                    "pga": "g"
+                } if pga_g is not None else {},
+                "intensity_stddev": None,
+                # "distance": ch.get_distance_km() or 0.0,
+                # "distances": {
+                #     "ry0": ch.get_distance_km() or 0.0,
+                #     "rrup": ch.get_distance_km() or 0.0,
+                #     "rjb": ch.get_distance_km() or 0.0,
+                #     "rx": 0.0,
+                #     "rhypo": ch.get_distance_km() or 0.0
+                # },
+                "location": ch.get_location_code(),
+                "channels": [
+                    {
+                        "name": f"{ch.get_location_code()}.{ch.get_channel_code()}",
+                        "amplitudes": [
+                            {
+                                "name": "pga",
+                                "value": pga_g,
+                                "units": "g",
+                                "flag": "0",
+                                "ln_sigma": 0
+                            }
+                        ] if pga_g is not None else []
+                    }
+                ],
+                "predictions": []
+            }
             feature = {
                 "type": "Feature",
                 "id": f"{ch.get_network_code()}.{ch.get_station_code()}",
@@ -189,46 +293,7 @@ class ShakeMapExporter:
                     "type": "Point",
                     "coordinates": [ch.get_longitude(), ch.get_latitude()]
                 },
-                "properties": {
-                    "network": ch.get_network_code(),
-                    "netid": ch.get_network_code(),
-                    "intensity_flag": "",
-                    "mmi_from_pgm": [],
-                    "commType": "UNK",
-                    "intensity": None,
-                    "pgv": None,
-                    "source": ch.get_network_code(),
-                    "instrumentType": "OBSERVED",
-                    "station_type": "seismic",
-                    "code": f"{ch.get_network_code()}.{ch.get_station_code()}",
-                    "name": ch.get_station_code(),
-                    "pga": ch.get_pga(),
-                    "intensity_stddev": None,
-                    # "distance": ch.get_distance_km() or 0.0,
-                    # "distances": {
-                    #     "ry0": ch.get_distance_km() or 0.0,
-                    #     "rrup": ch.get_distance_km() or 0.0,
-                    #     "rjb": ch.get_distance_km() or 0.0,
-                    #     "rx": 0.0,
-                    #     "rhypo": ch.get_distance_km() or 0.0
-                    # },
-                    "location": ch.get_location_code(),
-                    "channels": [
-                        {
-                            "name": f"{ch.get_location_code()}.{ch.get_channel_code()}",
-                            "amplitudes": [
-                                {
-                                    "name": "pga",
-                                    "value": ch.get_pga(),
-                                    "units": "cm/s/s",
-                                    "flag": "0",
-                                    "ln_sigma": 0
-                                }
-                            ] if ch.get_pga() is not None else []
-                        }
-                    ],
-                    "predictions": []
-                }
+                "properties": properties
             }
             features.append(feature)
 
@@ -288,5 +353,3 @@ class ShakeMapTrigger:
         except subprocess.CalledProcessError as e:
             self.logger.error(f"ShakeMap failed: {e.stderr}")
             raise
-
-
