@@ -108,7 +108,7 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
         # Process event updates
         elif info['action'] == 'update':
             logger.info(f"Updated event: {info['unid']} at {info['time']}, Magnitude: {info['mag']}, Region: {info['flynn_region']}")
-            tracker.register_event_after_update(
+            tracker.register_event_after_emsc_update(
                 event_id=info['unid'],
                 services=["RRSM"],
                 new_last_update_time=info['lastupdate'],
