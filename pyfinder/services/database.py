@@ -14,6 +14,12 @@ from datetime import datetime, timedelta, timezone
 from utils.timeutils import parse_normalized_iso8601
 
 
+STATUS_PENDING = "pending"
+STATUS_PROCESSING = "processing"
+STATUS_COMPLETED = "completed"
+STATUS_INCOMPLETE = "incomplete"
+
+
 class ThreadSafeDB:
     _lock = threading.Lock()
 
@@ -62,30 +68,30 @@ class ThreadSafeDB:
     def add_event(self, event_id, services, origin_time, last_update_time, expiration_days=5,
                   current_delay_time=None, next_delay_time=None, emsc_alert_json=None, 
                   next_query_time=None):
-        """Add a new event to the database. Logs a warning if insert is ignored due to conflict."""
+        """Add a new event to the database. Logs a warning if insert fails due to conflict."""
         now = datetime.now(timezone.utc)
         expiration_time = (now + timedelta(days=expiration_days)).isoformat(timespec='seconds')
         with self._lock:
             for service in services:
-                self.cursor.execute('''
-                INSERT OR IGNORE INTO event_tracker (
-                    event_id, service, status, origin_time, last_update_time, 
-                    last_query_time, next_query_time, retry_count, 
-                    expiration_time,
-                    current_delay_time, next_delay_time, emsc_alert_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (event_id, service, "Pending", origin_time, last_update_time, None, 
-                      next_query_time or now.isoformat(timespec='seconds'), 0, expiration_time, 
-                      current_delay_time, next_delay_time, emsc_alert_json))
-                
-                # Check if the row was inserted
-                if self.cursor.rowcount == 0:
+                try:
+                    self.cursor.execute('''
+                    INSERT INTO event_tracker (
+                        event_id, service, status, origin_time, last_update_time, 
+                        last_query_time, next_query_time, retry_count, 
+                        expiration_time,
+                        current_delay_time, next_delay_time, emsc_alert_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (event_id, service, STATUS_PENDING, origin_time, last_update_time, None, 
+                          next_query_time or now.isoformat(timespec='seconds'), 0, expiration_time, 
+                          current_delay_time, next_delay_time, emsc_alert_json))
+                except sqlite3.IntegrityError:
                     # Conflict (duplicate) occurred; log a warning if logger is available
                     if hasattr(self, "logger") and self.logger:
                         self.logger.warning(
                             f"Suppressed duplicate event insert: event_id={event_id}, service={service}, current_delay_time={current_delay_time}"
                         )
-                # else: row inserted successfully
+                    else:
+                        raise
             self.conn.commit()
 
     def set_logger(self, logger):
@@ -96,27 +102,28 @@ class ThreadSafeDB:
         """Fetch events that are due for querying, optionally filtered by service."""
         now = datetime.now(timezone.utc).isoformat(timespec='seconds')
         query = '''
-        SELECT event_id, service FROM event_tracker 
-        WHERE next_query_time <= ? AND status IN ("Pending")
+        SELECT event_id, service, current_delay_time FROM event_tracker 
+        WHERE next_query_time <= ? AND status IN (?)
         '''
-        params = [now]
+        params = [now, STATUS_PENDING]
         
         if service:
             query += ' AND service = ?'
             params.append(service)
-        query += ' ORDER BY priority DESC, next_query_time ASC LIMIT ?'
+        query += ' ORDER BY priority DESC, next_query_time'
         
         with self._lock:
             self.cursor.execute(query, params)
             return self.cursor.fetchall()
 
-    def mark_event_completed(self, event_id, service):
+    def mark_event_completed(self, event_id, service, current_delay_time):
         """Mark an event as completed with timestamp."""
         now = datetime.now(timezone.utc).isoformat(timespec='seconds')
         self._update_event_fields(
             event_id,
             service,
-            status="Completed",
+            current_delay_time=current_delay_time,
+            status=STATUS_COMPLETED,
             last_query_time=now
         )
 
@@ -135,15 +142,15 @@ class ThreadSafeDB:
         with self._lock:
             self.conn.close()
 
-    def get_event_meta(self, event_id, service):
+    def get_event_meta(self, event_id, service, current_delay_time):
         with self._lock:
             self.cursor.execute('''
             SELECT event_id, service, origin_time, last_query_time, next_query_time, status, 
                 retry_count, expiration_time,
                 current_delay_time, next_delay_time, emsc_alert_json, last_data_snapshot
             FROM event_tracker
-            WHERE event_id = ? AND service = ?
-            ''', (event_id, service))
+            WHERE event_id = ? AND service = ? AND current_delay_time = ?
+            ''', (event_id, service, current_delay_time))
             row = self.cursor.fetchone()
             if row:
                 keys = ["event_id", "service", "origin_time", "last_query_time", "next_query_time", "status",
@@ -152,44 +159,15 @@ class ThreadSafeDB:
                 return dict(zip(keys, row))
             return None
 
-    def upsert_event_state(self, event_id, service, **kwargs):
-        """
-        Insert or update a full or partial event state.
-        Only updates fields that are explicitly provided.
-        """
-        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
-        kwargs["last_modified"] = now
 
-        columns = ["event_id", "service"]
-        values = [event_id, service]
-        update_clause = []
-
-        for key, value in kwargs.items():
-            columns.append(key)
-            values.append(value)
-            update_clause.append(f"{key}=excluded.{key}")
-
-        with self._lock:
-            self.cursor.execute(f'''
-                INSERT INTO event_tracker ({", ".join(columns)})
-                VALUES ({", ".join("?" for _ in columns)})
-                ON CONFLICT(event_id, service, current_delay_time) DO UPDATE SET
-                    {", ".join(update_clause)}
-            ''', values)
-            self.conn.commit()
-
-    def get_event(self, event_id, service):
-        """Retrieve full metadata for a specific event and service."""
-        return self.get_event_meta(event_id, service)
-
-    def defer_event(self, event_id, service, minutes=10):
+    def defer_event(self, event_id, service, current_delay_time, minutes=10):
         """Postpone the next query time by N minutes."""
-        meta = self.get_event(event_id, service)
+        meta = self.get_event(event_id, service, current_delay_time)
         if not meta or not meta.get("next_query_time"):
             return
         current_time = parse_normalized_iso8601(meta["next_query_time"])
         new_time = current_time + timedelta(minutes=minutes)
-        self.upsert_event_state(event_id, service, next_query_time=new_time.isoformat(timespec='seconds'))
+        self._update_event_fields(event_id, service, current_delay_time=current_delay_time, next_query_time=new_time.isoformat(timespec='seconds'))
 
     def query_by_priority(self, min_priority=1):
         """Get events with priority greater than or equal to a given value."""
@@ -202,22 +180,25 @@ class ThreadSafeDB:
             ''', (min_priority,))
             return self.cursor.fetchall()
 
-    def _update_event_fields(self, event_id, service, **kwargs):
+    def _update_event_fields(self, event_id, service, current_delay_time, **kwargs):
         """
         Update specific fields of an event.
         """
-        if not kwargs:
-            return
         columns = []
         values = []
         for key, value in kwargs.items():
-            columns.append(f"{key} = ?")
-            values.append(value)
-        values.extend([event_id, service])
+            if value is not None:
+                columns.append(f"{key} = ?")
+                values.append(value)
+        if not columns:
+            if hasattr(self, "logger") and self.logger:
+                self.logger.warning(f"_update_event_fields skipped: no valid fields for event_id={event_id}, service={service}")
+            return
+        values.extend([event_id, service, current_delay_time])
         with self._lock:
             self.cursor.execute(f'''
                 UPDATE event_tracker
                 SET {", ".join(columns)}
-                WHERE event_id = ? AND service = ?
+                WHERE event_id = ? AND service = ? AND current_delay_time = ?
             ''', values)
             self.conn.commit()

@@ -167,9 +167,9 @@ class EventAlertWSPlaybackManager:
         event['lastupdate'] = now
         event['time'] = now
 
-        self.event_tracker.register_event(
+        self.event_tracker.register_update_schedule(
             event_id=event['unid'], 
-            services=self.default_services, 
+            service='RRSM',
             expiration_days=scaled_expiration,
             last_update_time=event['lastupdate'],
             origin_time=event['time'],
@@ -209,30 +209,17 @@ if __name__ == "__main__":
             os.remove(file)
     tracker = EventTracker("test_playback.db")
 
-    # Initialize the scheduler with the database instance
-    scheduler = FollowUpScheduler(tracker=tracker)
-
-    # Start the scheduler in a separate thread. This is also how the implementation
-    # is done in the real-time system.
-    def scheduler_loop():
-        scheduler.run_forever()
-    scheduler_thread = threading.Thread(target=scheduler_loop, daemon=True)
-    scheduler_thread.start()
-
     # Playback manager instance
     playback = EventAlertWSPlaybackManager(
         event_list=event_list, event_tracker=tracker, 
         speedup_factor=1.0, default_services=["RRSM"])
 
     # Inject events manually with policy and batch register
-    
-
     for event in playback.event_list:
         event_id = event["unid"]
         origin_time = parse_normalized_iso8601(event["time"])
         emsc_alert_json = json.dumps(event)
 
-        # Register event
         tracker.batch_register_from_policy(
             event_id=event_id,
             origin_time=origin_time,
@@ -242,16 +229,18 @@ if __name__ == "__main__":
         )
 
         print(f"Injected event {event_id} at {origin_time.isoformat(timespec='microseconds')}")
-        sleep(1.5)  # slight delay between injections
+        sleep(1.5)
 
-    # The following legacy calls are commented out as per instructions
-    # playback.start_auto()
-    # playback.inject_next_event()
+    # Now start scheduler and playback
+    scheduler = FollowUpScheduler(tracker=tracker)
+    scheduler_thread = threading.Thread(target=scheduler.run_forever, daemon=True)
+    scheduler_thread.start()
 
-    # Block main thread
+    playback.start_auto()
+
     print("[Main] Running playback. Press Ctrl+C to exit.")
     try:
-        while scheduler_thread.is_alive():
-            scheduler_thread.join(timeout=1)
+        while True:
+            time.sleep(1)
     except (KeyboardInterrupt, SystemExit):
         handle_shutdown(None, None)
