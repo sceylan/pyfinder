@@ -11,13 +11,7 @@ import sqlite3
 import threading
 import hashlib
 from datetime import datetime, timedelta, timezone
-
-
-def safe_parse_iso(timestamp: str):
-    try:
-        return datetime.fromisoformat(timestamp)
-    except ValueError:
-        return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+from utils.timeutils import parse_normalized_iso8601
 
 
 class ThreadSafeDB:
@@ -49,7 +43,6 @@ class ThreadSafeDB:
                 current_delay_time REAL DEFAULT NULL,
                 next_delay_time REAL DEFAULT NULL,
                 retry_count INTEGER DEFAULT 0,
-                update_attempt_count INTEGER DEFAULT 0,
                 expiration_time TEXT,
                 priority INTEGER DEFAULT 1,
                 last_error TEXT DEFAULT NULL,
@@ -57,7 +50,7 @@ class ThreadSafeDB:
                 last_data_snapshot TEXT DEFAULT NULL,
                 emsc_alert_json TEXT DEFAULT NULL,
                 last_modified TEXT DEFAULT (DATETIME('now')),
-                PRIMARY KEY (event_id, service)
+                PRIMARY KEY (event_id, service, current_delay_time)
             )
             ''')
             self.conn.commit()
@@ -69,7 +62,7 @@ class ThreadSafeDB:
     def add_event(self, event_id, services, origin_time, last_update_time, expiration_days=5,
                   current_delay_time=None, next_delay_time=None, emsc_alert_json=None, 
                   next_query_time=None):
-        """Add a new event to the database."""
+        """Add a new event to the database. Logs a warning if insert is ignored due to conflict."""
         now = datetime.now(timezone.utc)
         expiration_time = (now + timedelta(days=expiration_days)).isoformat(timespec='seconds')
         with self._lock:
@@ -78,25 +71,41 @@ class ThreadSafeDB:
                 INSERT OR IGNORE INTO event_tracker (
                     event_id, service, status, origin_time, last_update_time, 
                     last_query_time, next_query_time, retry_count, 
-                    update_attempt_count, expiration_time,
+                    expiration_time,
                     current_delay_time, next_delay_time, emsc_alert_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (event_id, service, "Pending", origin_time, last_update_time, None, 
-                      next_query_time or now.isoformat(timespec='seconds'), 0, 0, expiration_time, 
+                      next_query_time or now.isoformat(timespec='seconds'), 0, expiration_time, 
                       current_delay_time, next_delay_time, emsc_alert_json))
+                
+                # Check if the row was inserted
+                if self.cursor.rowcount == 0:
+                    # Conflict (duplicate) occurred; log a warning if logger is available
+                    if hasattr(self, "logger") and self.logger:
+                        self.logger.warning(
+                            f"Suppressed duplicate event insert: event_id={event_id}, service={service}, current_delay_time={current_delay_time}"
+                        )
+                # else: row inserted successfully
             self.conn.commit()
 
-    def fetch_due_events(self, service=None, limit=10):
+    def set_logger(self, logger):
+        """Attach a logger instance (used for warnings)."""
+        self.logger = logger
+
+    def fetch_due_events(self, service=None):
         """Fetch events that are due for querying, optionally filtered by service."""
         now = datetime.now(timezone.utc).isoformat(timespec='seconds')
-        query = '''SELECT event_id, service FROM event_tracker 
-                   WHERE next_query_time <= ? AND status IN ("Pending", "Failed")'''
+        query = '''
+        SELECT event_id, service FROM event_tracker 
+        WHERE next_query_time <= ? AND status IN ("Pending")
+        '''
         params = [now]
+        
         if service:
             query += ' AND service = ?'
             params.append(service)
         query += ' ORDER BY priority DESC, next_query_time ASC LIMIT ?'
-        params.append(limit)
+        
         with self._lock:
             self.cursor.execute(query, params)
             return self.cursor.fetchall()
@@ -130,7 +139,7 @@ class ThreadSafeDB:
         with self._lock:
             self.cursor.execute('''
             SELECT event_id, service, origin_time, last_query_time, next_query_time, status, 
-                retry_count, update_attempt_count, expiration_time,
+                retry_count, expiration_time,
                 current_delay_time, next_delay_time, emsc_alert_json, last_data_snapshot
             FROM event_tracker
             WHERE event_id = ? AND service = ?
@@ -138,7 +147,7 @@ class ThreadSafeDB:
             row = self.cursor.fetchone()
             if row:
                 keys = ["event_id", "service", "origin_time", "last_query_time", "next_query_time", "status",
-                        "retry_count", "update_attempt_count", "expiration_time",
+                        "retry_count", "expiration_time",
                         "current_delay_time", "next_delay_time", "emsc_alert_json", "last_data_snapshot"]
                 return dict(zip(keys, row))
             return None
@@ -164,7 +173,7 @@ class ThreadSafeDB:
             self.cursor.execute(f'''
                 INSERT INTO event_tracker ({", ".join(columns)})
                 VALUES ({", ".join("?" for _ in columns)})
-                ON CONFLICT(event_id, service) DO UPDATE SET
+                ON CONFLICT(event_id, service, current_delay_time) DO UPDATE SET
                     {", ".join(update_clause)}
             ''', values)
             self.conn.commit()
@@ -178,7 +187,7 @@ class ThreadSafeDB:
         meta = self.get_event(event_id, service)
         if not meta or not meta.get("next_query_time"):
             return
-        current_time = safe_parse_iso(meta["next_query_time"])
+        current_time = parse_normalized_iso8601(meta["next_query_time"])
         new_time = current_time + timedelta(minutes=minutes)
         self.upsert_event_state(event_id, service, next_query_time=new_time.isoformat(timespec='seconds'))
 

@@ -196,7 +196,8 @@ class FollowUpScheduler:
 
         try:
             while True:
-                self.run_once()
+                # ONLY FOR DEBUGGING: Uncomment the next line to run once
+                # self.run_once()
                 time.sleep(interval_seconds)
         except KeyboardInterrupt:
             self.shutdown()

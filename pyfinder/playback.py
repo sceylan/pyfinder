@@ -1,6 +1,9 @@
 import os
 import sys
 import argparse
+import json
+from datetime import datetime, timezone, timedelta
+from dateutil.parser import parse as parse_normalized_iso8601
 # Add the parent directory to the system path
 # to import the necessary modules
 if not os.path.abspath("../") in sys.path:
@@ -8,11 +11,11 @@ if not os.path.abspath("../") in sys.path:
 
 import threading
 import time
-from datetime import timezone, timedelta
-from datetime import datetime
+from time import sleep
 from services.database import ThreadSafeDB
 from services.scheduler import FollowUpScheduler
 from services.eventtracker import EventTracker
+from services.querypolicy import RRSMQueryPolicy
 
 
 def generate_event_list():
@@ -220,7 +223,30 @@ if __name__ == "__main__":
     playback = EventAlertWSPlaybackManager(
         event_list=event_list, event_tracker=tracker, 
         speedup_factor=1.0, default_services=["RRSM"])
-    playback.start_auto()
+
+    # Inject events manually with policy and batch register
+    
+
+    for event in playback.event_list:
+        event_id = event["unid"]
+        origin_time = parse_normalized_iso8601(event["time"])
+        emsc_alert_json = json.dumps(event)
+
+        # Register event
+        tracker.batch_register_from_policy(
+            event_id=event_id,
+            origin_time=origin_time,
+            last_update_time=parse_normalized_iso8601(event["lastupdate"]).isoformat(timespec='seconds'),
+            emsc_alert_json=emsc_alert_json,
+            policy=RRSMQueryPolicy(), 
+        )
+
+        print(f"Injected event {event_id} at {origin_time.isoformat(timespec='microseconds')}")
+        sleep(1.5)  # slight delay between injections
+
+    # The following legacy calls are commented out as per instructions
+    # playback.start_auto()
+    # playback.inject_next_event()
 
     # Block main thread
     print("[Main] Running playback. Press Ctrl+C to exit.")
