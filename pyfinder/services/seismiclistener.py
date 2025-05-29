@@ -94,8 +94,7 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
         else:
             logger.info(f"|- Decision KEEP: Event {info['unid']} is in the target regions: {target_regions}")
 
-        # if not is_magnitude_above_threshold(info, min_magnitude):
-        if not is_magnitude_above_threshold(info, 0.5):
+        if not is_magnitude_above_threshold(info, min_magnitude):
             logger.info(f"|- Decision SKIP: Event {info['unid']} has magnitude {info['mag']} below threshold, skipping...")
             return
         else:

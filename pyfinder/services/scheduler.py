@@ -112,15 +112,8 @@ class FollowUpScheduler:
             self.logger.info(f"FinDerManager run completed for event {event_id} with this outcome: {success}.")
             
             if success:
-                # If FinDerManager run was successful, check if the event is still valid
-                if policy.is_terminal(event_meta):
-                    # If the event is terminal, mark it as completed
-                    self.tracker.mark_completed(event_id, service)
-                    self.logger.info(f"Event {event_id} completed for service {service}.")
-                else:
-                    # Event is not terminal, keep the pending status and schedule the next query
-                    self.tracker.update_status(event_id, service, "Pending", next_minutes=delay)
-                    self.logger.info(f"Event {event_id} scheduled for next query in {delay} minutes.")
+                self.tracker.mark_completed(event_id, service)
+                self.logger.info(f"Event {event_id} marked completed for delay {event_meta.get('current_delay_time')} minutes for service {service}.")
             
             else:
                 # If FinDerManager run failed, check if the event is still valid
@@ -163,7 +156,7 @@ class FollowUpScheduler:
             return
 
         self.logger.info(f"Due events fetched: {len(due_events)}")
-        self.logger.info(f"Due events: {due_events}")
+        self.logger.info(f"Due events: {[(e[0], e[1]) for e in due_events]}")
 
         for event_id, service in due_events:
             # Mark the event as processing so that it is not fecthed again in the next
