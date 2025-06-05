@@ -38,6 +38,7 @@ class EventTracker:
         last_data_snapshot = "last_data_snapshot"
         emsc_alert_json = "emsc_alert_json"
         last_modified = "last_modified"
+        region = "region"
         
     def __init__(self, db_path="event_update_follow_up.db", logger=None):
         self._db = ThreadSafeDB(db_path)
@@ -99,7 +100,17 @@ class EventTracker:
 
     def get_event_meta(self, event_id, service, current_delay_time):
         """Retrieve full metadata for a specific event and service."""
-        return self._db.get_event_meta(event_id, service, current_delay_time)
+        meta = self._db.get_event_meta(event_id, service, current_delay_time)
+        if meta:
+            try:
+                import json
+                alert_json = meta.get(self.Field.emsc_alert_json)
+                if alert_json:
+                    parsed = json.loads(alert_json)
+                    meta[self.Field.region] = str(parsed.get("flynn_region")) if "flynn_region" in parsed else None
+            except Exception:
+                meta[self.Field.region] = None
+        return meta
 
     def mark_failed(self, event_id, service, current_delay_time, error_message):
         """Mark an event as failed and log the error message."""

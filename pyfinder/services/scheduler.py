@@ -106,6 +106,7 @@ class FollowUpScheduler:
                 "last_query_time": str(event_meta.get(EventTracker.Field.last_query_time)),
                 "minutes_until_next_update": delay,
                 "current_delay": event_meta.get(EventTracker.Field.current_delay_time),
+                "region": event_meta.get(EventTracker.Field.region),
             }
 
             delay_val = event_meta[EventTracker.Field.current_delay_time]
