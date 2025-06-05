@@ -160,20 +160,22 @@ class EventAlertWSPlaybackManager:
 
     def _inject_event(self, event):
         """Internal helper to inject an event into system."""
-        scaled_expiration = max(0.01, 5.0 / self.speedup_factor)  
-        
+        scaled_expiration = max(0.01, 5.0 / self.speedup_factor)
+
         # Override the event's lastupdate and time to current time
         now = datetime.now(timezone.utc).isoformat()
         event['lastupdate'] = now
         event['time'] = now
 
-        self.event_tracker.register_update_schedule(
-            event_id=event['unid'], 
-            service='RRSM',
-            expiration_days=scaled_expiration,
-            last_update_time=event['lastupdate'],
-            origin_time=event['time'],
-            )
+        # Use batch_register_from_policy for policy-based scheduling
+        self.event_tracker.batch_register_from_policy(
+            event_id=event['unid'],
+            origin_time=parse_normalized_iso8601(event['time']),
+            last_update_time=parse_normalized_iso8601(event['lastupdate']).isoformat(timespec='seconds'),
+            emsc_alert_json=json.dumps(event),
+            policy=RRSMQueryPolicy(),
+            expiration_days=scaled_expiration
+        )
         
     def reset(self):
         """Reset to beginning."""
@@ -214,22 +216,6 @@ if __name__ == "__main__":
         event_list=event_list, event_tracker=tracker, 
         speedup_factor=1.0, default_services=["RRSM"])
 
-    # Inject events manually with policy and batch register
-    for event in playback.event_list:
-        event_id = event["unid"]
-        origin_time = parse_normalized_iso8601(event["time"])
-        emsc_alert_json = json.dumps(event)
-
-        tracker.batch_register_from_policy(
-            event_id=event_id,
-            origin_time=origin_time,
-            last_update_time=parse_normalized_iso8601(event["lastupdate"]).isoformat(timespec='seconds'),
-            emsc_alert_json=emsc_alert_json,
-            policy=RRSMQueryPolicy(), 
-        )
-
-        print(f"Injected event {event_id} at {origin_time.isoformat(timespec='microseconds')}")
-        sleep(1.5)
 
     # Now start scheduler and playback
     scheduler = FollowUpScheduler(tracker=tracker)

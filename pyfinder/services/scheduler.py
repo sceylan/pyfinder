@@ -13,6 +13,12 @@ from pyfinder.findermanager import FinDerManager
 from pyfinder.services.eventtracker import EventTracker
 from pyfinder.services.querypolicy import SERVICE_POLICIES
 from pyfinder.utils.customlogger import file_logger
+from pyfinder.services.database import (
+    STATUS_PENDING,
+    STATUS_PROCESSING,
+    STATUS_COMPLETED,
+    STATUS_INCOMPLETE
+)
 
 
 class FollowUpScheduler:
@@ -22,10 +28,6 @@ class FollowUpScheduler:
     The scheduler checks for due events and processes them according to the defined 
     policies via dedicated policy instances in the SERVICE_POLICIES.
     """
-    STATUS_PENDING = "pending"
-    STATUS_PROCESSING = "processing"
-    STATUS_COMPLETED = "completed"
-    STATUS_INCOMPLETE = "incomplete"
 
     def __init__(self, tracker: EventTracker=None):
         # Create a logger for the FollowUpScheduler and its sub-tasks
@@ -72,13 +74,12 @@ class FollowUpScheduler:
         """ Method to handle the event alert. Triggered by the ThreadPoolExecutor."""
         try:
             # Check if the event is still valid by asking for the next delay time
-            # from the policy object.
-            delay = policy.get_next_query_delay_minutes(event_meta)
+            delay = event_meta.get(EventTracker.Field.next_delay_time)
             
             if delay is None:
                 # Event is no longer valid, mark it as completed, and let it run
                 # one last time for the final query interval.
-                current_delay_time = event_meta.get('current_delay_time', None)
+                current_delay_time = event_meta.get(EventTracker.Field.current_delay_time, None)
                 self.tracker.mark_completed(event_id, service, current_delay_time=current_delay_time)
                 self.logger.info(f"Event {event_id}: End of life cycle for {service}, no future queries planned.")
 
@@ -102,12 +103,13 @@ class FollowUpScheduler:
 
             # Metadata to keep track of the simulation in between modules
             solution_metadata = {
-                "last_query_time": str(event_meta['last_query_time']),
+                "last_query_time": str(event_meta.get(EventTracker.Field.last_query_time)),
                 "minutes_until_next_update": delay,
-                "current_delay": policy.get_current_query_delay_minutes(event_meta),
+                "current_delay": event_meta.get(EventTracker.Field.current_delay_time),
             }
 
-            self.logger.info(f"FinderManager will be triggerred for the current delay for {event_id}: {policy.get_current_query_delay_minutes(event_meta)} minutes.")
+            delay_val = event_meta[EventTracker.Field.current_delay_time]
+            self.logger.info(f"FinderManager will be triggered for the current delay for {event_id}: {delay_val} minutes.")
 
             # Create FinDerManager instance and run it
             finder_manager = FinDerManager(options=finder_options, metadata=solution_metadata)
@@ -117,7 +119,7 @@ class FollowUpScheduler:
             success = True if finder_solution is not None else False
             self.logger.info(f"FinDerManager run completed for event {event_id} with this outcome: {success}.")
             
-            current_delay_time = event_meta.get('current_delay_time', None)
+            current_delay_time = event_meta.get(EventTracker.Field.current_delay_time, None)
 
             if success:
                 self.tracker.mark_completed(event_id, service, current_delay_time=current_delay_time)
@@ -127,7 +129,13 @@ class FollowUpScheduler:
                 # If FinDerManager run failed, check if the event is still valid
                 if policy.should_retry_on_failure(event_meta):
                     # If we should retry, log the failure and update the status
-                    self.tracker.log_failure(event_id, service, "FinDer run failed", current_delay_time=current_delay_time)
+                    self.tracker.mark_failed(
+                        event_id=event_id,
+                        service=service,
+                        current_delay_time=current_delay_time,
+                        error_message="FinDer run failed"
+                    )
+                    self.tracker.increment_retry_count(event_id, service, current_delay_time)
                     self.logger.error(f"FinDer run failed for event {event_id} and service {service}.")
                 else:
                     # If we shouldn't retry, mark the event as completed. No further queries are needed.
@@ -138,9 +146,14 @@ class FollowUpScheduler:
             if self.logger:
                 self.logger.error(f"Error processing event {event_id} for service {service}: {e}")
             
-            current_delay_time = event_meta.get('current_delay_time', None)
+            current_delay_time = event_meta.get(EventTracker.Field.current_delay_time, None)
             if policy.should_retry_on_failure(event_meta):
-                self.tracker.log_failure(event_id, service, str(e), current_delay_time=current_delay_time)
+                self.tracker.mark_failed(
+                    event_id=event_id,
+                    service=service,
+                    current_delay_time=current_delay_time,
+                    error_message=str(e)
+                )
             else:
                 self.tracker.mark_completed(event_id, service, current_delay_time=current_delay_time)
 
@@ -168,16 +181,13 @@ class FollowUpScheduler:
         self.logger.info(f"Due events: {[(e[0], e[1]) for e in due_events]}")
 
         for event_id, service, current_delay_time in due_events:
-            # Mark the event as processing so that it is not fecthed again in the next
+            # Mark the event as processing so that it is not fetched again in the next
             # loop after sleep. The actual processing chain takes much longer, and this
             # event will keep queried until the FinDerManager run is finished at every call.
-            self.tracker._update_event_fields(event_id, service, current_delay_time, **{
-                "status": self.STATUS_PROCESSING,
-                "current_delay_time": current_delay_time
-            })
+            self.tracker.mark_as_processing(event_id, service, current_delay_time)
             self.logger.info(f"Processing event {event_id} for service {service}.")
 
-            event_meta = self.tracker.db.get_event_meta(event_id, service, current_delay_time)
+            event_meta = self.tracker.get_event_meta(event_id, service, current_delay_time)
             if not event_meta:
                 continue
 
