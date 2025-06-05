@@ -68,11 +68,17 @@ class EventTracker:
     def mark_completed(self, event_id, service, current_delay_time):
         """Mark event as completed with timestamp."""
         self._db.mark_event_completed(event_id, service, current_delay_time)
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        self._db_update_event_fields(event_id, service, current_delay_time, **{
+            self.Field.last_query_time: now
+        })
 
     def mark_as_processing(self, event_id, service, current_delay_time):
         """Mark an event as currently being processed."""
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
         self._db_update_event_fields(event_id, service, current_delay_time, **{
-            self.Field.status: STATUS_PROCESSING
+            self.Field.status: STATUS_PROCESSING,
+            self.Field.last_query_time: now
         })
 
     def cleanup_expired(self):
