@@ -86,17 +86,8 @@ class ThreadSafeDB:
                           current_delay_time, next_delay_time, emsc_alert_json))
                 except sqlite3.IntegrityError:
                     # Conflict (duplicate) occurred; log a warning if logger is available
-                    if hasattr(self, "logger") and self.logger:
-                        self.logger.warning(
-                            f"Suppressed duplicate event insert: event_id={event_id}, service={service}, current_delay_time={current_delay_time}"
-                        )
-                    else:
-                        raise
+                    raise
             self.conn.commit()
-
-    def set_logger(self, logger):
-        """Attach a logger instance (used for warnings)."""
-        self.logger = logger
 
     def fetch_due_events(self, service=None):
         """Fetch events that are due for querying, optionally filtered by service."""
@@ -160,15 +151,6 @@ class ThreadSafeDB:
             return None
 
 
-    def defer_event(self, event_id, service, current_delay_time, minutes=10):
-        """Postpone the next query time by N minutes."""
-        meta = self.get_event(event_id, service, current_delay_time)
-        if not meta or not meta.get("next_query_time"):
-            return
-        current_time = parse_normalized_iso8601(meta["next_query_time"])
-        new_time = current_time + timedelta(minutes=minutes)
-        self._update_event_fields(event_id, service, current_delay_time=current_delay_time, next_query_time=new_time.isoformat(timespec='seconds'))
-
     def query_by_priority(self, min_priority=1):
         """Get events with priority greater than or equal to a given value."""
         with self._lock:
@@ -191,8 +173,6 @@ class ThreadSafeDB:
                 columns.append(f"{key} = ?")
                 values.append(value)
         if not columns:
-            if hasattr(self, "logger") and self.logger:
-                self.logger.warning(f"_update_event_fields skipped: no valid fields for event_id={event_id}, service={service}")
             return
         values.extend([event_id, service, current_delay_time])
         with self._lock:
