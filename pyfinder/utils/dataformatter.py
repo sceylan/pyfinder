@@ -18,7 +18,7 @@ from pyfinder.utils.station_merger import RawStationMeasurement
 # Thresholds for the RRSM peak motion data that are used to filter out
 # the stations with PGA/PGV values that are not in the range.
 RRSM_PEAKMOTION_PGA_MIN = 0.00001
-RRSM_PEAKMOTION_PGA_MAX = 4*9.806 # cm/s/s
+RRSM_PEAKMOTION_PGA_MAX = 10*980.6 # cm/s/s
 RRSM_PEAKMOTION_PGV_MIN = 0.000001
 RRSM_PEAKMOTION_PGV_MAX = 1.0 # m/s
 RRSM_PEAKMOTION_PGV_BROADBAND_MIN = 0.000001

@@ -26,14 +26,16 @@ class StationMerger:
         merged = {}
         
         # Index RRSM data first
-        for sta in rrsm_data:
-            key = self._make_key(sta)
-            merged[key] = sta
+        if rrsm_data:
+            for sta in rrsm_data:
+                key = self._make_key(sta)
+                merged[key] = sta
 
         # Overwrite with ESM (priority)
-        for sta in esm_data:
-            key = self._make_key(sta)
-            merged[key] = sta
+        if esm_data:
+            for sta in esm_data:
+                key = self._make_key(sta)
+                merged[key] = sta
 
         # Sort merged stations by descending PGA
         return sorted(merged.values(), key=lambda x: x["pga"], reverse=True)

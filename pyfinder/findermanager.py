@@ -243,11 +243,11 @@ class FinDerManager:
         else:
             esm_raw = None
         
-        ###############################################
-        # # Hack for M. Boese's playbacks to run only the RRSM part.
-        # esm_raw = None
-        # _esm_event = None
-        ###############################################
+        ##############################################
+        # Hack for M. Boese's playbacks to run only the RRSM part.
+        esm_raw = None
+        _esm_event = None
+        ##############################################
 
         if _rrsm_event and _rrsm_amplitude:
             rrsm_raw = RRSMPeakMotionDataFormatter.extract_raw_stations(
@@ -281,7 +281,7 @@ class FinDerManager:
         self.logger.info(f"Calculation metadata: {self.metadata}")
 
         # Merge the raw data if both are available
-        if esm_raw and rrsm_raw:
+        if esm_raw or rrsm_raw:
             # Merge the data
             self.logger.info("Merging the ESM and RRSM data")
             _amplitude_data = StationMerger().merge(esm_data=esm_raw, rrsm_data=rrsm_raw)

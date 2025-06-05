@@ -173,7 +173,7 @@ class ShakeMapExporter:
 
         for ch in self.solution.get_channels():
             pga = ch.get_pga()
-            pga_g = pga / 9.81 if pga is not None else None
+            pga_g = pga / 9.806 if pga is not None else None
             if pga_g is None:
                 continue
 
