@@ -7,25 +7,7 @@ time intervals.
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 import math
-
-def normalize_iso8601(ts: str) -> datetime:
-    tz = None
-    if ts.endswith("Z"):
-        ts = ts[:-1]
-        tz = timezone.utc
-
-    if "." in ts:
-        date_part, frac = ts.split(".")
-        if "+" in frac or "-" in frac:  # timezone present
-            frac_part, tz_part = frac[:-6], frac[-6:]
-            frac_part = (frac_part + "000000")[:6]
-            ts = f"{date_part}.{frac_part}{tz_part}"
-        else:
-            frac = (frac + "000000")[:6]
-            ts = f"{date_part}.{frac}"
-
-    dt = datetime.fromisoformat(ts)
-    return dt.replace(tzinfo=tz) if tz else dt
+from utils.timeutils import normalize_iso8601
 
 class AbstractPolicy(ABC):
     @abstractmethod
@@ -68,6 +50,10 @@ class RRSMQueryPolicy(AbstractPolicy):
     
     # allow query within some minutes window
     ALLOWED_DRIFT_MINUTES = 1  
+
+    # The service name
+    service_name = "RRSM"
+
 
     def should_query(self, event_meta):
         """Return True if current time is within an allowed window."""
@@ -142,6 +128,7 @@ class RRSMQueryPolicy(AbstractPolicy):
 class ESMQueryPolicy(AbstractPolicy):
     QUERY_SCHEDULE_MINUTES = []
     ALLOWED_DRIFT_MINUTES = 1
+    service_name = "ESM"
 
     def should_query(self, event_meta):
         return False, "Dummy policy: ESM query not implemented"
@@ -165,6 +152,7 @@ class ESMQueryPolicy(AbstractPolicy):
 class EMSCQueryPolicy(AbstractPolicy):
     QUERY_SCHEDULE_MINUTES = []
     ALLOWED_DRIFT_MINUTES = 1
+    service_name = "EMSC"
 
     def should_query(self, event_meta):
         return False, "Dummy policy: EMSC query not implemented"

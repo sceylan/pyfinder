@@ -15,6 +15,8 @@ import json
 from pyfinderconfig import pyfinderconfig
 from services.eventtracker import EventTracker
 from utils.customlogger import file_logger
+from services.querypolicy import RRSMQueryPolicy
+from utils.timeutils import parse_normalized_iso8601
 
 # WebSocket URI for Seismic Portal
 echo_uri = pyfinderconfig["seismic-portal-listener"]["echo-uri"]
@@ -30,6 +32,7 @@ logger = file_logger(
     overwrite=False,
     level=logging.DEBUG
 )
+
 # Database tracker for event management
 tracker = EventTracker("event_update_follow_up.db", logger=logger)
 
@@ -72,6 +75,11 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
         info = data['data']['properties']
         info['action'] = data['action']
 
+        required_keys = ['unid', 'mag', 'time', 'lastupdate', 'flynn_region']
+        if not all(k in info for k in required_keys):
+            logger.warning(f"Malformed event received: missing keys in {info}")
+            return
+
         # Set default region filter if not provided
         if target_regions is None:
             target_regions = []
@@ -97,23 +105,41 @@ def myprocessing(message, target_regions=None, min_magnitude=0):
         # Process new events
         if info['action'] == 'create':
             logger.info(f"New event: {info['unid']} at {info['time']}, Magnitude: {info['mag']}, Region: {info['flynn_region']}")
-            tracker.register_event(
+            logger.info(f"Starting to register event {info['unid']} with RRSM policy for future updates...")
+            policy = RRSMQueryPolicy()
+            origin_time = parse_normalized_iso8601(info['time']).isoformat(timespec='microseconds')
+            last_update_time = parse_normalized_iso8601(info['lastupdate']).isoformat(timespec='seconds')
+            try:
+                emsc_alert_json = json.dumps(info)
+            except Exception as e:
+                logger.warning(f"Could not serialize alert JSON for event {info['unid']}: {e}")
+                emsc_alert_json = None
+
+            tracker.batch_register_from_policy(
                 event_id=info['unid'],
-                services=["RRSM"],
-                last_update_time=info['lastupdate'],
-                origin_time=info['time'],
-                expiration_days=5
-            ) 
+                policy=policy,
+                origin_time=origin_time,
+                last_update_time=last_update_time,
+                emsc_alert_json=emsc_alert_json,
+            )
 
         # Process event updates
         elif info['action'] == 'update':
             logger.info(f"Updated event: {info['unid']} at {info['time']}, Magnitude: {info['mag']}, Region: {info['flynn_region']}")
-            tracker.register_event_after_update(
+            origin_time = parse_normalized_iso8601(info['time']).isoformat(timespec='microseconds')
+            last_update_time = parse_normalized_iso8601(info['lastupdate']).isoformat(timespec='seconds')
+            try:
+                emsc_alert_json = json.dumps(info)
+            except Exception as e:
+                logger.warning(f"Could not serialize alert JSON for event {info['unid']}: {e}")
+                emsc_alert_json = None
+
+            tracker.refresh_metadata_after_emsc_update(
                 event_id=info['unid'],
-                services=["RRSM"],
-                new_last_update_time=info['lastupdate'],
-                origin_time=info['time'],
-                expiration_days=5
+                service="RRSM",
+                new_last_update_time=last_update_time,
+                origin_time=origin_time,
+                emsc_alert_json=emsc_alert_json
             )
 
     except Exception:

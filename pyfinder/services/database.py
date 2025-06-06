@@ -1,11 +1,25 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
-""" Database utility for tracking events and their query status. """
+""" 
+Database utility for tracking events and their query status. This module normally 
+should not be used directly, but rather through the services.eventtracker.EventTracker 
+class, which provides a higher-level interface for database operations related to event 
+updates and follow-ups.
+"""
 
 import sqlite3
 import threading
 import hashlib
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime, timedelta, timezone
+from utils.timeutils import parse_normalized_iso8601
+
+
+STATUS_PENDING = "pending"
+STATUS_PROCESSING = "processing"
+STATUS_COMPLETED = "completed"
+STATUS_INCOMPLETE = "incomplete"
+
 
 class ThreadSafeDB:
     _lock = threading.Lock()
@@ -23,6 +37,7 @@ class ThreadSafeDB:
     def _create_table(self):
         """Create the event tracking table if it doesn't exist."""
         with self._lock:
+            # All timestamps are stored as UTC ISO 8601 strings
             self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS event_tracker (
                 event_id TEXT,
@@ -32,121 +47,88 @@ class ThreadSafeDB:
                 last_update_time TEXT,
                 last_query_time TEXT,
                 next_query_time TEXT,
+                current_delay_time REAL DEFAULT NULL,
+                next_delay_time REAL DEFAULT NULL,
                 retry_count INTEGER DEFAULT 0,
-                update_attempt_count INTEGER DEFAULT 0,
                 expiration_time TEXT,
                 priority INTEGER DEFAULT 1,
                 last_error TEXT DEFAULT NULL,
                 last_data_hash TEXT DEFAULT NULL,
+                last_data_snapshot TEXT DEFAULT NULL,
+                emsc_alert_json TEXT DEFAULT NULL,
                 last_modified TEXT DEFAULT (DATETIME('now')),
-                PRIMARY KEY (event_id, service)
+                PRIMARY KEY (event_id, service, current_delay_time)
             )
             ''')
             self.conn.commit()
+
+    def set_logger(self, logger):
+        """Set a custom logger for the database operations."""
+        if not isinstance(logger, logging.Logger):
+            raise ValueError("Logger must be an instance of logging.Logger")
+        self.logger = logger
+        self.logger.info("Database logger set successfully.")
 
     def calculate_hash(self, data):
         """Calculate a hash of the provided data for change detection."""
         return hashlib.sha256(data.encode('utf-8')).hexdigest()
 
-    def add_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
-        """Add a new event to the database."""
-        now = datetime.now()
-        expiration_time = (now + timedelta(days=expiration_days)).isoformat()
+    def add_event(self, event_id, services, origin_time, last_update_time, expiration_time=None,
+                  current_delay_time=None, next_delay_time=None, emsc_alert_json=None, 
+                  next_query_time=None, status=STATUS_PENDING):
+        """Add a new event to the database. Logs a warning if insert fails due to conflict."""
+        now = datetime.now(timezone.utc)
+        
         with self._lock:
             for service in services:
-                self.cursor.execute('''
-                INSERT OR IGNORE INTO event_tracker (
-                    event_id, service, status, origin_time, last_update_time, 
-                    last_query_time, next_query_time, retry_count, 
-                    update_attempt_count, expiration_time
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (event_id, service, "Pending", origin_time, last_update_time, None, 
-                      now.isoformat(), 0, 0, expiration_time))
+                try:
+                    self.cursor.execute('''
+                    INSERT INTO event_tracker (
+                        event_id, service, status, origin_time, last_update_time, 
+                        last_query_time, next_query_time, retry_count, 
+                        expiration_time,
+                        current_delay_time, next_delay_time, emsc_alert_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (event_id, service, status, origin_time, last_update_time, None, 
+                          next_query_time or now.isoformat(timespec='seconds'), 0, expiration_time, 
+                          current_delay_time, next_delay_time, emsc_alert_json))
+                except sqlite3.IntegrityError:
+                    # Conflict (duplicate) occurred; log a warning if logger is available
+                    raise
             self.conn.commit()
 
-    def fetch_due_events(self, service=None, limit=10):
+    def fetch_due_events(self, service=None):
         """Fetch events that are due for querying, optionally filtered by service."""
-        now = datetime.now().isoformat()
-        query = '''SELECT event_id, service FROM event_tracker 
-                   WHERE next_query_time <= ? AND status IN ("Pending", "Failed")'''
-        params = [now]
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        query = '''
+        SELECT event_id, service, current_delay_time FROM event_tracker 
+        WHERE next_query_time <= ? AND status IN (?)
+        '''
+        params = [now, STATUS_PENDING]
+        
         if service:
             query += ' AND service = ?'
             params.append(service)
-        query += ' ORDER BY priority DESC, next_query_time ASC LIMIT ?'
-        params.append(limit)
+        query += ' ORDER BY priority DESC, next_query_time'
+        
         with self._lock:
             self.cursor.execute(query, params)
             return self.cursor.fetchall()
 
-    def _update_event_status_locked(self, event_id, service, status, next_interval_minutes=30, increment_attempt=True):
-        """Update the status of an event and schedule the next query time (requires lock to be held)."""
-        now = datetime.now()
-        next_query_time = (now + timedelta(minutes=next_interval_minutes)).isoformat()
-        if increment_attempt:
-            self.cursor.execute('''
-            UPDATE event_tracker
-            SET status = ?, last_query_time = ?, next_query_time = ?, 
-                update_attempt_count = update_attempt_count + 1, 
-                last_modified = ?
-            WHERE event_id = ? AND service = ?
-            ''', (status, now.isoformat(), next_query_time, now.isoformat(), event_id, service))
-        else:
-            self.cursor.execute('''
-            UPDATE event_tracker
-            SET status = ?, last_query_time = ?, next_query_time = ?, last_modified = ?
-            WHERE event_id = ? AND service = ?
-            ''', (status, now.isoformat(), next_query_time, now.isoformat(), event_id, service))
-        self.conn.commit()
-
-    def update_event_status(self, event_id, service, status, next_interval_minutes=30, increment_attempt=True):
-        """Public method to update event status with locking."""
-        if not self._lock.acquire(timeout=10):  # Timeout to prevent indefinite locking
-            raise TimeoutError("Database lock acquisition timed out.")
-        try:
-            self._update_event_status_locked(event_id, service, status, next_interval_minutes, increment_attempt)
-        finally:
-            self._lock.release()
-
-    
-    def mark_event_completed(self, event_id, service):
-        """Mark an event as completed."""
-        now = datetime.now().isoformat()
-        with self._lock:
-            self.cursor.execute('''
-            UPDATE event_tracker
-            SET status = "Completed", last_query_time = ?, last_modified = ?
-            WHERE event_id = ? AND service = ?
-            ''', (now, now, event_id, service))
-            self.conn.commit()
-
-    def retry_failed_events(self, max_retries=5):
-        """Reset the status of failed events for retry, if retry_count < max_retries."""
-        now = datetime.now()
-        with self._lock:
-            self.cursor.execute('''
-            UPDATE event_tracker
-            SET status = "Pending", next_query_time = ?, retry_count = retry_count + 1, last_modified = ?
-            WHERE status = "Failed" AND retry_count < ?
-            ''', (now.isoformat(), now.isoformat(), max_retries))
-            self.conn.commit()
-
-    def log_query_error(self, event_id, service, error_message, next_interval_minutes=30):
-        """Log an error message for a failed query and increment retry_count."""
-        now = datetime.now()
-        next_query_time = (now + timedelta(minutes=next_interval_minutes)).isoformat()
-        with self._lock:
-            self.cursor.execute('''
-            UPDATE event_tracker
-            SET status = "Failed", last_error = ?, retry_count = retry_count + 1, 
-                last_modified = ?, next_query_time = ?
-            WHERE event_id = ? AND service = ?
-            ''', (error_message, now.isoformat(), next_query_time, event_id, service))
-            self.conn.commit()
+    def mark_event_completed(self, event_id, service, current_delay_time):
+        """Mark an event as completed with timestamp."""
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        self._update_event_fields(
+            event_id,
+            service,
+            current_delay_time=current_delay_time,
+            status=STATUS_COMPLETED,
+            last_query_time=now
+        )
 
     def cleanup_expired_events(self):
         """Remove or mark expired events as inactive."""
-        now = datetime.now().isoformat()
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
         with self._lock:
             self.cursor.execute('''
             DELETE FROM event_tracker
@@ -159,50 +141,52 @@ class ThreadSafeDB:
         with self._lock:
             self.conn.close()
 
-    def get_event_meta(self, event_id, service):
+    def get_event_meta(self, event_id, service, current_delay_time):
         with self._lock:
             self.cursor.execute('''
             SELECT event_id, service, origin_time, last_query_time, next_query_time, status, 
-                retry_count, update_attempt_count, expiration_time
+                retry_count, expiration_time,
+                current_delay_time, next_delay_time, emsc_alert_json, last_data_snapshot
             FROM event_tracker
-            WHERE event_id = ? AND service = ?
-            ''', (event_id, service))
+            WHERE event_id = ? AND service = ? AND current_delay_time = ?
+            ''', (event_id, service, current_delay_time))
             row = self.cursor.fetchone()
             if row:
                 keys = ["event_id", "service", "origin_time", "last_query_time", "next_query_time", "status",
-                        "retry_count", "update_attempt_count", "expiration_time"]
+                        "retry_count", "expiration_time",
+                        "current_delay_time", "next_delay_time", "emsc_alert_json", "last_data_snapshot"]
                 return dict(zip(keys, row))
             return None
 
-# Example Tests
-if __name__ == "__main__":
-    db = ThreadSafeDB()
 
-    # Add events
-    db.add_event("12345", ["EMSC", "RRSM"], expiration_days=7)
-    db.add_event("67890", ["ESM"], expiration_days=5)
+    def query_by_priority(self, min_priority=1):
+        """Get events with priority greater than or equal to a given value."""
+        with self._lock:
+            self.cursor.execute('''
+                SELECT event_id, service, priority, next_query_time
+                FROM event_tracker
+                WHERE priority >= ?
+                ORDER BY priority DESC, next_query_time ASC
+            ''', (min_priority,))
+            return self.cursor.fetchall()
 
-    # Simulate fetching and checking data
-    new_data = '{"magnitude": 4.5, "location": "XYZ"}'
-    db.update_or_skip_event("12345", "EMSC", new_data)
-
-    # Simulate unchanged data
-    db.update_or_skip_event("12345", "EMSC", new_data)  # Should skip
-
-    # Simulate error logging
-    try:
-        raise Exception("Service unavailable")
-    except Exception as e:
-        db.log_query_error("12345", "EMSC", str(e))
-
-    # Retry failed events
-    db.retry_failed_events()
-
-    # Fetch pending events
-    pending = db.fetch_due_events()
-    print("Pending events:", pending)
-
-    # Cleanup expired events
-    db.cleanup_expired_events()
-
-    db.close()
+    def _update_event_fields(self, event_id, service, current_delay_time, **kwargs):
+        """
+        Update specific fields of an event.
+        """
+        columns = []
+        values = []
+        for key, value in kwargs.items():
+            if value is not None:
+                columns.append(f"{key} = ?")
+                values.append(value)
+        if not columns:
+            return
+        values.extend([event_id, service, current_delay_time])
+        with self._lock:
+            self.cursor.execute(f'''
+                UPDATE event_tracker
+                SET {", ".join(columns)}
+                WHERE event_id = ? AND service = ? AND current_delay_time = ?
+            ''', values)
+            self.conn.commit()

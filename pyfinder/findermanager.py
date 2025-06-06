@@ -187,7 +187,7 @@ class FinDerManager:
 
         if delay_minutes is not None:
             # e.g., "t00010" for 10 min
-            appendix = f"t{delay_minutes:05d}"  
+            appendix = f"t{int(delay_minutes):05d}"  
         else:
             # fallback if delay is undefined
             appendix = "t00000"  

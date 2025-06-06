@@ -5,34 +5,56 @@ event update status tracking and management. This class serves as a wrapper arou
 the ThreadSafeDB class to provide a relatively higher-level interface for managing 
 events, including registering, updating, and querying.
 """
+
 from pyfinder.services.database import ThreadSafeDB
-from datetime import datetime
+from pyfinder.services.database import (
+    STATUS_PENDING,
+    STATUS_PROCESSING,
+    STATUS_COMPLETED,
+    STATUS_INCOMPLETE
+)
+from datetime import datetime, timedelta, timezone
 import logging
 from utils.customlogger import file_logger
+from utils.timeutils import parse_normalized_iso8601
+
 
 class EventTracker:
+    class Field:
+        event_id = "event_id"
+        service = "service"
+        status = "status"
+        origin_time = "origin_time"
+        last_update_time = "last_update_time"
+        last_query_time = "last_query_time"
+        next_query_time = "next_query_time"
+        current_delay_time = "current_delay_time"
+        next_delay_time = "next_delay_time"
+        retry_count = "retry_count"
+        expiration_time = "expiration_time"
+        priority = "priority"
+        last_error = "last_error"
+        last_data_hash = "last_data_hash"
+        last_data_snapshot = "last_data_snapshot"
+        emsc_alert_json = "emsc_alert_json"
+        last_modified = "last_modified"
+        region = "region"
+        
     def __init__(self, db_path="event_update_follow_up.db", logger=None):
-        self.db = ThreadSafeDB(db_path)
+        self._db = ThreadSafeDB(db_path)
         logger = logger or logging.getLogger("pyfinder")
-        self.set_logger(logger)
 
-    def set_logger(self, logger=None):
-        """Set a logger for the EventTracker."""
-        # if logger is None:
-        #     self.logger = file_logger(
-        #         module_name="EventTracker",
-        #         log_file="eventtracker.log",
-        #         rotate=True,
-        #         overwrite=False,
-        #         level=logging.DEBUG
-        #     )
-        # else:
-        #     self.logger = logger
-        self.logger = logger
-
-    def register_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
-        """Register a new event for one or more services."""
-        self.db.add_event(
+    def set_logger(self, logger):
+        """Set a custom logger for the EventTracker."""
+        if not isinstance(logger, logging.Logger):
+            raise ValueError("Logger must be an instance of logging.Logger")
+        self._db.logger = logger
+        self._db.set_logger(logger)
+        logger.info("EventTracker logger set successfully.")
+        
+    def initialize_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
+        """Initialize a new event for one or more services."""
+        self._db.add_event(
             event_id=event_id, 
             services=services, 
             expiration_days=expiration_days,
@@ -40,89 +62,174 @@ class EventTracker:
             last_update_time=last_update_time
             )
 
-    def get_due_events(self, service, limit=10):
+    def get_due_events(self, service):
         """Fetch events that are due for querying for a given service."""
-        return self.db.fetch_due_events(service=service, limit=limit)
+        return self._db.fetch_due_events(service=service)
 
-    def update_status(self, event_id, service, status, next_minutes=30):
-        """Update event status and schedule next query."""
-        self.db.update_event_status(event_id, service, status, next_minutes)
+    def mark_completed(self, event_id, service, current_delay_time):
+        """Mark event as completed with timestamp."""
+        self._db.mark_event_completed(event_id, service, current_delay_time)
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
+            self.Field.last_query_time: now
+        })
 
-    def mark_completed(self, event_id, service):
-        """Mark event as completed if data changed; otherwise defer."""
-        self.db.mark_event_completed(event_id, service)
-
-    def log_failure(self, event_id, service, error):
-        """Log an error for a failed query attempt."""
-        self.db.log_query_error(event_id, service, error)
-
-        # Ensure logger fallback if not already set
-        if self.logger is None:
-            import utils.customlogger as customlogger
-            self.logger = customlogger.file_logger(
-                module_name="EventTracker",
-                log_file="eventtracker.log",
-                rotate=True,
-                overwrite=False,
-                level=logging.DEBUG
-            )
-        self.logger.error(f"Event {event_id} failed for service {service}: {error}")
-
-    def retry_failures(self, max_retries=5):
-        """Retry failed events that haven't exceeded retry limits."""
-        self.db.retry_failed_events(max_retries)
+    def mark_as_processing(self, event_id, service, current_delay_time):
+        """Mark an event as currently being processed."""
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
+            self.Field.status: STATUS_PROCESSING,
+            self.Field.last_query_time: now
+        })
 
     def cleanup_expired(self):
         """Clean up expired events from the database."""
-        self.db.cleanup_expired_events()
+        self._db.cleanup_expired_events()
 
     def close(self):
         """Close database connection."""
-        self.db.close()
+        self._db.close()
 
-    def register_event_after_update(self, event_id, services, new_last_update_time, origin_time=None,
-                                    expiration_days=5):
-        """ 
-        Register an event after an update with the new last update time. 
+    def db_update_event_fields(self, event_id, service, current_delay_time, **fields):
+        """Update selected fields for an event (status, next_query_time, etc.)."""
+        self._db._update_event_fields(event_id, service, current_delay_time, **fields)
 
-        The database supports multiple services ('service' field) for the same event ID 
-        to follow future updates. This provides some level of flexibility for manipulating
-        the update follow-up processing chain. The 'status' field is set to "Pending"
-        by default to force an update, and its value is hard coded.
+    def get_all_pending_events(self):
+        """Retrieve all pending or failed events across all services."""
+        return self._db.get_all_pending_events()
+
+    def get_event_meta(self, event_id, service, current_delay_time):
+        """Retrieve full metadata for a specific event and service."""
+        meta = self._db.get_event_meta(event_id, service, current_delay_time)
+        if meta:
+            try:
+                import json
+                alert_json = meta.get(self.Field.emsc_alert_json)
+                if alert_json:
+                    parsed = json.loads(alert_json)
+                    meta[self.Field.region] = str(parsed.get("flynn_region")) if "flynn_region" in parsed else None
+            except Exception:
+                meta[self.Field.region] = None
+        return meta
+
+    def mark_failed(self, event_id, service, current_delay_time, error_message):
+        """Mark an event as failed and log the error message."""
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
+            self.Field.status: STATUS_INCOMPLETE,
+            self.Field.last_error: error_message,
+            self.Field.last_query_time: now
+        })
+
+    def increment_retry_count(self, event_id, service, current_delay_time):
+        """Increment the retry count for a given event and service."""
+        meta = self.get_event_meta(event_id, service, current_delay_time)
+        if not meta:
+            return
+        retry = (meta.get(self.Field.retry_count) or 0) + 1
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
+            self.Field.retry_count: retry
+        })
+
+    def query_by_priority(self, min_priority=1):
+        """Get events with priority greater than or equal to a given value."""
+        return self._db.query_by_priority(min_priority)
+        
+    def register_new_schedule(
+            self, event_id, service, origin_time, last_update_time,
+            current_delay_time=None, next_delay_time=None,
+            next_query_time=None, emsc_alert_json=None, expiration_days=5, **kwargs):
         """
-        for service in services:
-            old_meta = self.db.get_event_meta(event_id, service)
-            if old_meta is None:
-                # No previous entry; just create new
-                self.db.add_event(event_id, [service], origin_time, 
-                                  new_last_update_time, expiration_days)
-                continue
+        Register a new scheduled service update for a specific event.
 
-            # Step 1: Mark old event as completed (updated)
-            self.db.mark_event_completed(event_id, service)
+        This method will attempt to insert a new row. If the row already exists,
+        it will raise an exception and will NOT fallback to updating.
+        """
+        expiration_time = (datetime.now(timezone.utc) + timedelta(days=expiration_days)).isoformat(timespec='seconds')
+        fields = {
+            self.Field.status: STATUS_PENDING,
+            self.Field.origin_time: origin_time,
+            self.Field.last_update_time: last_update_time,
+            self.Field.next_query_time: next_query_time,
+            self.Field.current_delay_time: current_delay_time,
+            self.Field.next_delay_time: next_delay_time,
+            self.Field.emsc_alert_json: emsc_alert_json,
+            self.Field.expiration_time: expiration_time,
+            **kwargs,
+        }
+        self._db.add_event(event_id, [service], **fields)
 
-            # Step 2: Insert new event copying old fields
-            with self.db._lock:
-                self.db.cursor.execute('''
-                INSERT OR REPLACE INTO event_tracker (
-                    event_id, service, status, origin_time, last_update_time, last_query_time,
-                    next_query_time, retry_count, update_attempt_count, expiration_time,
-                    priority, last_error, last_data_hash, last_modified
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    event_id,                             # Event ID
-                    service,                              # Service name (e.g., RRSM, ESM)
-                    "Pending",                            # Force reset status
-                    old_meta['origin_time'],              # Preserve origin time
-                    new_last_update_time,                 # Set new EMSC lastupdate
-                    old_meta['last_query_time'],          # Preserve query history
-                    old_meta['next_query_time'],          # Preserve next scheduled time
-                    old_meta['retry_count'],              # Preserve retries
-                    old_meta['update_attempt_count'],     # Preserve update attempts
-                    old_meta['expiration_time'],          # Preserve expiration
-                    1,                                    # Priority (can be tuned)
-                    None,                                 # Clear last error
-                    None,                                 # Clear last data hash
-                    datetime.now().isoformat()            # New last modified
-                ))
-                self.db.conn.commit()
+    def batch_register_from_policy(
+        self, event_id, policy, origin_time, last_update_time,
+        emsc_alert_json=None, expiration_days=5, **kwargs):
+        """
+        Register multiple scheduled service updates using a policy instance.
+
+        The policy instance must define:
+        - policy.service_name (str)
+        - policy.schedule_delays (List[float]) in minutes
+
+        Each delay will create a separate row entry with a calculated next_query_time.
+        """
+        now = datetime.now(timezone.utc)
+        delays = policy.QUERY_SCHEDULE_MINUTES
+        for i, delay in enumerate(delays):
+            print(f"Registering event {event_id} for service {policy.service_name} with delay {delay} minutes")
+            
+            next_delay = delays[i + 1] if i + 1 < len(delays) else None
+            next_query_time = (now + timedelta(minutes=delay)).isoformat(timespec='seconds')
+            self.register_new_schedule(
+                event_id=event_id,
+                service=policy.service_name,
+                origin_time=origin_time,
+                last_update_time=last_update_time,
+                current_delay_time=delay,
+                next_delay_time=next_delay,
+                next_query_time=next_query_time,
+                emsc_alert_json=emsc_alert_json,
+                expiration_days=expiration_days,
+                **kwargs
+            )
+    
+    def refresh_metadata_after_emsc_update(
+        self, event_id, service, new_last_update_time, origin_time=None, emsc_alert_json=None
+    ):
+        """
+        Update EMSC metadata for all active delay stages of an event (same event_id + service).
+        """
+        now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        fields_to_update = {
+            self.Field.last_update_time: new_last_update_time,
+            self.Field.last_modified: now,
+        }
+        if origin_time:
+            fields_to_update[self.Field.origin_time] = origin_time
+        if emsc_alert_json:
+            fields_to_update[self.Field.emsc_alert_json] = emsc_alert_json
+
+        all_rows = self.get_all_pending_events()
+        for meta in all_rows:
+            if (
+                meta[self.Field.event_id] == event_id and
+                meta[self.Field.service] == service
+            ):
+                self.db_update_event_fields(
+                    event_id=event_id,
+                    service=service,
+                    current_delay_time=meta[self.Field.current_delay_time],
+                    **fields_to_update
+                )
+
+        
+    def defer_event(self, event_id, service, current_delay_time, minutes=10):
+        """Postpone the next query time by N minutes for a specific event and service."""
+        meta = self.get_event_meta(event_id, service, current_delay_time)
+        if not meta or not meta.get(self.Field.next_query_time):
+            return  # Nothing to defer
+
+        current_time = parse_normalized_iso8601(meta[self.Field.next_query_time])
+        new_time = current_time + timedelta(minutes=minutes)
+
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
+            self.Field.next_query_time: new_time.isoformat(timespec='seconds')
+        })

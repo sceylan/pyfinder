@@ -1,6 +1,9 @@
 import os
 import sys
 import argparse
+import json
+from datetime import datetime, timezone, timedelta
+from dateutil.parser import parse as parse_normalized_iso8601
 # Add the parent directory to the system path
 # to import the necessary modules
 if not os.path.abspath("../") in sys.path:
@@ -8,11 +11,11 @@ if not os.path.abspath("../") in sys.path:
 
 import threading
 import time
-from datetime import timezone, timedelta
-from datetime import datetime
+from time import sleep
 from services.database import ThreadSafeDB
 from services.scheduler import FollowUpScheduler
 from services.eventtracker import EventTracker
+from services.querypolicy import RRSMQueryPolicy
 
 
 def generate_event_list():
@@ -157,20 +160,22 @@ class EventAlertWSPlaybackManager:
 
     def _inject_event(self, event):
         """Internal helper to inject an event into system."""
-        scaled_expiration = max(0.01, 5.0 / self.speedup_factor)  
-        
+        scaled_expiration = max(0.01, 5.0 / self.speedup_factor)
+
         # Override the event's lastupdate and time to current time
         now = datetime.now(timezone.utc).isoformat()
         event['lastupdate'] = now
         event['time'] = now
 
-        self.event_tracker.register_event(
-            event_id=event['unid'], 
-            services=self.default_services, 
-            expiration_days=scaled_expiration,
-            last_update_time=event['lastupdate'],
-            origin_time=event['time'],
-            )
+        # Use batch_register_from_policy for policy-based scheduling
+        self.event_tracker.batch_register_from_policy(
+            event_id=event['unid'],
+            origin_time=parse_normalized_iso8601(event['time']),
+            last_update_time=parse_normalized_iso8601(event['lastupdate']).isoformat(timespec='seconds'),
+            emsc_alert_json=json.dumps(event),
+            policy=RRSMQueryPolicy(),
+            expiration_days=scaled_expiration
+        )
         
     def reset(self):
         """Reset to beginning."""
@@ -206,26 +211,22 @@ if __name__ == "__main__":
             os.remove(file)
     tracker = EventTracker("test_playback.db")
 
-    # Initialize the scheduler with the database instance
-    scheduler = FollowUpScheduler(tracker=tracker)
-
-    # Start the scheduler in a separate thread. This is also how the implementation
-    # is done in the real-time system.
-    def scheduler_loop():
-        scheduler.run_forever()
-    scheduler_thread = threading.Thread(target=scheduler_loop, daemon=True)
-    scheduler_thread.start()
-
     # Playback manager instance
     playback = EventAlertWSPlaybackManager(
         event_list=event_list, event_tracker=tracker, 
         speedup_factor=1.0, default_services=["RRSM"])
+
+
+    # Now start scheduler and playback
+    scheduler = FollowUpScheduler(tracker=tracker)
+    scheduler_thread = threading.Thread(target=scheduler.run_forever, daemon=True)
+    scheduler_thread.start()
+
     playback.start_auto()
 
-    # Block main thread
     print("[Main] Running playback. Press Ctrl+C to exit.")
     try:
-        while scheduler_thread.is_alive():
-            scheduler_thread.join(timeout=1)
+        while True:
+            time.sleep(1)
     except (KeyboardInterrupt, SystemExit):
         handle_shutdown(None, None)
