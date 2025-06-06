@@ -263,6 +263,7 @@ class FinDerExecutable(object):
         else:
             self.logger.info("FinDer live mode is disabled.")
     
+        return is_live_mode
     
     def _process_finder_output(self, stdout, stderr):
         """ Process the FinDer output for the Event_ID and log everything. """
