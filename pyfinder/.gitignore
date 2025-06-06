@@ -1,0 +1,70 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# SQLite databases
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3-shm
+*.sqlite3-wal
+
+# GMT files
+gmt.*
+
+# macOS metadata files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS thumbnail cache
+._*
+
+# macOS folder attributes
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+
+# Linux-specific files
+*~ 
+.nfs*
+
+# Hidden folders (common)
+.cache/
+.venv/
+.env/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Log files
+*.log
+
+# Test and coverage outputs
+htmlcov/
+.tox/
+.noseids
+.pytest_cache/
+coverage.*
+
+# Ignore any run artifacts
+*.bak
+*.tmp
+*.orig
+
+# Ignore custom bash script logs or tmp files
+*.sh~
+
+# Ignore compiled protocol buffers (if used)
+*.pb2.py
