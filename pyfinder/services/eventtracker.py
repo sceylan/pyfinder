@@ -70,14 +70,14 @@ class EventTracker:
         """Mark event as completed with timestamp."""
         self._db.mark_event_completed(event_id, service, current_delay_time)
         now = datetime.now(timezone.utc).isoformat(timespec='seconds')
-        self._db_update_event_fields(event_id, service, current_delay_time, **{
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
             self.Field.last_query_time: now
         })
 
     def mark_as_processing(self, event_id, service, current_delay_time):
         """Mark an event as currently being processed."""
         now = datetime.now(timezone.utc).isoformat(timespec='seconds')
-        self._db_update_event_fields(event_id, service, current_delay_time, **{
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
             self.Field.status: STATUS_PROCESSING,
             self.Field.last_query_time: now
         })
@@ -90,7 +90,7 @@ class EventTracker:
         """Close database connection."""
         self._db.close()
 
-    def _db_update_event_fields(self, event_id, service, current_delay_time, **fields):
+    def db_update_event_fields(self, event_id, service, current_delay_time, **fields):
         """Update selected fields for an event (status, next_query_time, etc.)."""
         self._db._update_event_fields(event_id, service, current_delay_time, **fields)
 
@@ -115,7 +115,7 @@ class EventTracker:
     def mark_failed(self, event_id, service, current_delay_time, error_message):
         """Mark an event as failed and log the error message."""
         now = datetime.now(timezone.utc).isoformat(timespec='seconds')
-        self._db_update_event_fields(event_id, service, current_delay_time, **{
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
             self.Field.status: STATUS_INCOMPLETE,
             self.Field.last_error: error_message,
             self.Field.last_query_time: now
@@ -127,7 +127,7 @@ class EventTracker:
         if not meta:
             return
         retry = (meta.get(self.Field.retry_count) or 0) + 1
-        self._db_update_event_fields(event_id, service, current_delay_time, **{
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
             self.Field.retry_count: retry
         })
 
@@ -213,7 +213,7 @@ class EventTracker:
                 meta[self.Field.event_id] == event_id and
                 meta[self.Field.service] == service
             ):
-                self._db_update_event_fields(
+                self.db_update_event_fields(
                     event_id=event_id,
                     service=service,
                     current_delay_time=meta[self.Field.current_delay_time],
@@ -230,6 +230,6 @@ class EventTracker:
         current_time = parse_normalized_iso8601(meta[self.Field.next_query_time])
         new_time = current_time + timedelta(minutes=minutes)
 
-        self._db_update_event_fields(event_id, service, current_delay_time, **{
+        self.db_update_event_fields(event_id, service, current_delay_time, **{
             self.Field.next_query_time: new_time.isoformat(timespec='seconds')
         })

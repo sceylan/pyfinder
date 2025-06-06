@@ -73,12 +73,15 @@ class FollowUpScheduler:
     def _handle_event(self, event_id, service, event_meta, policy):
         """ Method to handle the event alert. Triggered by the ThreadPoolExecutor."""
         try:
+            # This is the scheduled update delay time for the event.
+            current_delay_time = event_meta.get(EventTracker.Field.current_delay_time, None)
+
             # Check if the event is still valid by asking for the next delay time
-            delay = event_meta.get(EventTracker.Field.next_delay_time)
+            next_delay = event_meta.get(EventTracker.Field.next_delay_time)
             
-            if delay is None:
-                # Event is no longer valid, mark it as completed, and let it run
-                # one last time for the final query interval.
+            if next_delay is None:
+                # No next_delay means this is the final update for the event.
+                # Mark it as completed, and let it run one last time for the final query interval.
                 current_delay_time = event_meta.get(EventTracker.Field.current_delay_time, None)
                 self.tracker.mark_completed(event_id, service, current_delay_time=current_delay_time)
                 self.logger.info(f"Event {event_id}: End of life cycle for {service}, no future queries planned.")
@@ -104,59 +107,67 @@ class FollowUpScheduler:
             # Metadata to keep track of the simulation in between modules
             solution_metadata = {
                 "last_query_time": str(event_meta.get(EventTracker.Field.last_query_time)),
-                "minutes_until_next_update": delay,
+                "minutes_until_next_update": next_delay,
                 "current_delay": event_meta.get(EventTracker.Field.current_delay_time),
                 "region": event_meta.get(EventTracker.Field.region),
             }
 
-            delay_val = event_meta[EventTracker.Field.current_delay_time]
-            self.logger.info(f"FinderManager will be triggered for the current delay for {event_id}: {delay_val} minutes.")
+            self.logger.info(
+                f"FinderManager will run for the scheduled delay for {event_id}: {current_delay_time} minutes."
+                )
 
             # Create FinDerManager instance and run it
-            finder_manager = FinDerManager(options=finder_options, metadata=solution_metadata)
-            finder_solution = finder_manager.run(event_id=event_id)
+            try:
+                finder_manager = FinDerManager(options=finder_options, metadata=solution_metadata)
+                finder_solution = finder_manager.run(event_id=event_id)
+            except Exception as e:
+                self.logger.error(f"FinDerManager failed for event {event_id} and service {service}: {e}")
+                finder_solution = None
             
             # Check if FinDerManager run was successful
             success = True if finder_solution is not None else False
             self.logger.info(f"FinDerManager run completed for event {event_id} with this outcome: {success}.")
             
-            current_delay_time = event_meta.get(EventTracker.Field.current_delay_time, None)
-
+            
             if success:
                 self.tracker.mark_completed(event_id, service, current_delay_time=current_delay_time)
-                self.logger.info(f"Event {event_id} marked completed for delay {current_delay_time} minutes for service {service}.")
+                self.logger.info(f"Event {event_id} marked completed for scheduled delay {current_delay_time} minutes for service {service}.")
             
             else:
                 # If FinDerManager run failed, check if the event is still valid
+                self.tracker.increment_retry_count(event_id, service, current_delay_time)
                 if policy.should_retry_on_failure(event_meta):
-                    # If we should retry, log the failure and update the status
+                    self.logger.error(f"FinDer run failed for event {event_id} and service {service}. Will retry.")
+                    # Keep status as pending so it can be retried
+                    self.tracker.db_update_event_fields(event_id, service, current_delay_time, **{
+                        EventTracker.Field.last_error: "FinDer run failed",
+                    })
+                else:
                     self.tracker.mark_failed(
                         event_id=event_id,
                         service=service,
                         current_delay_time=current_delay_time,
-                        error_message="FinDer run failed"
+                        error_message="Retry limit reached. FinDer run failed."
                     )
-                    self.tracker.increment_retry_count(event_id, service, current_delay_time)
-                    self.logger.error(f"FinDer run failed for event {event_id} and service {service}.")
-                else:
-                    # If we shouldn't retry, mark the event as completed. No further queries are needed.
-                    self.tracker.mark_completed(event_id, service, current_delay_time=current_delay_time)
                     self.logger.error(f"Event {event_id} marked as completed after retry failure for service {service}.")
 
         except Exception as e:
-            if self.logger:
-                self.logger.error(f"Error processing event {event_id} for service {service}: {e}")
-            
             current_delay_time = event_meta.get(EventTracker.Field.current_delay_time, None)
+            self.tracker.increment_retry_count(event_id, service, current_delay_time)
+
             if policy.should_retry_on_failure(event_meta):
+                self.logger.error(f"Error processing event {event_id} for service {service}. Will retry. Exception: {e}")
+                self.tracker.db_update_event_fields(event_id, service, current_delay_time, **{
+                    EventTracker.Field.last_error: str(e),
+                })
+            else:
+                self.logger.error(f"Error processing event {event_id} for service {service}. Retry limit reached. Exception: {e}")
                 self.tracker.mark_failed(
                     event_id=event_id,
                     service=service,
                     current_delay_time=current_delay_time,
-                    error_message=str(e)
+                    error_message=f"Retry limit reached. Final error: {str(e)}"
                 )
-            else:
-                self.tracker.mark_completed(event_id, service, current_delay_time=current_delay_time)
 
     def shutdown(self):
         """ Shutdown the FollowUpScheduler and clean up resources. """
@@ -200,6 +211,7 @@ class FollowUpScheduler:
                 continue
 
             # Submit task to thread pool
+            self.logger.info(f"Event {event_id} will be evaluated for delay stage: {current_delay_time} minutes.")
             self.executor.submit(self._handle_event, event_id, service, event_meta, policy)
 
     def run_forever(self, interval_seconds=10):
