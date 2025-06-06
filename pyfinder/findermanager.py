@@ -243,11 +243,11 @@ class FinDerManager:
         else:
             esm_raw = None
         
-        ##############################################
-        # Hack for M. Boese's playbacks to run only the RRSM part.
-        esm_raw = None
-        _esm_event = None
-        ##############################################
+        # ##############################################
+        # # Hack for M. Boese's playbacks to run only the RRSM part.
+        # esm_raw = None
+        # _esm_event = None
+        # ##############################################
 
         if _rrsm_event and _rrsm_amplitude:
             rrsm_raw = RRSMPeakMotionDataFormatter.extract_raw_stations(
