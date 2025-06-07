@@ -349,11 +349,15 @@ class FinDerManager:
                 working_dir=executable.get_working_directory(), 
                 finder_event_id=executable.get_finder_event_id())
             
+            # Build a new eventid with the scheduled delay time and export the data for shakemap 
             from utils.shakemap import ShakeMapExporter
-
             augmented_event_id = self._build_augmented_event_id(
                 event_id=event_id, delay_minutes=self.metadata['current_delay'])
             self.logger.info(f"Augmented event id for shakemap is {augmented_event_id}")
+            
+            # Check if we are passing the amplitudes from FinDer output
+            use_finder_amplitudes = self.configuration.get("shakemap", {}).get("use-amplitude-from-finder-output", False)
+            self.logger.info(f"To ShakeMap :: Are you passing the amplitudes from FinDer output? {use_finder_amplitudes}")
 
             smap_exporter = ShakeMapExporter(
                 solution=executable.get_finder_solution_object(),

@@ -36,7 +36,7 @@ class ShakeMapExporter:
         elif not isinstance(solution, FinderSolution):
             self.logger.error(f"Provided solution {type(solution)} is not a {FinderSolution.__module__} instance.")
             
-        logging.info("ShakeMapExporter initialized with FinderSolution.")
+        self.logger.info(f"ShakeMapExporter initialized with FinderSolution: {solution.get_description()}")
         self.solution = solution
 
         # Set the augmented ID: This is the eventID with delay appended
@@ -230,7 +230,7 @@ class ShakeMapExporter:
         features = []
 
         if self.solution.get_channels() is None:
-            logging.error("No channels found in the solution.")
+            self.logger.error("No channels found in the solution.")
 
         for ch in self.solution.get_channels():
             pga = ch.get_pga()
@@ -324,7 +324,7 @@ class ShakeMapTrigger:
         self.stationlist_path = stationlist_path
         self.rupture_path = rupture_path
         self.shake_cmd = shake_cmd
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logger or logging.getLogger("FinDerManager")
 
     def validate_inputs(self):
         if not os.path.isfile(self.event_xml):

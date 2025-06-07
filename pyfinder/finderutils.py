@@ -416,6 +416,29 @@ class FinderSolution:
         self.channels = channels
         self.finder_event_id = finder_event_id
         self.event_id = event_id
+        
+        # This holds original input if assigned, as passed to FinDer.
+        # It is a FinderSolution object inside a FinderSolution object.
+        self.input_solution: FinderSolution = None  
+
+        # Just a description of the input solution
+        self.description: str = "No description set"
+    
+    def set_description(self, description: str):
+        """ Set the description of the input solution """
+        self.description = description
+    
+    def get_description(self) -> str:
+        """ Return the description of the input solution """
+        return self.description
+
+    def set_input_solution(self, input_solution):
+        """ Set the input solution, which is the original FinDer input file """
+        self.input_solution = input_solution
+
+    def get_input_solution(self):
+        """ Return the input solution, which is the original FinDer input file """
+        return self.input_solution
 
     def get_event_id(self) -> str:
         """ Return the true event ID from web services """

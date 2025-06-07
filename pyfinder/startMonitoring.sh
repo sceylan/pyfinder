@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usage: ./run_monitor.sh [python_version]
+# Usage: ./startMonitoring.sh [python_version]
 # Default Python version is 3.9 if not specified
 
 PYTHON_VERSION=${1:-3.9}

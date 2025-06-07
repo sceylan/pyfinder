@@ -42,25 +42,26 @@ class EventTracker:
         
     def __init__(self, db_path="event_update_follow_up.db", logger=None):
         self._db = ThreadSafeDB(db_path)
-        logger = logger or logging.getLogger("pyfinder")
+        self.logger = logger or logging.getLogger("pyfinder")
 
     def set_logger(self, logger):
         """Set a custom logger for the EventTracker."""
         if not isinstance(logger, logging.Logger):
             raise ValueError("Logger must be an instance of logging.Logger")
+        self.logger = logger
         self._db.logger = logger
         self._db.set_logger(logger)
         logger.info("EventTracker logger set successfully.")
         
-    def initialize_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
-        """Initialize a new event for one or more services."""
-        self._db.add_event(
-            event_id=event_id, 
-            services=services, 
-            expiration_days=expiration_days,
-            origin_time=origin_time,
-            last_update_time=last_update_time
-            )
+    # def initialize_event(self, event_id, services, origin_time, last_update_time, expiration_days=5):
+    #     """Initialize a new event for one or more services."""
+    #     self._db.add_event(
+    #         event_id=event_id, 
+    #         services=services, 
+    #         expiration_days=expiration_days,
+    #         origin_time=origin_time,
+    #         last_update_time=last_update_time
+    #         )
 
     def get_due_events(self, service):
         """Fetch events that are due for querying for a given service."""
@@ -173,8 +174,9 @@ class EventTracker:
         """
         now = datetime.now(timezone.utc)
         delays = policy.QUERY_SCHEDULE_MINUTES
+        # print(f"Registering event {event_id} for service {policy.service_name} with delays: {delays}")
         for i, delay in enumerate(delays):
-            print(f"Registering event {event_id} for service {policy.service_name} with delay {delay} minutes")
+            # print(f"Registering event {event_id} for service {policy.service_name} with delay {delay} minutes")
             
             next_delay = delays[i + 1] if i + 1 < len(delays) else None
             next_query_time = (now + timedelta(minutes=delay)).isoformat(timespec='seconds')

@@ -53,10 +53,28 @@ class FinDerExecutable(object):
         # FinDer solution (channels used, rupture, event)
         self.finder_solution: FinderSolution = None
 
-    def get_finder_solution_object(self):
-        """ Get the FinDer solution object. """
-        return self.finder_solution
-
+    def get_finder_solution_object(self) -> FinderSolution:
+        """
+        Returns either the raw amplitude-based or FinDer-processed FinderSolution
+        based on the configuration setting under 'shakemap.use-amplitude-from-finder-output'.
+        """
+        use_finder_amplitudes = self.configuration.get("shakemap", {}).get("use-amplitude-from-finder-output", False)
+        
+        print(self.configuration["shakemap"])
+        print("use_raw:", not use_finder_amplitudes)
+        if not use_finder_amplitudes:
+            if self.finder_solution.input_solution is not None:
+                self.logger.info("Returning raw amplitudes from the input_solution.")
+                print("Returning raw amplitudes from the input_solution.")
+                return self.finder_solution.input_solution
+            else:
+                self.logger.warning("Raw amplitudes were requested, but no input_solution is available. Using FinDer-derived solution.")
+                print("Raw amplitudes were requested, but no input_solution is available. Using FinDer-derived solution.")
+                return self.finder_solution
+        else:
+            print("Returning FinDer-derived solution. ELSE branch.")
+            return self.finder_solution
+    
     def get_finder_event_id(self):
         """ Get the event id used by the FinDer executable. """
         return self.finder_event_id
@@ -202,7 +220,7 @@ class FinDerExecutable(object):
         if not os.access(self.executable_path, os.X_OK):
             raise PermissionError("The FinDer executable is not executable: {}".format(self.executable_path))
         
-    def _write_data_for_finder(self, amplitudes, event_data):
+    def _write_data_for_finder(self, amplitudes, event_data) -> tuple[str, FinderChannelList]:
         """ Write the data to the working directory. """
         data_file_path = os.path.join(self.working_directory, "data_0")
 
@@ -324,7 +342,7 @@ class FinDerExecutable(object):
         # Check if the process is successful
         if process.returncode != 0:
             self.logger.error(f"FinDer execution failed with return code: {process.returncode}")
-            self.logger.error(f"Check the log file for more details: {self.logger.log_file}")
+            # self.logger.error(f"Check the log file for more details: {self.logger.log_file}")
             sys.exit(1)
 
         # Return the stdout, stderr, and the return code, although we don't need them
@@ -366,12 +384,26 @@ class FinDerExecutable(object):
         self.finder_solution.set_event(event_solution)
         self.finder_solution.set_rupture(rupture_polygon)
         self.finder_solution.set_channels(finder_channels)
+        self.finder_solution.set_description("Solution with processed amplitudes")
+
+        # Attach the input solution (raw input channels) to the finder_solution.
+        raw_solution = FinderSolution()
+        raw_solution.set_finder_event_id(self.get_finder_event_id())
+        raw_solution.set_event_id(event_id)
+        raw_solution.set_channels(self.get_finder_used_channels())
+        raw_solution.set_event(event_solution)
+        raw_solution.set_rupture(rupture_polygon)
+        raw_solution.set_description("Solution with raw amplitudes")
+        # Set the input solution to the finder_solution
+        self.finder_solution.input_solution = raw_solution
+        self.logger.info("A FinDer solution with raw amplitudes are stored in the FinderSolution object.")
 
         # Log the FinDer solution
         self.logger.info("FinDer solution is collected.")
         self.logger.info(f"{self.finder_solution}")
-        self.logger.info("FinDer solution is stored in the FinderSolution object.")
+        self.logger.info("The actual FinDer solution is stored in the FinderSolution object.")
 
+   
     def execute(self, amplitudes, event_data):
         """ Runs the FinDer executable. Entry point for the class. """
         # The start time of the execution

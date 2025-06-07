@@ -30,6 +30,13 @@ pyfinderconfig = {
 
     },
 
+    "shakemap": {
+        # Use amplitude from FinDer output, or use the original amplitudes
+        # from the web services. Original amplitudes are merged if multiple
+        # web services are used.
+        "use-amplitude-from-finder-output": False,
+    },
+
     # Configuration for the Seismic Portal WebSocket
     "seismic-portal-listener": {
         # WebSocket URI for Seismic Portal
