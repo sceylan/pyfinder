@@ -65,11 +65,11 @@ class FinDerExecutable(object):
         if not use_finder_amplitudes:
             if self.finder_solution.input_solution is not None:
                 self.logger.info("Returning raw amplitudes from the input_solution.")
-                print("Returning raw amplitudes from the input_solution.")
+                # print("Returning raw amplitudes from the input_solution.")
                 return self.finder_solution.input_solution
             else:
                 self.logger.warning("Raw amplitudes were requested, but no input_solution is available. Using FinDer-derived solution.")
-                print("Raw amplitudes were requested, but no input_solution is available. Using FinDer-derived solution.")
+                # print("Raw amplitudes were requested, but no input_solution is available. Using FinDer-derived solution.")
                 return self.finder_solution
         else:
             print("Returning FinDer-derived solution. ELSE branch.")

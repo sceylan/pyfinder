@@ -72,7 +72,17 @@ def generate_event_list():
             'lat': 40.887, 'lon': 28.138, 'depth': 12.0,
             'evtype': 'ke', 'auth': 'SCSN', 'mag': 6.2, 'magtype': 'Mw',
             'unid': '20250423_0000104', 'action': 'create'
-        }
+        },
+
+        {
+            'source_id': '00000006', 'source_catalog': 'EMSC-RTS',
+            'lastupdate': (base_time + timedelta(seconds=0)).isoformat(),
+            'time': (base_time + timedelta(seconds=0)).isoformat(),
+            'flynn_region': 'MARMARA SEA, TURKEY',
+            'lat': 40.815, 'lon': 28.386, 'depth': 8.2,
+            'evtype': 'ke', 'auth': 'SCSN', 'mag': 4.2, 'magtype': 'ML',
+            'unid': '20250520_0000201', 'action': 'create'
+        },
     ]
 
 class EventAlertWSPlaybackManager:

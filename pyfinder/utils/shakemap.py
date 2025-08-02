@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Module to manage the shakemap input files from FinDer solution."""
 
+from filelock import FileLock
 # ShakeMapExporter: exports ShakeMap-compatible event.xml and stationlist.json from a FinderSolution
 import os
 import json
@@ -8,8 +9,12 @@ from datetime import datetime, timezone
 from xml.etree.ElementTree import Element, ElementTree
 import subprocess
 from finderutils import FinderSolution
+from utils.regionlocator import RegionLocator
+from pyfinderconfig import pyfinderconfig
 import logging
 import zipfile
+import shutil
+from utils.config_fetcher import ensure_shakemap_config
 
 
 # --------------------------------------------
@@ -326,6 +331,83 @@ class ShakeMapTrigger:
         self.shake_cmd = shake_cmd
         self.logger = logger or logging.getLogger("FinDerManager")
 
+    def _backup_default_config(self):
+        """Create backups of the default ShakeMap config files if they don't already exist."""
+        target_dir = os.path.expanduser("~/shakemap_profiles/default/install/config")
+        try:
+            files_to_backup = ["gmpe_sets.conf", "model.conf", "modules.conf", "select.conf"]
+            for conf_file in files_to_backup:
+                orig_path = os.path.join(target_dir, f"{conf_file}.orig")
+                src_path = os.path.join(target_dir, conf_file)
+                if os.path.isfile(src_path) and not os.path.isfile(orig_path):
+                    shutil.copy2(src_path, orig_path)
+                    self.logger.info(f"Created backup {orig_path}")
+        except Exception as e:
+            self.logger.exception("Error while backing up default ShakeMap configs")
+
+    def _apply_region_config(self):
+        # Ensure config repo is available
+        ensure_shakemap_config()
+        
+        # Use the region locator to determine the region based on event coordinates
+        region_locator = RegionLocator()
+        region_code = region_locator.get_region(self._get_event_lat(), self._get_event_lon())
+        config_map = pyfinderconfig["shakemap"]["region-specific-shakemap-config"]
+
+        if region_code not in config_map:
+            self.logger.warning(f"No ShakeMap config defined for region {region_code}. Using default.")
+            return None
+
+        # Ensure backups of default configs exist before overriding
+        self._backup_default_config()
+
+        source_dir = config_map[region_code]
+        target_dir = os.path.expanduser("~/shakemap_profiles/default/install/config")
+
+        for conf_file in ["gmpe_sets.conf", "model.conf", "modules.conf", "select.conf"]:
+            src = os.path.join(source_dir, conf_file)
+            dest = os.path.join(target_dir, conf_file)
+            shutil.copy2(src, dest)
+            self.logger.info(f"Applied {conf_file} from {source_dir} for region {region_code}")
+
+        return region_code
+
+    def _restore_default_config(self):
+        """
+        Restore default ShakeMap config files from their .orig backups.
+        This logic closely follows the approach in make_rupturejson_and_allxmlinput_fromdb_call_shake.py.
+        """
+        target_dir = os.path.expanduser("~/shakemap_profiles/default/install/config")
+        try:
+            files_to_restore = ["gmpe_sets.conf", "model.conf", "modules.conf", "select.conf"]
+            for conf_file in files_to_restore:
+                orig_path = os.path.join(target_dir, f"{conf_file}.orig")
+                dest_path = os.path.join(target_dir, conf_file)
+                if os.path.isfile(orig_path):
+                    shutil.copy2(orig_path, dest_path)
+                    self.logger.info(f"Restored original {conf_file} from {orig_path}")
+                else:
+                    # If no .orig file exists, warn and leave the current config as is
+                    self.logger.warning(f"Original config not found for {conf_file}; leaving current file in place.")
+        except Exception as e:
+            self.logger.exception("Unexpected error restoring ShakeMap config; continuing with current files.")
+
+    def _get_event_lat(self):
+        try:
+            tree = ElementTree(file=self.event_xml)
+            root = tree.getroot()
+            return float(root.get("lat", 0))
+        except Exception:
+            return 0.0
+
+    def _get_event_lon(self):
+        try:
+            tree = ElementTree(file=self.event_xml)
+            root = tree.getroot()
+            return float(root.get("lon", 0))
+        except Exception:
+            return 0.0
+
     def validate_inputs(self):
         if not os.path.isfile(self.event_xml):
             raise FileNotFoundError(f"Missing event file: {self.event_xml}")
@@ -336,20 +418,35 @@ class ShakeMapTrigger:
 
     def run(self):
         self.validate_inputs()
-        cmd = [
-            self.shake_cmd,
-            "--force",  # force overwrite of existing files
-            "-d", self.event_id,  # positional argument for event ID
-            "select", "assemble",
-            "-c", "pyFinder",
-            "model", "contour", "mapping", "stations",  "gridxml"
-        ]
+        lock_file = os.path.expanduser("~/shakemap_profiles/shakemap.lock")
 
-        self.logger.info(f"Running ShakeMap: {' '.join(cmd)}")
-        try:
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            self.logger.info("ShakeMap triggered successfully.")
-            self.logger.debug(result.stdout)
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f"ShakeMap failed: {e.stderr}")
-            raise
+        with FileLock(lock_file, timeout=600):  # wait up to 10 min for lock
+            use_regional_shakemap_config = pyfinderconfig["shakemap"].get(
+                "use-region-specific-shakemap-config", False)
+            
+            if use_regional_shakemap_config:
+                self._apply_region_config()
+            else:
+                self.logger.info("Region-specific ShakeMap config is disabled. Using default config.")
+            cmd = [
+                self.shake_cmd,
+                "--force",  # force overwrite of existing files
+                "-d", self.event_id,  # positional argument for event ID
+                "select", "assemble",
+                "-c", "pyFinder",
+                "model", "contour", "mapping", "stations",  "gridxml"
+            ]
+
+            self.logger.info(f"Running ShakeMap: {' '.join(cmd)}")
+            try:
+                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+                self.logger.info("ShakeMap triggered successfully.")
+                self.logger.debug(result.stdout)
+            except subprocess.CalledProcessError as e:
+                self.logger.error(f"ShakeMap failed: {e.stderr}")
+            finally:
+                if use_regional_shakemap_config:
+                    # Only restore defaults if region-specific config was used
+                    self._restore_default_config()
+                else:
+                    self.logger.info("Region-specific ShakeMap config was not used; skipping restore.")

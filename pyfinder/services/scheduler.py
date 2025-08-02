@@ -5,14 +5,13 @@ which manages the scheduling of follow-up queries. This class manages if another
 data update is expected, executes the FinDerManager to process the event, and
 handles the results.
 """
-from datetime import datetime, timedelta, timezone
-import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from pyfinder.findermanager import FinDerManager
 from pyfinder.services.eventtracker import EventTracker
 from pyfinder.services.querypolicy import SERVICE_POLICIES
 from pyfinder.utils.customlogger import file_logger
+from pyfinder.utils.config_fetcher import ensure_shakemap_config
 from pyfinder.services.database import (
     STATUS_PENDING,
     STATUS_PROCESSING,
@@ -44,9 +43,16 @@ class FollowUpScheduler:
         # Thread pool with up to 10 workers
         self.executor = ThreadPoolExecutor(max_workers=10)
         self.logger.info("ThreadPoolExecutor initialized for the scheduler.")
-
         self.logger.info("FollowUpScheduler initialization completed.")
-        
+
+        # Ensure the shakemap configuration is available
+        try:
+            self.logger.info("Ensuring ShakeMap configuration is available...")
+            ensure_shakemap_config()
+            self.logger.info("ShakeMap configuration cloned successfully.")
+        except Exception as e:
+            self.logger.error(f"Failed to ensure ShakeMap configuration: {e}")
+            
     @staticmethod
     def _welcome_message(logger):
         """ Print a welcome message to the console and log it. """

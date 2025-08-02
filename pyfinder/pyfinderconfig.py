@@ -35,6 +35,27 @@ pyfinderconfig = {
         # from the web services. Original amplitudes are merged if multiple
         # web services are used.
         "use-amplitude-from-finder-output": False,
+
+        # Region-specific ShakeMap configuration. The configuration files
+        # are automatically downloaded and extracted to the extern/shakemap-conf-eu directory.
+        # No need to change this path or do anything else. The regional configuration
+        # will be ignored if the use-region-specific-shakemap-config is False.
+        "use-region-specific-shakemap-config": False,
+        "region-specific-shakemap-config": {          
+            "al": "extern/shakemap-conf-eu/config/albania",
+            "hr": "extern/shakemap-conf-eu/config/croatia",
+            "gr": "extern/shakemap-conf-eu/config/greece",
+            "ro": "extern/shakemap-conf-eu/config/romania",
+            "ch": "extern/shakemap-conf-eu/config/switzerland",
+            "be": "extern/shakemap-conf-eu/config/belgium",
+            "fr": "extern/shakemap-conf-eu/config/france",
+            "it": "extern/shakemap-conf-eu/config/italy",
+            "si": "extern/shakemap-conf-eu/config/slovenia"
+        },
+
+        # Shapefile for country borders. Pre-downloaded from Natural Earth:
+        # https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/110m/cultural/ne_110m_admin_0_countries.zip
+        "country-borders-shapefile": "extern/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp"
     },
 
     # Configuration for the Seismic Portal WebSocket
